@@ -86,18 +86,6 @@ MANS provides strong, consistent performance across diverse platforms:
 - Recommended OS: **Ubuntu 22.04+**
 
 ---
-<!-- 
-## Requirements
-
-- CMake ≥ 3.15  
-- C++17 compiler
-- OpenMP support (e.g., install `libomp-dev`, for CPU parallel compression)  
-- Recommended platform: Linux (Ubuntu 22.04)  
-- CUDA 12.6 (for NVIDIA GPU)
-- ROCm (for AMD GPU)
-- Git -->
-
----
 
 ## 🔧 Building
 
