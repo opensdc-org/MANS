@@ -40,7 +40,7 @@ This framework is tailored for high-volume scientific and HPC workloads such as 
 
 MANS consistently delivers strong compression ratios across real-world scientific datasets:
 
-![Compression Ratio Plot](figure/CR.png)
+<img src="figure/CR.png" width="50%">
 
 ### **CPU (-r mode)**
 - **2.37×** higher compression ratio vs. FSE-ANS  
@@ -97,6 +97,8 @@ MANS provides strong, consistent performance across diverse platforms:
 - ROCm (for AMD GPU)
 - Git -->
 
+---
+
 ## 🔧 Building
 
 ### **1️⃣ Clone the Repository**
@@ -127,6 +129,7 @@ cmake -DTARGET_PLATFORM=cpu_nv .. && make (this is for cpu and nvidia platform)
 > - `cpu_amd` — CPU + AMD build 
 > - `all` — NVIDIA + AMD + CPU build  
 ```
+---
 
 ## 🚀 Usage
 
@@ -172,6 +175,8 @@ On the AMD GPU
 ./build/bin/amd/hipans_decompress output_file_mans output_file_adm
 ``` -->
 
+---
+
 ## 📁 Project Structure
 
 ```
@@ -185,6 +190,7 @@ MANS/
  └── README.md
  ...
 ```
+---
 
 ## 📜 License
 
