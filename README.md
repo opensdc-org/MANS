@@ -1,4 +1,4 @@
-# MANS: Efficient & Portable ANS Encoding for Multi-Byte Integer Data on Heterogeneous Platforms
+# MANS: Efficient and Portable ANS Encoding for Multi-Byte Integer Data on CPUs and GPUs
 
 [![C++ Version](https://img.shields.io/badge/C++-17%2B-blue.svg)](https://isocpp.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
