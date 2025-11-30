@@ -11,6 +11,12 @@ At the core of MANS is **ADM (Adaptive Data Mapping)** — a lightweight, distri
 
 This framework is tailored for high-volume scientific and HPC workloads such as photon science, large-scale simulations, and sensor-array pipelines, where multi-byte integer data is ubiquitous and processed in small slices. 🔬🚀
 
+(C) 2025 by Institute of Computing Technology, Chinese Academy of Sciences.
+
+**Developers**: Wenjing Huang (Lead Developer, Designer of ADM), Jinwu Yang (CPU and GPU Implementations/Optimizations of Parallel ANS Encoders), Shengquan Yin (HIP Version of ANS Encoder)
+
+**Contributors**: Dingwen Tao (Supervisor), Guangming Tan
+
 ---
 
 ## ✨ Key Features
@@ -197,7 +203,8 @@ If you use **MANS** in your research or software, please cite our work:
   author={Huang, Wenjing and Yang, Jinwu and Yin, Shengquan and Li, Haoxu and Gu, Yida and Liu, Zedong and Jing, Xing and Wei, Zheng and Fu, Shiyuan and Hu, Hao and others},
   booktitle={Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
   pages={1299--1314},
-  year={2025}
+  year={2025},
+  DOI={10.1145/3712285.3759825}
 }
 ```
 
