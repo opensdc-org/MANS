@@ -135,8 +135,8 @@ Below is the general workflow for running MANS once build targets are installed.
 **Compression**
 On the CPU
 ```bash
-./build/bin/cpu/mappingcpu_uint16 input_file output_file_adm 
-./build/bin/cpu/cpuans_compress output_file_adm output_file_mans
+./build/bin/cpu/cpu_mans_compress [datatype: u2 or u4] input_file outputfile 
+./build/bin/cpu/cpu_mans_decompress [datatype: u2 or u4] outputfile input_file
 ```
 
 On the NVIDIA GPU

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -------------------------------
-# 平台控制选项
+# platform control
 # -------------------------------
 set(VALID_PLATFORMS "cpu" "nv" "amd" "all" "cpu_nv" "cpu_amd")
 set(TARGET_PLATFORM "cpu" CACHE STRING "Target platform to build: cpu / nv / amd / all / cpu_nv / cpu_amd")
@@ -14,7 +14,7 @@ if (NOT TARGET_PLATFORM IN_LIST VALID_PLATFORMS)
 endif()
 
 # -------------------------------
-# 平台布尔标志
+# platform tag
 # -------------------------------
 set(BUILD_CPU FALSE)
 set(BUILD_NV FALSE)
@@ -31,52 +31,81 @@ if(TARGET_PLATFORM STREQUAL "amd" OR TARGET_PLATFORM STREQUAL "cpu_amd" OR TARGE
 endif()
 
 # -------------------------------
-# OpenMP（用于 CPU）
+# OpenMP（for CPU）
 # -------------------------------
 if(BUILD_CPU)
   find_package(OpenMP REQUIRED)
 endif()
 
 # -------------------------------
-# 编译 mans/cpu
+# compile MANS / CPU
 # -------------------------------
 if(BUILD_CPU)
-  set(cpu_adm_binary_dir ${CMAKE_BINARY_DIR}/cpu/adm)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/cpu)
+  # root dir：build/cpu
+  set(cpu_root_binary_dir ${CMAKE_BINARY_DIR}/bin/cpu)
 
-  add_executable(mappingcpu_uint32 cpu/adm/mappingcpu_uint32.cpp)
-  set_target_properties(mappingcpu_uint32 PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  # ========== ADM ==========
+
+  # adm dir：build/cpu/adm
+  set(cpu_adm_binary_dir ${cpu_root_binary_dir}/adm)
+
+  # compress（from cpu/adm/cpuadm_compress.cpp , exec:"compress"）
+  add_executable(cpuadm_compress cpu/adm/cpuadm_compress.cpp)
+  set_target_properties(cpuadm_compress PROPERTIES
+      OUTPUT_NAME            compress
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
   )
-  target_compile_options(mappingcpu_uint32 PRIVATE -mavx512f -fopenmp -march=native -O3)
-  target_link_libraries(mappingcpu_uint32 PRIVATE OpenMP::OpenMP_CXX)
+  target_compile_options(cpuadm_compress PRIVATE -mavx512f -fopenmp -march=native -O3)
+  target_link_libraries(cpuadm_compress PRIVATE OpenMP::OpenMP_CXX)
 
-  add_executable(mappingcpu_uint16 cpu/adm/mappingcpu_uint16.cpp)
-  set_target_properties(mappingcpu_uint16 PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  # decompress（from cpu/adm/cpuadm_decompress.cpp，exec: decompress）
+  add_executable(cpuadm_decompress cpu/adm/cpuadm_decompress.cpp)
+  set_target_properties(cpuadm_decompress PROPERTIES
+      OUTPUT_NAME            decompress
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
   )
-  target_compile_options(mappingcpu_uint16 PRIVATE -mavx512f -fopenmp -march=native -O3)
-  target_link_libraries(mappingcpu_uint16 PRIVATE OpenMP::OpenMP_CXX)
+  target_compile_options(cpuadm_decompress PRIVATE -mavx512f -fopenmp -march=native -O3)
+  target_link_libraries(cpuadm_decompress PRIVATE OpenMP::OpenMP_CXX)
 
-  # CPU/pans 子模块
-  set(cpu_pans_binary_dir ${CMAKE_BINARY_DIR}/cpu/pans)
+  # ========== MANS ==========
+
+  # mans compress：build/cpu/cpu_mans_compress
+  add_executable(cpu_mans_compress cpu/cpu_mans_compress.cpp)
+  set_target_properties(cpu_mans_compress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
+  )
+  target_compile_options(cpu_mans_compress PRIVATE -O3)
+
+  # mans decompress：build/cpu/cpu_mans_decompress
+  add_executable(cpu_mans_decompress cpu/cpu_mans_decompress.cpp)
+  set_target_properties(cpu_mans_decompress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
+  )
+  target_compile_options(cpu_mans_decompress PRIVATE -O3)
+
+  # ========== CPU / pans submodule ==========
+  set(cpu_pans_binary_dir ${cpu_root_binary_dir}/pans)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${cpu_pans_binary_dir})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${cpu_pans_binary_dir})
   add_subdirectory(cpu/pans)
 
+  set_target_properties(cpuans_compress cpuans_decompress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_pans_binary_dir}
+  )
+
 endif()
 
 # -------------------------------
-# 编译 mans/nv
+# compile mans/nv
 # -------------------------------
 if(BUILD_NV)
   enable_language(CUDA)
   
-  # 自动探测 GPU 架构
+  # detect gpu architecture
   include(FindCUDA/select_compute_arch)
   CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS)
   string(STRIP "${INSTALLED_GPU_CCS}" INSTALLED_GPU_CCS_STRIPPED)
@@ -107,7 +136,7 @@ if(BUILD_NV)
   )
   target_compile_options(nv_mapping_uint32 PRIVATE -O3)
 
-  # nv/ans 子模块
+  # nv/ans submodule
   set(nv_ans_binary_dir ${CMAKE_BINARY_DIR}/nv/ans)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${nv_ans_binary_dir})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${nv_ans_binary_dir})
@@ -116,7 +145,7 @@ if(BUILD_NV)
 endif()
 
 # -------------------------------
-# 编译 mans/amd （使用 hipcc）
+# compile mans/amd (use hipcc)
 # -------------------------------
 if(BUILD_AMD)
 
@@ -150,7 +179,7 @@ if(BUILD_AMD)
     )
   endforeach()
 
-  # ========== amd/ans 子项目 ==========
+  # ========== amd/ans submudole ==========
 
   set(amd_ans_binary_dir ${CMAKE_BINARY_DIR}/amd/ans)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/amd)
