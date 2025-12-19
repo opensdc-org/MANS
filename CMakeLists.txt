@@ -4,11 +4,20 @@ project(MANS_ROOT LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+message(STATUS "==========================================")
+message(STATUS "  *** CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ***")
+message(STATUS "==========================================")
+
 # -------------------------------
 # platform control
 # -------------------------------
 set(VALID_PLATFORMS "cpu" "nv" "amd" "all" "cpu_nv" "cpu_amd")
-set(TARGET_PLATFORM "cpu" CACHE STRING "Target platform to build: cpu / nv / amd / all / cpu_nv / cpu_amd")
+set(TARGET_PLATFORM "cpu_nv" CACHE STRING "Target platform to build: cpu / nv / amd / all / cpu_nv / cpu_amd")
 if (NOT TARGET_PLATFORM IN_LIST VALID_PLATFORMS)
   message(FATAL_ERROR "Invalid TARGET_PLATFORM='${TARGET_PLATFORM}'. Must be one of: ${VALID_PLATFORMS}.")
 endif()
@@ -41,6 +50,8 @@ endif()
 # compile MANS / CPU
 # -------------------------------
 if(BUILD_CPU)
+  
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")#为了编译pan_utils
   # root dir：build/cpu
   set(cpu_root_binary_dir ${CMAKE_BINARY_DIR}/bin/cpu)
 
@@ -50,7 +61,10 @@ if(BUILD_CPU)
   set(cpu_adm_binary_dir ${cpu_root_binary_dir}/adm)
 
   # compress（from cpu/adm/cpuadm_compress.cpp , exec:"compress"）
-  add_executable(cpuadm_compress cpu/adm/cpuadm_compress.cpp)
+  add_executable(cpuadm_compress 
+    cpu/adm/cpuadm_compress.cpp
+    cpu/adm/adm_utils.cpp
+    )
   set_target_properties(cpuadm_compress PROPERTIES
       OUTPUT_NAME            compress
       RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
@@ -61,7 +75,10 @@ if(BUILD_CPU)
   target_link_libraries(cpuadm_compress PRIVATE OpenMP::OpenMP_CXX)
 
   # decompress（from cpu/adm/cpuadm_decompress.cpp，exec: decompress）
-  add_executable(cpuadm_decompress cpu/adm/cpuadm_decompress.cpp)
+  add_executable(cpuadm_decompress
+   cpu/adm/cpuadm_decompress.cpp
+   cpu/adm/adm_utils.cpp
+   )
   set_target_properties(cpuadm_decompress PROPERTIES
       OUTPUT_NAME            decompress
       RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
@@ -74,14 +91,22 @@ if(BUILD_CPU)
   # ========== MANS ==========
 
   # mans compress：build/cpu/cpu_mans_compress
-  add_executable(cpu_mans_compress cpu/cpu_mans_compress.cpp)
+  add_executable(cpu_mans_compress 
+    cpu/cpu_mans_compress.cpp
+    cpu/adm/adm_utils.cpp
+    cpu/pans/pans_utils.cpp
+  )
   set_target_properties(cpu_mans_compress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
   target_compile_options(cpu_mans_compress PRIVATE -O3)
 
   # mans decompress：build/cpu/cpu_mans_decompress
-  add_executable(cpu_mans_decompress cpu/cpu_mans_decompress.cpp)
+  add_executable(cpu_mans_decompress
+   cpu/cpu_mans_decompress.cpp
+   cpu/adm/adm_utils.cpp
+   cpu/pans/pans_utils.cpp
+   )
   set_target_properties(cpu_mans_decompress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )

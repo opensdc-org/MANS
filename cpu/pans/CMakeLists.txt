@@ -16,6 +16,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")
 add_executable(cpuans_compress
   compress.cpp
+  pans_utils.cpp
 )
 
 target_link_libraries(cpuans_compress PRIVATE
@@ -24,6 +25,7 @@ target_link_libraries(cpuans_compress PRIVATE
 
 add_executable(cpuans_decompress
   decompress.cpp
+  pans_utils.cpp
 )
 
 target_link_libraries(cpuans_decompress PRIVATE
