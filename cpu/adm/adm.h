@@ -15,7 +15,7 @@
 
 namespace adm {
 
-// ---------------- 全局参数 ----------------
+// ---------------- global parameters ----------------
 inline constexpr int cmp_tblock_size = 32;
 inline constexpr int cmp_chunk = 16;
 inline constexpr int decmp_chunk = 32;
@@ -97,8 +97,22 @@ inline void compress_uint16(
         }
 
         bit_offsets[thread_idx] = bit_offset;
-        int length_bytes = (bit_offset + 7) / 8;
-        signal_length[warp] = std::max(signal_length[warp], length_bytes);
+    }
+
+    // Warp-level reduction: compute signal_length[warp] deterministically
+    #pragma omp parallel for
+    for (int warp = 0; warp < gsize; ++warp) {
+        int base_thread = warp * cmp_tblock_size;
+        int end_thread = std::min(base_thread + cmp_tblock_size, total_threads);
+
+        int max_len_bytes = 0;
+        for (int t = base_thread; t < end_thread; ++t) {
+            int bit_offset = bit_offsets[t];
+            int length_bytes = (bit_offset + 7) / 8;
+            max_len_bytes = std::max(max_len_bytes, length_bytes);
+        }
+
+        signal_length[warp] = max_len_bytes;
     }
 
     // Fill in the tail bits
@@ -293,8 +307,22 @@ inline void compress_uint32(
         }
 
         bit_offsets[thread_idx] = bit_offset;
-        int length_bytes = (bit_offset + 7) / 8;
-        signal_length[warp] = std::max(signal_length[warp], length_bytes);
+    }
+
+    // Warp-level reduction: compute signal_length[warp] deterministically
+    #pragma omp parallel for
+    for (int warp = 0; warp < gsize; ++warp) {
+        int base_thread = warp * cmp_tblock_size;
+        int end_thread = std::min(base_thread + cmp_tblock_size, total_threads);
+
+        int max_len_bytes = 0;
+        for (int t = base_thread; t < end_thread; ++t) {
+            int bit_offset = bit_offsets[t];
+            int length_bytes = (bit_offset + 7) / 8;
+            max_len_bytes = std::max(max_len_bytes, length_bytes);
+        }
+
+        signal_length[warp] = max_len_bytes;
     }
 
     // Fill in the tail bits
@@ -334,7 +362,7 @@ inline void compress_uint32(
         if (dst_base + bit_len > total_bit_bytes) continue;
 
         const uint8_t* src = &tmp_bit_signals[thread_idx * cmp_chunk * max_bytes_signal_per_ele_32b];
-        // 使用向量化指令进行批量拷贝
+        // Use  simd for bulk copying
         #pragma omp simd
         for (int i = 0; i < bit_len; ++i) {
             bit_signals[dst_base + i] = src[i];

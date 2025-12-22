@@ -8,7 +8,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // 读取输入文件
     std::string inputFilePath = argv[1];
     std::string outputFilePath = argv[2];
     std::vector<std::uint8_t> inputData;

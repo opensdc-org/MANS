@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <string>
 
-#include "adm_utils.h" // 引入新的头文件
+#include "adm_utils.h" 
 #include "../file_utils.h"
 
 int main(int argc, char** argv) {

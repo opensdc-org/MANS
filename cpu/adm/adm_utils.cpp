@@ -1,5 +1,5 @@
 #include "adm_utils.h"
-#include "adm.h" // 包含核心算法和 FileHeader 定义
+#include "adm.h" 
 #include <iostream>
 #include <cstring>
 #include <chrono>
@@ -7,7 +7,17 @@
 #include <stdexcept>
 #include <cstdio> 
 
-// 纯压缩：input_data -> merged output
+bool bytes_equal(
+    const std::vector<std::uint8_t>& a,
+    const std::vector<std::uint8_t>& b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return std::memcmp(a.data(), b.data(), a.size()) == 0;
+}
+
+// raw data->adm compressed data
 template<typename T>
 void adm_compress(
     const std::vector<T>& input_data,
@@ -28,7 +38,7 @@ void adm_compress(
     std::vector<std::uint8_t>     codes(num_elements);
     std::vector<std::uint8_t>     bit_signals;
 
-    // 实际压缩
+    // call adm compress function
     if constexpr (std::is_same_v<T, std::uint16_t>) {
         adm::compress_uint16(input_data, output_lengths, centers, codes, bit_signals);
     } else if constexpr (std::is_same_v<T, std::uint32_t>) {
@@ -38,7 +48,7 @@ void adm_compress(
                       "adm_compress only supports uint16_t and uint32_t");
     }
 
-    // 打包数据到一个连续 buffer
+
     adm::FileHeader header;
     header.num_elements = static_cast<std::uint64_t>(num_elements);
     header.gsize        = gsize;
@@ -65,7 +75,7 @@ void adm_compress(
     std::memcpy(output.data() + offset, bit_signals.data(),    len4);
 }
 
-// 解压：merged -> recovered
+// adm compressed data->raw data
 template<typename T>
 void adm_decompress(
     const std::vector<std::uint8_t>& merged,
@@ -140,6 +150,9 @@ void adm_compress_and_benchmark(
     int   times   = 10;
     float exe_min = 1e30f;
 
+    std::vector<std::uint8_t> last_tmp;  // record last run's output
+    bool all_same = true;                // record if all runs produce identical output
+
     for (int i = 0; i < times; ++i) {
         std::vector<std::uint8_t> tmp;
         auto start = std::chrono::high_resolution_clock::now();
@@ -148,10 +161,25 @@ void adm_compress_and_benchmark(
         std::chrono::duration<double, std::milli> dur = (end - start);
         exe_min = std::min(exe_min, static_cast<float>(dur.count()));
 
-        // 最后一次迭代把结果返回给调用者
-        if (i == times - 1) {
-            output.swap(tmp);
+        
+        if (!last_tmp.empty()) {
+            if (!bytes_equal(last_tmp, tmp)) {
+                all_same = false;
+            }
         }
+        last_tmp.swap(tmp);  
+
+        // return last run's output
+        if (i == times - 1) {
+            output.swap(last_tmp);
+        }
+    }
+
+    if (all_same) {
+        std::cout << "\033[32m[adm_compress] all " << times
+                  << " runs produce IDENTICAL bitstreams.\033[0m\n";
+    } else {
+        std::cout << "\033[31m[adm_compress] WARNING: bitstreams differ between runs.\033[0m\n";
     }
 
     std::size_t element_bytes = sizeof(T);
@@ -177,7 +205,7 @@ void adm_decompress_and_benchmark(
         throw std::runtime_error("File too small or invalid format.");
     }
 
-    // 先从 header 里读出元素个数，用于 throughput 统计
+    // read num elements from throughtput calculation
     adm::FileHeader header;
     std::memcpy(&header, merged.data(), sizeof(header));
     std::size_t num_elements = static_cast<std::size_t>(header.num_elements);
@@ -212,8 +240,8 @@ void adm_decompress_and_benchmark(
 
 
 // ==========================================================
-// 显式实例化 (Explicit Instantiation)
-// 必须放在 .cpp 文件末尾，否则链接器找不到符号
+// Explicit Instantiation
+// Must be placed at the end of the .cpp file, otherwise the linker cannot find the symbols
 // ==========================================================
 template void adm_compress<uint16_t>(const std::vector<uint16_t>&, std::vector<uint8_t>&);
 template void adm_compress<uint32_t>(const std::vector<uint32_t>&, std::vector<uint8_t>&);

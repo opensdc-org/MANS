@@ -1,5 +1,7 @@
 analysis/
 figure/
 MANS_figure/
-*.py
+# *.py
 build/
+.vscode
+__pycache__

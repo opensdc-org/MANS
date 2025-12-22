@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-// 纯压缩：inputData -> compressedData，并返回 batchSize / compressedSize
+// tool function：raw_data or adm_compressed_data -> pans_compressed_data
 void pans_compress(
     std::vector<uint8_t>& inputData,
     std::vector<uint8_t>& compressedData,
@@ -13,7 +13,7 @@ void pans_compress(
     uint32_t& compressedSize
 );
 
-// 纯解压：compressedData -> decompressedData，并返回 batchSize / compressedSize
+// tool function：pans_compressed_data -> raw_data or adm_compressed_data
 void pans_decompress(
     std::vector<uint8_t>& compressedData,
     std::vector<uint8_t>& decompressedData,
@@ -21,13 +21,13 @@ void pans_decompress(
     uint32_t& compressedSize
 );
 
-// 仅 benchmark：内部调用 pans_compress，precision 使用宏 PANS_PRECISION
+// benchmark: internally calls pans_compress, precision uses the macro PANS_PRECISION
 void pans_compress_and_benchmark(
     std::vector<uint8_t>& inputData,
     std::vector<uint8_t>& compressedData
 );
 
-// 仅 benchmark：内部调用 pans_decompress，precision 使用宏 PANS_PRECISION
+// benchmark: internally calls pans_decompress, precision uses the macro PANS_PRECISION
 void pans_decompress_and_benchmark(
     std::vector<uint8_t>& compressedData,
     std::vector<uint8_t>& decompressedData

@@ -19,8 +19,7 @@ struct MansHeader {
 };
 static_assert(sizeof(MansHeader) == 1, "MansHeader must be 1 byte");
 
-// ===== strip_header_and_save =====
-// 与 prepend_header_and_save 呼应
+
 inline bool strip_header(
     const std::vector<std::uint8_t>& all,
     std::vector<std::uint8_t>& payload,
@@ -79,12 +78,12 @@ int main(int argc, char** argv) {
         std::cerr << "Unknown codec type in mans header: " << int(codec) << "\n";
         return 1;
     }
-    // PANS 解压：直接调用函数
+    // PANS decompress
     pans_decompress_and_benchmark(
         input_data,
         pans_data
     );
-    if(codec==2){ //如果不用ADM，则直接输出结果
+    if(codec==2){ // If ADM is not used, directly output the result
         if(!save_u8_file(output_file, pans_data)) {
             std::cerr << "Failed to write PANS output file: " << output_file << "\n";
             return 1;
@@ -97,7 +96,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
         }
-        // ADM 解压
+        // ADM decompress
         if (codec == 1) {
             if (is_u2) {
                 std::vector<std::uint16_t> recovered;

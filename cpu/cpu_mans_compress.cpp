@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // 1. 读取数据 & 按 512 块计算 max-min
+
     std::vector<std::uint16_t> data_u16;
     std::vector<std::uint32_t> data_u32;
     bool use_adm = false;

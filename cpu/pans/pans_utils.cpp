@@ -10,11 +10,11 @@
 #include <cstring>
 #include <cstdlib>
 
-#define PANS_PRECISION 10   // 压缩精度宏定义
+#define PANS_PRECISION 10   // define compression precision 
 
 using namespace cpu_ans;
 
-// 纯压缩：一次压缩，返回 batchSize / compressedSize
+// tool function：raw_data or adm_compressed_data -> pans_compressed_data
 void pans_compress(
     std::vector<uint8_t>& inputData,
     std::vector<uint8_t>& compressedData,
@@ -110,7 +110,7 @@ void pans_compress(
                   compressedWords_host[i],
               compressedWordsPrefix_host[i]};
 
-    // 把 header + block data 全部聚合到 compressedData 里
+    // Aggregate the header and all block data into compressedData
     const uint32_t headerSize =
         headerOut->getCompressedOverhead(
             maxNumCompressedBlocks);
@@ -119,12 +119,12 @@ void pans_compress(
 
     compressedData.resize(outsize);
 
-    // 先拷 header 部分
+    // First copy the header part
     std::memcpy(compressedData.data(),
                 encPtrs,
                 headerSize);
 
-    // 依次把 block 数据拼接到 header 后面
+    // Append block data sequentially after the header
     uint8_t* writePtr =
         compressedData.data() + headerSize;
 
@@ -173,7 +173,7 @@ void pans_compress(
     free(compressedWordsPrefix_host);
 }
 
-// 仅 benchmark：调用 pans_compress，多次测时
+// benchmark: call pans_compress multiple times to measure time
 void pans_compress_and_benchmark(
     std::vector<uint8_t>& inputData,
     std::vector<uint8_t>& compressedData
@@ -193,7 +193,7 @@ void pans_compress_and_benchmark(
         std::vector<uint8_t> tmp;
         uint32_t bs = 0, cs = 0;
         pans_compress(inputData, tmp, bs, cs,dur);
-        if (i > 0 && comp_time > dur) comp_time = dur;  // 丢掉第 0 次作为 warmup
+        if (i > 0 && comp_time > dur) comp_time = dur;  // discard the 0th run as warmup
         if (i == 10) {
             compressedData.swap(tmp);
             batchSize = bs;
@@ -214,7 +214,7 @@ void pans_compress_and_benchmark(
     }
 }
 
-// 纯解压：一次解压，返回 batchSize / compressedSize
+// tool function：pans_compressed_data -> raw_data or adm_compressed_data
 void pans_decompress(
     std::vector<uint8_t>& compressedData,
     std::vector<uint8_t>& decompressedData,
@@ -231,7 +231,7 @@ void pans_decompress(
         return;
     }
 
-    // 头部数据直接从 compressedData 里读
+    // Read the header data directly from compressedData
     std::vector<uint8_t> fileCompressedHead(32);
     std::memcpy(fileCompressedHead.data(),
                 compressedData.data(),
@@ -287,7 +287,7 @@ void pans_decompress(
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
 
 
-    // 输出到 vector
+
     decompressedData.resize((size_t)batchSize);
     std::memcpy(decompressedData.data(),
                 decPtrs,
@@ -299,7 +299,7 @@ void pans_decompress(
     free(cdf);
 }
 
-// 仅 benchmark：调用 pans_decompress，多次测时
+// benchmark: call pans_decompress multiple times to measure time
 void pans_decompress_and_benchmark(
     std::vector<uint8_t>& compressedData,
     std::vector<uint8_t>& decompressedData
