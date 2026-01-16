@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
-project(MANS_ROOT LANGUAGES CXX)
+project(MANS_ROOT LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
@@ -12,6 +12,12 @@ endif()
 message(STATUS "==========================================")
 message(STATUS "  *** CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ***")
 message(STATUS "==========================================")
+
+# =========================================================
+# plugin control
+# =========================================================
+option(BUILD_HDF5_PLUGIN "Build HDF5 compression filter plugin (H5Z-MANS)" ON)
+message(STATUS "  *** BUILD_HDF5_PLUGIN: ${BUILD_HDF5_PLUGIN} ***")
 
 # -------------------------------
 # platform control
@@ -46,15 +52,35 @@ if(BUILD_CPU)
   find_package(OpenMP REQUIRED)
 endif()
 
+add_library(mans_common STATIC mans_api.cpp)
+
+set_property(TARGET mans_common PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(mans_common PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 # -------------------------------
 # compile MANS / CPU
 # -------------------------------
 if(BUILD_CPU)
-  
+  add_compile_definitions(MANS_ENABLE_CPU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")#为了编译pan_utils
   # root dir：build/cpu
   set(cpu_root_binary_dir ${CMAKE_BINARY_DIR}/bin/cpu)
-
+  add_library(mans_cpu_core STATIC
+    cpu/mans_cpu.cpp
+    cpu/adm/adm_utils.cpp
+    cpu/pans/pans_utils.cpp
+  )
+  # [Key] Enable PIC so it can be linked into a shared library
+  set_property(TARGET mans_cpu_core PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(mans_cpu_core PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+  )
+  target_compile_options(mans_cpu_core PRIVATE 
+  $<$<CONFIG:Release>:-O3>
+  -fopenmp -march=native -mavx512f)
+  target_link_libraries(mans_cpu_core PRIVATE OpenMP::OpenMP_CXX)
+  # link cpu core to common
+  target_link_libraries(mans_common PRIVATE mans_cpu_core)
   # ========== ADM ==========
 
   # adm dir：build/cpu/adm
@@ -71,7 +97,9 @@ if(BUILD_CPU)
       ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
   )
-  target_compile_options(cpuadm_compress PRIVATE -mavx512f -fopenmp -march=native -O3)
+  target_compile_options(cpuadm_compress PRIVATE 
+  -mavx512f -fopenmp -march=native 
+  $<$<CONFIG:Release>:-O3>)
   target_link_libraries(cpuadm_compress PRIVATE OpenMP::OpenMP_CXX)
 
   # decompress（from cpu/adm/cpuadm_decompress.cpp，exec: decompress）
@@ -85,7 +113,9 @@ if(BUILD_CPU)
       ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
       LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
   )
-  target_compile_options(cpuadm_decompress PRIVATE -mavx512f -fopenmp -march=native -O3)
+  target_compile_options(cpuadm_decompress PRIVATE
+   -mavx512f -fopenmp -march=native 
+   $<$<CONFIG:Release>:-O3>)
   target_link_libraries(cpuadm_decompress PRIVATE OpenMP::OpenMP_CXX)
 
   # ========== MANS ==========
@@ -93,24 +123,23 @@ if(BUILD_CPU)
   # mans compress：build/cpu/cpu_mans_compress
   add_executable(cpu_mans_compress 
     cpu/cpu_mans_compress.cpp
-    cpu/adm/adm_utils.cpp
-    cpu/pans/pans_utils.cpp
   )
   set_target_properties(cpu_mans_compress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
-  target_compile_options(cpu_mans_compress PRIVATE -O3)
+  target_compile_options(cpu_mans_compress PRIVATE $<$<CONFIG:Release>:-O3>)
+  # link mans cpu core library
+  target_link_libraries(cpu_mans_compress PRIVATE mans_common OpenMP::OpenMP_CXX)
 
   # mans decompress：build/cpu/cpu_mans_decompress
   add_executable(cpu_mans_decompress
    cpu/cpu_mans_decompress.cpp
-   cpu/adm/adm_utils.cpp
-   cpu/pans/pans_utils.cpp
    )
   set_target_properties(cpu_mans_decompress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
-  target_compile_options(cpu_mans_decompress PRIVATE -O3)
+  target_compile_options(cpu_mans_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(cpu_mans_decompress PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
 
   # ========== CPU / pans submodule ==========
   set(cpu_pans_binary_dir ${cpu_root_binary_dir}/pans)
@@ -129,7 +158,7 @@ endif()
 # -------------------------------
 if(BUILD_NV)
   enable_language(CUDA)
-  
+  add_compile_definitions(MANS_ENABLE_NV)
   # detect gpu architecture
   include(FindCUDA/select_compute_arch)
   CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS)
@@ -149,7 +178,7 @@ if(BUILD_NV)
       CUDA_SEPARABLE_COMPILATION ON
       CUDA_ARCHITECTURES "${DETECTED_CUDA_ARCH_LIST}"
   )
-  target_compile_options(nv_mapping_uint16 PRIVATE -O3)
+  target_compile_options(nv_mapping_uint16 PRIVATE $<$<CONFIG:Release>:-O3>)
 
   add_executable(nv_mapping_uint32 nv/adm/mapping_uint32.cu)
   set_target_properties(nv_mapping_uint32 PROPERTIES
@@ -159,7 +188,7 @@ if(BUILD_NV)
       CUDA_SEPARABLE_COMPILATION ON
       CUDA_ARCHITECTURES "${DETECTED_CUDA_ARCH_LIST}"
   )
-  target_compile_options(nv_mapping_uint32 PRIVATE -O3)
+  target_compile_options(nv_mapping_uint32 PRIVATE $<$<CONFIG:Release>:-O3>)
 
   # nv/ans submodule
   set(nv_ans_binary_dir ${CMAKE_BINARY_DIR}/nv/ans)
@@ -173,7 +202,7 @@ endif()
 # compile mans/amd (use hipcc)
 # -------------------------------
 if(BUILD_AMD)
-
+  add_compile_definitions(MANS_ENABLE_AMD)
   find_program(HIPCC_EXECUTABLE NAMES hipcc REQUIRED)
   if(NOT HIPCC_EXECUTABLE)
     message(FATAL_ERROR "hipcc not found. Please ensure ROCm is installed and hipcc is in PATH.")
@@ -214,3 +243,8 @@ if(BUILD_AMD)
 
 endif()
 
+
+
+if(BUILD_HDF5_PLUGIN)
+  add_subdirectory(tools/H5Z-MANS)
+endif()

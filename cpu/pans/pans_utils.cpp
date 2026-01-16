@@ -16,32 +16,29 @@ using namespace cpu_ans;
 
 // tool function：raw_data or adm_compressed_data -> pans_compressed_data
 void pans_compress(
-    std::vector<uint8_t>& inputData,
-    std::vector<uint8_t>& compressedData,
-    uint32_t& batchSize,
-    uint32_t& compressedSize,
-    double &duration
+    const uint8_t* inputData,
+    size_t inputLen,
+    uint8_t* outputData,        
+    size_t &outputLen,          
+    double &duration            
 ) {
-    const std::streamsize fileSize =
-        static_cast<std::streamsize>(inputData.size());
-    if (fileSize <= 0) {
+    if (inputLen == 0) {
         std::cerr << "Error: inputData is empty." << std::endl;
-        batchSize = 0;
-        compressedSize = 0;
-        compressedData.clear();
+        outputLen = 0;
         return;
     }
 
-    uint8_t* inPtrs = inputData.data();
-    batchSize = static_cast<uint32_t>(fileSize);
+    // cast to const uint8_t* is redundant but keeps type explicit
+    const uint8_t* inPtrs = inputData;
+    uint32_t batchSize = static_cast<uint32_t>(inputLen);
     const int precision = PANS_PRECISION;
 
     uint32_t* outCompressedSize = (uint32_t*)malloc(sizeof(uint32_t));
-    uint8_t* encPtrs = (uint8_t*)malloc(getMaxCompressedSize(fileSize));
+    uint8_t* encPtrs = (uint8_t*)malloc(getMaxCompressedSize(inputLen));
     ANSCoalescedHeader* headerOut = (ANSCoalescedHeader*)encPtrs;
     uint32_t maxNumCompressedBlocks;
 
-    uint32_t maxUncompressedWords = fileSize / sizeof(ANSDecodedT);
+    uint32_t maxUncompressedWords = batchSize / sizeof(ANSDecodedT);
     maxNumCompressedBlocks =
         (maxUncompressedWords + kDefaultBlockSize - 1) / kDefaultBlockSize;
     
@@ -66,7 +63,7 @@ void pans_compress(
         table,
         tempHistogram,
         precision,
-        inPtrs,
+        (uint8_t*)inPtrs, 
         batchSize,
         encPtrs,
         outCompressedSize,
@@ -81,7 +78,7 @@ void pans_compress(
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
     
     auto blockWordsOut = headerOut->getBlockWords(maxNumCompressedBlocks);
-    auto BlockDataStart = headerOut->getBlockDataStart(maxNumCompressedBlocks);
+    // auto BlockDataStart = headerOut->getBlockDataStart(maxNumCompressedBlocks); // Unused variable
     
     int i = 0;
     for(; i < static_cast<int>(maxNumCompressedBlocks) - 1; i ++){
@@ -102,7 +99,7 @@ void pans_compress(
         headerOut->getWarpStates()[i].warpState[j] = (warpStateOut->warpState[j]);
     }
     
-    uint32_t lastBlockWords = static_cast<uint32_t>(fileSize) % kDefaultBlockSize;
+    uint32_t lastBlockWords = static_cast<uint32_t>(inputLen) % kDefaultBlockSize;
     lastBlockWords = lastBlockWords == 0 ? kDefaultBlockSize : lastBlockWords;
 
     blockWordsOut[i] =
@@ -110,23 +107,23 @@ void pans_compress(
                   compressedWords_host[i],
               compressedWordsPrefix_host[i]};
 
-    // Aggregate the header and all block data into compressedData
     const uint32_t headerSize =
         headerOut->getCompressedOverhead(
             maxNumCompressedBlocks);
     uint32_t outsize = *outCompressedSize;
-    compressedSize = outsize;
+    
+    outputLen = outsize;
 
-    compressedData.resize(outsize);
+    // Only write if output buffer is provided
+    if (outputData) {
+        // First copy the header part
+        std::memcpy(outputData,
+                    encPtrs,
+                    headerSize);
 
-    // First copy the header part
-    std::memcpy(compressedData.data(),
-                encPtrs,
-                headerSize);
-
-    // Append block data sequentially after the header
-    uint8_t* writePtr =
-        compressedData.data() + headerSize;
+        // Append block data sequentially after the header
+        uint8_t* writePtr =
+            outputData + headerSize;
 
     i = 0;
     for (; i < static_cast<int>(maxNumCompressedBlocks) - 1;
@@ -161,6 +158,7 @@ void pans_compress(
                     bytes);
         writePtr += bytes;
     }
+    }
 
     // Clean up
     free(outCompressedSize);
@@ -175,14 +173,22 @@ void pans_compress(
 
 // benchmark: call pans_compress multiple times to measure time
 void pans_compress_and_benchmark(
-    std::vector<uint8_t>& inputData,
-    std::vector<uint8_t>& compressedData
+    const uint8_t* inputData,
+    size_t inputLen,
+    uint8_t* outputData,
+    size_t &outputLen
 ) {
-    uint32_t batchSize = 0;
-    uint32_t compressedSize = 0;
+    if (inputLen == 0) {
+        outputLen = 0;
+        return;
+    }
 
-    const std::streamsize fileSize =
-        static_cast<std::streamsize>(inputData.size());
+    // Pre-allocate internal buffer (1.5x estimate + slack)
+    size_t max_buf_size = inputLen * 3 / 2 + 4096;
+    std::vector<uint8_t> tmp(max_buf_size);
+    std::vector<uint8_t> last_valid_output;
+    
+    size_t actual_compressed_size = 0;
 
     std::cout << "encode start!" << std::endl;
     double comp_time = 1e30;
@@ -190,81 +196,96 @@ void pans_compress_and_benchmark(
 
     // Warmup & Benchmark loop
     for(int i = 0; i < 11; i ++){
-        std::vector<uint8_t> tmp;
-        uint32_t bs = 0, cs = 0;
-        pans_compress(inputData, tmp, bs, cs,dur);
+        size_t cs = 0;
+        
+        // Call compress with tmp buffer
+        pans_compress(inputData, inputLen, tmp.data(), cs, dur);
+        
         if (i > 0 && comp_time > dur) comp_time = dur;  // discard the 0th run as warmup
         if (i == 10) {
-            compressedData.swap(tmp);
-            batchSize = bs;
-            compressedSize = cs;
+            actual_compressed_size = cs;
+            last_valid_output.resize(cs);
+            std::memcpy(last_valid_output.data(), tmp.data(), cs);
         }
     }
 
-    double c_bw = ( 1.0 * fileSize / 1e6 ) / ( (comp_time) * 1e-3 );  
+    // Copy result to user provided output buffer
+    if (outputData && !last_valid_output.empty()) {
+        std::memcpy(outputData, last_valid_output.data(), last_valid_output.size());
+    }
+
+    outputLen = last_valid_output.size();
+    
+
+    double c_bw = ( 1.0 * inputLen / 1e6 ) / ( (comp_time) * 1e-3 );  
     std::cout << "comp   time " << std::fixed << std::setprecision(3) << comp_time << " ms B/W "   
               << std::fixed << std::setprecision(1) << c_bw << " MB/s " << std::endl;
 
-    if (compressedSize > 0) {
+    if (actual_compressed_size > 0) {
         std::printf("[pans] compress ratio: %f\n",
-                    1.0 * batchSize / compressedSize);
+                    1.0 * inputLen / actual_compressed_size);
     }
     else{
-        std::cerr << "Error: compressedSize too small:" <<compressedSize<< std::endl;
+        std::cerr << "Error: compressedSize too small:" << actual_compressed_size << std::endl;
     }
 }
+void get_compress_and_decompressed_len(
+    const uint8_t* compressedData,
+    size_t &compress_len,
+    size_t &decompressed_len
+){
 
+    ANSCoalescedHeader headerBuf;
+    std::memcpy(&headerBuf, compressedData, 32); // header is 32 bytes
+    ANSCoalescedHeader* Header = &headerBuf;
+    int compress_len_header = Header->getTotalCompressedSize();
+    int totalUncompressedWords = Header->getTotalUncompressedWords(); 
+    decompressed_len = static_cast<size_t>(totalUncompressedWords);
+    if(compress_len_header != compress_len){
+        std::cerr << "Error: compress_len_header != compress_len."
+                  << std::endl;
+                  decompressed_len = 0;
+        return;
+    }
+}
 // tool function：pans_compressed_data -> raw_data or adm_compressed_data
 void pans_decompress(
-    std::vector<uint8_t>& compressedData,
-    std::vector<uint8_t>& decompressedData,
-    uint32_t& batchSize,
-    uint32_t& compressedSize,
+    const uint8_t* compressedData,
+    size_t compressedLen,
+    uint8_t* decompressedData, 
+    size_t &decompressedLen,  
     double &duration
 ) {
-    if (compressedData.size() < 32) {
+    if (compressedLen < 32) {
         std::cerr << "Error: compressedData too small."
                   << std::endl;
-        decompressedData.clear();
-        batchSize = 0;
-        compressedSize = 0;
+        decompressedLen = 0;
         return;
     }
 
     // Read the header data directly from compressedData
-    std::vector<uint8_t> fileCompressedHead(32);
-    std::memcpy(fileCompressedHead.data(),
-                compressedData.data(),
-                32);
-    auto Header =
-        (ANSCoalescedHeader*)fileCompressedHead.data();
-    int totalCompressedSize =
-        Header->getTotalCompressedSize();
-    int bs =
-        Header->getTotalUncompressedWords();
+    ANSCoalescedHeader headerBuf;
+    std::memcpy(&headerBuf, compressedData, 32); // header is 32 bytes
 
-    if ((int)compressedData.size() < totalCompressedSize) {
+    ANSCoalescedHeader* Header = &headerBuf;
+    int totalCompressedSize = Header->getTotalCompressedSize();
+    int totalUncompressedWords = Header->getTotalUncompressedWords(); // assuming this is in words? 
+
+    size_t batchSize = static_cast<size_t>(totalUncompressedWords);
+
+    if ((int)compressedLen < totalCompressedSize) {
         std::cerr
             << "Error: compressedData size less than header "
                "reported totalCompressedSize."
             << std::endl;
-        decompressedData.clear();
-        batchSize = 0;
-        compressedSize = 0;
+        decompressedLen = 0;
         return;
     }
 
-    compressedSize = static_cast<uint32_t>(compressedData.size());
-    batchSize = static_cast<uint32_t>(bs);
-
-    uint8_t* compressedPtr =
-        compressedData.data();
-
     const int precision = PANS_PRECISION;
 
-    uint8_t* decPtrs =
-        (uint8_t*)malloc(sizeof(uint8_t) *
-                         (size_t)batchSize);
+
+    uint8_t* decPtrs = (uint8_t*)malloc(sizeof(uint8_t) * batchSize);
     uint32_t* symbol = (uint32_t*)std::aligned_alloc(
         kBlockAlignment,
         sizeof(uint32_t) * (1u << precision));
@@ -281,17 +302,18 @@ void pans_decompress(
         pdf,
         cdf,
         precision,
-        compressedPtr,
+        (uint8_t*)compressedData, // cast const away if api requires it
         decPtrs);
     auto end = std::chrono::high_resolution_clock::now();  
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
 
+    if (decompressedData) {
+        std::memcpy(decompressedData, decPtrs, batchSize * sizeof(uint8_t));
+    }
+    
 
+    decompressedLen = batchSize;
 
-    decompressedData.resize((size_t)batchSize);
-    std::memcpy(decompressedData.data(),
-                decPtrs,
-                (size_t)batchSize * sizeof(uint8_t));
 
     free(decPtrs);
     free(symbol);
@@ -301,37 +323,39 @@ void pans_decompress(
 
 // benchmark: call pans_decompress multiple times to measure time
 void pans_decompress_and_benchmark(
-    std::vector<uint8_t>& compressedData,
-    std::vector<uint8_t>& decompressedData
+    const uint8_t* compressedData,
+    size_t compressedLen,
+    uint8_t* decompressedData,
+    size_t &out_actual_len 
 ) {
-    uint32_t batchSize = 0;
-    uint32_t compressedSize = 0;
+    if (compressedLen < 32) return;
 
+    // Parse header for stats
+    ANSCoalescedHeader headerBuf;
+    std::memcpy(&headerBuf, compressedData, 32);
 
+    int totalUncompressedBytes = headerBuf.getTotalUncompressedWords(); 
 
     std::cout << "decode start!" << std::endl;
     double decomp_time = 1e30;
     double dur;
+    size_t out_len = 0;
+    
     // Warmup & Benchmark loop
     for(int i = 0; i < 11; i ++){
-        std::vector<uint8_t> tmp;
-        uint32_t bs = 0, cs = 0;
-        pans_decompress(compressedData, tmp, bs, cs,dur);
+        pans_decompress(compressedData, compressedLen, decompressedData, out_len, dur);
         
         if (i > 0 && decomp_time > dur) decomp_time = dur; 
-
-        if (i == 10) {
-            decompressedData.swap(tmp);
-            batchSize = bs;
-            compressedSize = cs;
-        }
     }
 
-    double dc_bw = (1.0 * compressedSize / 1e6) /
+    double dc_bw = (1.0 * out_len / 1e6) /
                    (decomp_time * 1e-3);
     std::cout << "decomp time " << std::fixed
               << std::setprecision(6) << decomp_time
               << " ms B/W " << std::fixed
               << std::setprecision(1) << dc_bw
               << " MB/s" << std::endl;
+
+    out_actual_len = out_len;
+
 }

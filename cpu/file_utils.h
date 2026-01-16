@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <string>
 
-bool load_u8_file(const std::string& filename, std::vector<std::uint8_t>& data) {
+inline bool load_u8_file(const std::string& filename, std::vector<std::uint8_t>& data) {
     std::ifstream in(filename, std::ios::binary | std::ios::ate);
     if (!in.is_open()) return false;
     std::streamsize size = in.tellg();
@@ -16,7 +16,7 @@ bool load_u8_file(const std::string& filename, std::vector<std::uint8_t>& data) 
     return static_cast<bool>(in.read(reinterpret_cast<char*>(data.data()), size));
 }
 
-bool load_u16_file(const std::string& filename, std::vector<std::uint16_t>& data) {
+inline bool load_u16_file(const std::string& filename, std::vector<std::uint16_t>& data) {
     std::ifstream in(filename, std::ios::binary | std::ios::ate);
     if (!in.is_open()) return false;
     std::streamsize size = in.tellg();
@@ -27,7 +27,7 @@ bool load_u16_file(const std::string& filename, std::vector<std::uint16_t>& data
         reinterpret_cast<char*>(data.data()), size));
 }
 
-bool load_u32_file(const std::string& filename, std::vector<std::uint32_t>& data) {
+inline bool load_u32_file(const std::string& filename, std::vector<std::uint32_t>& data) {
     std::ifstream in(filename, std::ios::binary | std::ios::ate);
     if (!in.is_open()) return false;
     std::streamsize size = in.tellg();
@@ -39,7 +39,7 @@ bool load_u32_file(const std::string& filename, std::vector<std::uint32_t>& data
 }
 
 
-bool save_u8_file(const std::string& filename, const std::vector<std::uint8_t>& data) {
+inline bool save_u8_file(const std::string& filename, const std::vector<std::uint8_t>& data) {
     std::ofstream out(filename, std::ios::binary);
     if (!out.is_open()) return false;
     out.write(reinterpret_cast<const char*>(data.data()),
@@ -47,7 +47,7 @@ bool save_u8_file(const std::string& filename, const std::vector<std::uint8_t>& 
     return static_cast<bool>(out);
 }
 
-bool save_u16_file(const std::string& filename, const std::vector<std::uint16_t>& data) {
+inline bool save_u16_file(const std::string& filename, const std::vector<std::uint16_t>& data) {
     std::ofstream out(filename, std::ios::binary);
     if (!out.is_open()) return false;
     out.write(reinterpret_cast<const char*>(data.data()),
@@ -55,7 +55,7 @@ bool save_u16_file(const std::string& filename, const std::vector<std::uint16_t>
     return static_cast<bool>(out);
 }
 
-bool save_u32_file(const std::string& filename, const std::vector<std::uint32_t>& data) {
+inline bool save_u32_file(const std::string& filename, const std::vector<std::uint32_t>& data) {
     std::ofstream out(filename, std::ios::binary);
     if (!out.is_open()) return false;
     out.write(reinterpret_cast<const char*>(data.data()),

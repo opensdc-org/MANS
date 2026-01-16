@@ -1,171 +1,133 @@
-// compiler： g++ -std=c++17 -O3 cpu_mans_compress.cpp -o cpu_mans_compress
-// exec   :  OMP_NUM_THREADS=4 ./cpu_mans_compress u2 input.u2 output.bin
-//           OMP_NUM_THREADS=4 ./cpu_mans_compress u4 input.u4 output.bin
+// compiler: g++ -std=c++17 -O3 cpu_mans_compress.cpp mans_cpu.cpp -o cpu_mans_compress -fopenmp
+// exec    : OMP_NUM_THREADS=4 ./cpu_mans_compress u2 input.u2 output.bin 1
+//           OMP_NUM_THREADS=4 ./cpu_mans_compress u4 input.u4 output.bin 0
 
 #include <iostream>
-#include <fstream>
+#include <string>
 #include <vector>
-#include <cstdint>
-#include <cstring>
-#include <chrono>
-#include <limits>
-#include <cstdlib>
 
+#include "../mans_defs.h" 
+#include "mans_cpu.h"
 #include "file_utils.h"
-#include "adm/adm_utils.h"
-#include "pans/pans_utils.h"
-
-const int threshold = 4000;
-
-struct MansHeader {
-    std::uint8_t codec;  // 1 = ADM, 2 = ANS
-};
-static_assert(sizeof(MansHeader) == 1, "MansHeader must be 1 byte");
-
-// ===== decide_use_adm =====
-template<typename T>
-bool decide_use_adm(const std::vector<T>& data, const std::string& dtype) {
-    const std::size_t block_size = 512;
-    std::uint64_t max_block_diff = 0;
-
-    for (std::size_t i = 0; i < data.size(); i += block_size) {
-        std::size_t end = std::min(i + block_size, data.size());
-
-        T bmin = std::numeric_limits<T>::max();
-        T bmax = std::numeric_limits<T>::min();
-
-        for (std::size_t j = i; j < end; ++j) {
-            T v = data[j];
-            if (v < bmin) bmin = v;
-            if (v > bmax) bmax = v;
-        }
-
-        std::uint64_t diff = static_cast<std::uint64_t>(bmax) - static_cast<std::uint64_t>(bmin);
-        if (diff > max_block_diff) {
-            max_block_diff = diff;
-        }
-    }
-
-    std::cout << "[mans] " << dtype << " block range (block_size=512): max_diff="
-              << max_block_diff << "\n";
-
-    return (max_block_diff <= threshold);
-}
-
-inline void prepend_header(
-    const std::vector<std::uint8_t>& payload,
-    std::vector<std::uint8_t>& final_payload,
-    std::uint8_t codec)
-{
-    final_payload.clear();
-    final_payload.reserve(1 + payload.size());
-    final_payload.push_back(codec);
-    final_payload.insert(final_payload.end(),
-                         payload.begin(),
-                         payload.end());
-}
 
 int main(int argc, char** argv) {
+
     if (argc < 5) {
-        std::cerr << "Use: " << argv[0]
-                  << " <u2|u4> <input_file> <output_bin_file> <save_adm>\n";
+        std::cerr << "Use: " << argv[0] 
+                  << " <u2|u4> <input_file> <output_bin_file> <save_adm(0|1)> [threshold=4000]\n";
         return 1;
     }
 
-    std::string dtype       = argv[1];
+    std::string dtype_str   = argv[1];
     std::string input_file  = argv[2];
     std::string output_file = argv[3];
-    std::string save_adm_flag = argv[4];
-    bool save_adm = (save_adm_flag == "1");
-    bool is_u2 = (dtype == "-u2" || dtype == "u2");
-    bool is_u4 = (dtype == "-u4" || dtype == "u4");
+    std::string save_flag   = argv[4];
+    
+    // 1. save intermediate ADM compressed data or not
+    bool save_adm = (save_flag == "1");
+    uint32_t threshold = 4000; 
+    if (argc >= 6) {
+        threshold = std::stoul(argv[5]);
+    }
 
-    if (!is_u2 && !is_u4) {
-        std::cerr << "Unknown data type flag: " << dtype
-                  << "\nUse: u2 or u4 (or -u2/-u4)\n";
+    // 2. build MansParams
+    mans::MansParams params{};
+    params.backend = mans::Backend::CPU;
+    params.adm_threshold = threshold;
+
+    if (dtype_str == "u2" || dtype_str == "-u2") {
+        params.dtype = mans::DataType::U16;
+    } else if (dtype_str == "u4" || dtype_str == "-u4") {
+        params.dtype = mans::DataType::U32;
+    } else {
+        std::cerr << "Unknown data type flag: " << dtype_str << "\nUse: u2 or u4\n";
         return 1;
     }
 
-
-    std::vector<std::uint16_t> data_u16;
-    std::vector<std::uint32_t> data_u32;
-    bool use_adm = false;
-
-    if (is_u2) {
-        if (!load_u16_file(input_file, data_u16)) {
+    // 3. load data
+    std::vector<uint8_t> compressed_data;
+    
+    if (params.dtype == mans::DataType::U16) {
+        std::vector<uint16_t> host_data;
+        if (!load_u16_file(input_file, host_data)) {
             std::cerr << "Failed to load input file: " << input_file << "\n";
             return 1;
         }
-        if (data_u16.empty()) {
+        if (host_data.empty()) {
             std::cerr << "Input file is empty.\n";
             return 1;
         }
-        use_adm = decide_use_adm(data_u16, dtype);
-    } else {
-        if (!load_u32_file(input_file, data_u32)) {
+
+        std::cout << "Compressing U16 (size=" << host_data.size() << ")...\n";
+
+        // === 预分配输出缓冲区 ===
+        size_t input_bytes = host_data.size() * sizeof(uint16_t);
+        size_t max_out_size = input_bytes*2 + 4096; 
+        compressed_data.resize(max_out_size);
+        
+        // 此变量传入时表示 Buffer 容量，返回时表示实际写入大小
+        size_t final_size = max_out_size;
+
+        // core compress set debug parameters:save_adm, dump_path, open_benchmark=true
+        mans::cpu::compress_internal(
+            host_data.data(), 
+            host_data.size(), 
+            params, 
+            compressed_data.data(),
+            final_size,            
+            save_adm, 
+            output_file + ".adm",   // debug path
+            true                    // open_benchmark
+        );
+
+    
+        if (final_size > max_out_size) {
+            
+             std::cerr << "Warning: Output truncated or buffer overflow logic triggered.\n";
+        }
+        compressed_data.resize(final_size);
+
+    } else { // U32
+        std::vector<uint32_t> host_data;
+        if (!load_u32_file(input_file, host_data)) {
             std::cerr << "Failed to load input file: " << input_file << "\n";
             return 1;
         }
-        if (data_u32.empty()) {
+        if (host_data.empty()) {
             std::cerr << "Input file is empty.\n";
             return 1;
         }
-        use_adm = decide_use_adm(data_u32, dtype);
+
+        std::cout << "Compressing U32 (size=" << host_data.size() << ")...\n";
+
+        
+        size_t input_bytes = host_data.size() * sizeof(uint32_t);
+        size_t max_out_size = input_bytes*2 + 4096;
+        compressed_data.resize(max_out_size);
+
+        size_t final_size = max_out_size;
+        
+        mans::cpu::compress_internal(
+            host_data.data(), 
+            host_data.size(), 
+            params, 
+            compressed_data.data(), 
+            final_size,
+            save_adm, 
+            output_file + ".adm", 
+            true
+        );
+
+        compressed_data.resize(final_size);
     }
 
-    std::string tmp_out = output_file + ".adm";
-    std::vector<std::uint8_t> pans_input;
-    std::vector<std::uint8_t> pans_output;
-
-    MansHeader mh{};
-    if (use_adm) {
-        mh.codec = 1; // ADM
-        if (is_u2) {
-            adm_compress_and_benchmark(data_u16, pans_input);
-        } else {
-            adm_compress_and_benchmark(data_u32, pans_input);
-        }
-        if (save_adm){
-            if (!save_u8_file(tmp_out, pans_input)) {
-                std::cerr << "Failed to write ADM output: " << tmp_out << "\n";
-                return 1;
-            }
-        }
-
-    } else {
-        mh.codec = 2; // without ADM
-        if (is_u2) {
-            pans_input.resize(data_u16.size() * sizeof(std::uint16_t));
-            if (!data_u16.empty()) {
-                std::memcpy(pans_input.data(),
-                            data_u16.data(),
-                            pans_input.size());
-            }
-        } else { // is_u4
-            pans_input.resize(data_u32.size() * sizeof(std::uint32_t));
-            if (!data_u32.empty()) {
-                std::memcpy(pans_input.data(),
-                            data_u32.data(),
-                            pans_input.size());
-            }
-        }
-    }
-
-
-    pans_compress_and_benchmark(
-        pans_input,
-        pans_output
-    );
-
-    std::vector<std::uint8_t> final_output;
-    std::cout<<"codec:"<<int(mh.codec)<<"\n";
-    prepend_header(pans_output, final_output, mh.codec);    
- 
-    if (!save_u8_file(output_file, final_output)) {
+    if (!save_u8_file(output_file, compressed_data)) {
         std::cerr << "Failed to write Final output: " << output_file << "\n";
         return 1;
     }
-    std::cout << "mans compress finished! Write to " << output_file
-              << " (codec=" << int(mh.codec) << ")\n";
+
+    std::cout << "Mans compress finished! Written to " << output_file 
+              << " (Size: " << compressed_data.size() << ")\n";
+    
     return 0;
 }

@@ -169,6 +169,8 @@ On the AMD GPU
 ./build/bin/amd/hipans_decompress output_file_mans output_file_adm
 ``` -->
 
+### **HDF5 Filter Plugin: H5Z-MANS**
+see [tools/H5Z-MANS/README.md](tools/H5Z-MANS/README.md) for detailed instructions on building and using the HDF5 filter plugin for MANS.
 ---
 
 ## 📁 Project Structure
@@ -180,7 +182,7 @@ MANS/
  ├── cpu/              # ADM, PANS(CPU version)
  ├── nv/               # ADM, ANS, GPU kernels(NVIDIA version)
  ├── testdata/ 
- ├── tools/            # test scripts
+ ├── tools/            # test scripts and tools(hdf5 filter)
  └── README.md
  ...
 ```

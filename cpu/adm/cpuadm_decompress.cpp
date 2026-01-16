@@ -7,7 +7,8 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-
+#include <cstring> 
+#include "adm.h" 
 #include "adm_utils.h" 
 #include "../file_utils.h"
 
@@ -37,18 +38,42 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    if (merged.size() < sizeof(adm::FileHeader)) {
+        std::cerr << "Error: File too small or invalid format.\n";
+        return 1;
+    }
+    mans::MansParams params;
+    params.adm_restore_signals_threads=32;
+    params.adm_decode_values_threads=16;
+    adm::FileHeader header;
+    std::memcpy(&header, merged.data(), sizeof(header));
+    std::size_t num_elements = static_cast<std::size_t>(header.num_elements);
     try {
         if (is_u2) {
-            std::vector<std::uint16_t> recovered;
-            adm_decompress_and_benchmark(merged, recovered);
+            std::vector<std::uint16_t> recovered(num_elements);
+            
+            
+            adm_decompress_and_benchmark<std::uint16_t>(
+                merged.data(), 
+                merged.size(), 
+                recovered.data(),
+                num_elements,
+                params
+            );
             
             if (!save_u16_file(output_file, recovered)) {
                 std::cerr << "Failed to write output file: " << output_file << "\n";
                 return 1;
             }
         } else {
-            std::vector<std::uint32_t> recovered;
-            adm_decompress_and_benchmark(merged, recovered);
+            std::vector<std::uint32_t> recovered(num_elements);
+            adm_decompress_and_benchmark<std::uint32_t>(
+                merged.data(), 
+                merged.size(), 
+                recovered.data(),
+                num_elements,
+                params
+            );
             
             if (!save_u32_file(output_file, recovered)) {
                 std::cerr << "Failed to write output file: " << output_file << "\n";

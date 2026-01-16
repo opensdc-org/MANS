@@ -5,7 +5,7 @@ import filecmp
 import logging
 from pathlib import Path
 
-from tools.dataset_gen import generate_dataset, ADMConfig
+from dataset_gen import generate_dataset, ADMConfig
 
 # ================== ANSI COLORS ==================
 RESET  = "\033[0m"

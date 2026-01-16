@@ -9,10 +9,11 @@
 #include <cstring>
 #include <numeric>
 #include <chrono>
+#include <iomanip>
 
 #include <immintrin.h>
 #include <omp.h>
-
+#include "../../mans_defs.h"
 namespace adm {
 
 // ---------------- global parameters ----------------
@@ -36,13 +37,15 @@ struct FileHeader {
 };
 
 inline void compress_uint16(
-    const std::vector<uint16_t>& input_data,
+    const uint16_t* input_data,   
+    size_t input_len,
     std::vector<int>& output_lengths,
     std::vector<uint16_t>& centers,
     std::vector<uint8_t>& codes,
-    std::vector<uint8_t>& bit_signals
+    std::vector<uint8_t>& bit_signals,
+    const mans::MansParams& params
 ) {
-    int num_elements = input_data.size();
+    int num_elements = (int)input_len;
     int gsize = (num_elements + cmp_tblock_size * cmp_chunk - 1) / (cmp_tblock_size * cmp_chunk);
     int total_threads = gsize * cmp_tblock_size;
 
@@ -52,7 +55,7 @@ inline void compress_uint16(
     codes.resize(num_elements);
 
     // Center calculation: parallelizing and reducing unnecessary work
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_center_calc_threads)
     for (int warp = 0; warp < gsize; ++warp) {
         int base_idx = warp * cmp_tblock_size * cmp_chunk;
         int end_idx = std::min(base_idx + cmp_tblock_size * cmp_chunk, num_elements);
@@ -70,7 +73,7 @@ inline void compress_uint16(
     std::vector<uint8_t> tmp_bit_signals(total_threads * cmp_chunk * max_bytes_signal_per_ele_16b, 0);
 
     // Encoding and setting codes, bit_signals (in temporary space)
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_encode_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int lane = thread_idx % cmp_tblock_size;
@@ -100,7 +103,7 @@ inline void compress_uint16(
     }
 
     // Warp-level reduction: compute signal_length[warp] deterministically
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_warp_reduce_threads)
     for (int warp = 0; warp < gsize; ++warp) {
         int base_thread = warp * cmp_tblock_size;
         int end_thread = std::min(base_thread + cmp_tblock_size, total_threads);
@@ -116,7 +119,7 @@ inline void compress_uint16(
     }
 
     // Fill in the tail bits
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_fill_tail_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int bit_offset = bit_offsets[thread_idx];
@@ -141,7 +144,7 @@ inline void compress_uint16(
     int total_bit_bytes = output_lengths[gsize] * cmp_tblock_size;
     bit_signals.resize(total_bit_bytes, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_write_back_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int lane = thread_idx % cmp_tblock_size;
@@ -160,21 +163,21 @@ inline void compress_uint16(
 }
 
 inline void decompress_uint16(
-    const std::vector<int>& output_lengths,             // gsize
-    const std::vector<uint16_t>& centers,               // gsize
-    const std::vector<uint8_t>& codes,                  // num_elements
-    const std::vector<uint8_t>& bit_signals,            // bitstream
-    std::vector<uint16_t>& output_data                  // output: num_elements
+    const int* output_lengths,           
+    size_t gsize,                        
+    const uint16_t* centers,             
+    const uint8_t* codes,                
+    size_t num_elements,                
+    const uint8_t* bit_signals,          
+    uint16_t* output_data                
 )
 {
-    int num_elements = codes.size();
-    int gsize = output_lengths.size();
     int total_threads = gsize * cmp_tblock_size;
 
     // Step 1: Restore signal[]
     std::vector<uint8_t> signals(num_elements, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_restore_signals_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int warp = tid / cmp_tblock_size;
         int lane = tid % cmp_tblock_size;
@@ -212,10 +215,7 @@ inline void decompress_uint16(
         }
     }
 
-    // Step 2: Decode values
-    output_data.resize(num_elements);
-
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_decode_values_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int block_id = tid;
         int lane = block_id % warp_size;
@@ -241,13 +241,15 @@ inline void decompress_uint16(
 }
 
 inline void compress_uint32(
-    const std::vector<uint32_t>& input_data,
+    const uint32_t* input_data,          
+    size_t input_len,                    
     std::vector<int>& output_lengths,
     std::vector<uint32_t>& centers,
     std::vector<uint8_t>& codes,
-    std::vector<uint8_t>& bit_signals
+    std::vector<uint8_t>& bit_signals,
+    const mans::MansParams& params
 ) {
-    int num_elements = input_data.size();
+    int num_elements = (int)input_len;   
     int gsize = (num_elements + cmp_tblock_size * cmp_chunk - 1) / (cmp_tblock_size * cmp_chunk);
     int total_threads = gsize * cmp_tblock_size;
 
@@ -259,9 +261,8 @@ inline void compress_uint32(
     // static const uint8_t bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
     // static const uint8_t tail_mask[8] = {0xFF, 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01};
 
-
     // Center calculation: parallelizing and reducing unnecessary work
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_center_calc_threads)
     for (int warp = 0; warp < gsize; ++warp) {
         int base_idx = warp * cmp_tblock_size * cmp_chunk;
         int end_idx = std::min(base_idx + cmp_tblock_size * cmp_chunk, num_elements);
@@ -279,7 +280,7 @@ inline void compress_uint32(
     std::vector<uint8_t> tmp_bit_signals(total_threads * cmp_chunk * max_bytes_signal_per_ele_32b, 0);
 
     // Encoding and setting codes, bit_signals (in temporary space)
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_encode_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int lane = thread_idx % cmp_tblock_size;
@@ -310,7 +311,7 @@ inline void compress_uint32(
     }
 
     // Warp-level reduction: compute signal_length[warp] deterministically
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_warp_reduce_threads)
     for (int warp = 0; warp < gsize; ++warp) {
         int base_thread = warp * cmp_tblock_size;
         int end_thread = std::min(base_thread + cmp_tblock_size, total_threads);
@@ -326,7 +327,7 @@ inline void compress_uint32(
     }
 
     // Fill in the tail bits
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_fill_tail_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int bit_offset = bit_offsets[thread_idx];
@@ -352,7 +353,7 @@ inline void compress_uint32(
     int total_bit_bytes = output_lengths[gsize] * cmp_tblock_size;
     bit_signals.resize(total_bit_bytes, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_write_back_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
         int lane = thread_idx % cmp_tblock_size;
@@ -370,23 +371,23 @@ inline void compress_uint32(
     }
 }
 
-
 inline void decompress_uint32(
-    const std::vector<int>& output_lengths,             // gsize
-    const std::vector<uint32_t>& centers,               // gsize
-    const std::vector<uint8_t>& codes,                  // num_elements
-    const std::vector<uint8_t>& bit_signals,            // bitstream
-    std::vector<uint32_t>& output_data                  // output: num_elements
+    const int* output_lengths,           
+    size_t gsize,                        
+    const uint32_t* centers,             
+    const uint8_t* codes,                
+    size_t num_elements,                 
+    const uint8_t* bit_signals,          
+    uint32_t* output_data,
+    const mans::MansParams& params
 )
 {
-    int num_elements = codes.size();
-    int gsize = output_lengths.size();
     int total_threads = gsize * cmp_tblock_size;
 
     // Step 1: Restore signal[]
     std::vector<uint8_t> signals(num_elements, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_restore_signals_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int warp = tid / cmp_tblock_size;
         int lane = tid % cmp_tblock_size;
@@ -425,9 +426,8 @@ inline void decompress_uint32(
     }
 
     // Step 2: Decode values
-    output_data.resize(num_elements);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(params.adm_decode_values_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int block_id = tid;
         int lane = block_id % warp_size;
