@@ -7,13 +7,25 @@
 #include <vector>
 #include <cstdint>
 #include <cstring>
+#include <algorithm>
 #include <numeric>
 #include <chrono>
 #include <iomanip>
+#include <cstdlib>
+#include <memory>
 
 #include <immintrin.h>
 #include <omp.h>
 #include "../../mans_defs.h"
+#include "../buffer_cache.h"
+
+#ifdef ENABLE_TIMING
+#include "../../mans_timing.h"
+#endif
+#ifndef MANS_TIMING_SCOPE
+#define MANS_TIMING_SCOPE(name) do {} while (0)
+#endif
+
 namespace adm {
 
 // ---------------- global parameters ----------------
@@ -39,21 +51,34 @@ struct FileHeader {
 inline void compress_uint16(
     const uint16_t* input_data,   
     size_t input_len,
-    std::vector<int>& output_lengths,
-    std::vector<uint16_t>& centers,
-    std::vector<uint8_t>& codes,
-    std::vector<uint8_t>& bit_signals,
+    int* output_lengths,
+    uint16_t* centers,
+    uint8_t* codes,
+    uint8_t* bit_signals,
+    size_t& bit_signals_len,
     const mans::MansParams& params
 ) {
     int num_elements = (int)input_len;
     int gsize = (num_elements + cmp_tblock_size * cmp_chunk - 1) / (cmp_tblock_size * cmp_chunk);
     int total_threads = gsize * cmp_tblock_size;
+    int* signal_length = nullptr;
+    int* bit_offsets = nullptr;
+    uint8_t* tmp_bit_signals = nullptr;
 
-    std::vector<int> signal_length(gsize, 0);
-    std::vector<int> bit_offsets(total_threads, 0);
-    centers.resize(gsize);
-    codes.resize(num_elements);
+    const int bytes_per_thread = cmp_chunk * max_bytes_signal_per_ele_16b;
+    const size_t tmp_bytes = static_cast<size_t>(total_threads) * bytes_per_thread;    
+    auto& cache = mans::cpu::BufferCache::instance();
+    signal_length = cache.get_t<int>("adm_u16_signal_length", static_cast<std::size_t>(gsize));
+    bit_offsets = cache.get_t<int>("adm_u16_bit_offsets", static_cast<std::size_t>(total_threads));
+    tmp_bit_signals = cache.get_t<uint8_t>("adm_u16_tmp_bit_signals", tmp_bytes);
+    if (!signal_length || !bit_offsets || !tmp_bit_signals) {
+        std::cerr << "Failed to allocate ADM scratch buffers.\n";
+        return;
+    }
 
+
+    {
+        MANS_TIMING_SCOPE("adm/compress/center_calc");
     // Center calculation: parallelizing and reducing unnecessary work
     #pragma omp parallel for num_threads(params.adm_center_calc_threads)
     for (int warp = 0; warp < gsize; ++warp) {
@@ -68,10 +93,10 @@ inline void compress_uint16(
         int count = end_idx - base_idx;
         centers[warp] = (count > 0) ? sum / count : 0;
     }
+    }
 
-    // Allocate temporary buffer for bit_signals
-    std::vector<uint8_t> tmp_bit_signals(total_threads * cmp_chunk * max_bytes_signal_per_ele_16b, 0);
-
+    {
+        MANS_TIMING_SCOPE("adm/compress/encode");
     // Encoding and setting codes, bit_signals (in temporary space)
     #pragma omp parallel for num_threads(params.adm_encode_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
@@ -79,10 +104,14 @@ inline void compress_uint16(
         int lane = thread_idx % cmp_tblock_size;
         int base_idx = warp * cmp_tblock_size * cmp_chunk + lane * cmp_chunk;
 
-        if (base_idx >= num_elements) continue;
-        int center = centers[warp];
+        uint8_t* bit_out = &tmp_bit_signals[thread_idx * bytes_per_thread];
+        std::memset(bit_out, 0, bytes_per_thread);
 
-        uint8_t* bit_out = &tmp_bit_signals[thread_idx * cmp_chunk * max_bytes_signal_per_ele_16b];
+        if (base_idx >= num_elements) {
+            bit_offsets[thread_idx] = 0;
+            continue;
+        }
+        int center = centers[warp];
 
         int bit_offset = 0;
 
@@ -101,7 +130,10 @@ inline void compress_uint16(
 
         bit_offsets[thread_idx] = bit_offset;
     }
+    }
 
+    {
+        MANS_TIMING_SCOPE("adm/compress/warp_reduce");
     // Warp-level reduction: compute signal_length[warp] deterministically
     #pragma omp parallel for num_threads(params.adm_warp_reduce_threads)
     for (int warp = 0; warp < gsize; ++warp) {
@@ -117,7 +149,10 @@ inline void compress_uint16(
 
         signal_length[warp] = max_len_bytes;
     }
+    }
 
+    {
+        MANS_TIMING_SCOPE("adm/compress/fill_tail");
     // Fill in the tail bits
     #pragma omp parallel for num_threads(params.adm_fill_tail_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
@@ -126,24 +161,29 @@ inline void compress_uint16(
         int max_len_bytes = signal_length[warp];
 
         if (bit_offset < max_len_bytes * 8) {
-            uint8_t* bit_out = &tmp_bit_signals[thread_idx * cmp_chunk * max_bytes_signal_per_ele_16b];
+            uint8_t* bit_out = &tmp_bit_signals[thread_idx * bytes_per_thread];
             int byte_idx = bit_offset / 8;
             uint8_t mask = (bit_offset % 8 == 0) ? 0xFF : (0xFF >> (bit_offset % 8));
             bit_out[byte_idx] |= mask;
         }
     }
+    }
 
+    {
+        MANS_TIMING_SCOPE("adm/compress/prefix_sum");
     // Compute prefix sum (serially)
-    output_lengths.resize(gsize + 1);
     output_lengths[0] = 0;
     for (int i = 1; i <= gsize; ++i) {
         output_lengths[i] = output_lengths[i - 1] + signal_length[i - 1];
     }
+    }
 
     // Write back bit_signals
     int total_bit_bytes = output_lengths[gsize] * cmp_tblock_size;
-    bit_signals.resize(total_bit_bytes, 0);
+    bit_signals_len = static_cast<size_t>(total_bit_bytes);
 
+    {
+        MANS_TIMING_SCOPE("adm/compress/write_back");
     #pragma omp parallel for num_threads(params.adm_write_back_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
         int warp = thread_idx / cmp_tblock_size;
@@ -153,12 +193,13 @@ inline void compress_uint16(
 
         if (dst_base + bit_len > total_bit_bytes) continue;
 
-        const uint8_t* src = &tmp_bit_signals[thread_idx * cmp_chunk * max_bytes_signal_per_ele_16b];
+        const uint8_t* src = &tmp_bit_signals[thread_idx * bytes_per_thread];
         // 使用向量化指令进行批量拷贝
         #pragma omp simd
         for (int i = 0; i < bit_len; ++i) {
             bit_signals[dst_base + i] = src[i];
         }
+    }
     }
 }
 
@@ -169,14 +210,27 @@ inline void decompress_uint16(
     const uint8_t* codes,                
     size_t num_elements,                
     const uint8_t* bit_signals,          
-    uint16_t* output_data                
+    uint16_t* output_data,
+    const mans::MansParams& params
 )
 {
     int total_threads = gsize * cmp_tblock_size;
 
     // Step 1: Restore signal[]
-    std::vector<uint8_t> signals(num_elements, 0);
+    uint8_t* signals = nullptr;
 
+    {
+        MANS_TIMING_SCOPE("adm_alloc_scratch");
+        signals = mans::cpu::BufferCache::instance().get_t<uint8_t>(
+            "adm_u16_signals", num_elements);
+    }
+    if (!signals) {
+        std::cerr << "Failed to allocate ADM scratch buffer.\n";
+        return;
+    }
+
+    {
+        MANS_TIMING_SCOPE("adm/decompress/restore_signals");
     #pragma omp parallel for num_threads(params.adm_restore_signals_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int warp = tid / cmp_tblock_size;
@@ -214,7 +268,10 @@ inline void decompress_uint16(
             signals[dst_start_idx + i] = local_signal[i];
         }
     }
+    }
 
+    {
+        MANS_TIMING_SCOPE("adm/decompress/decode_values");
     #pragma omp parallel for num_threads(params.adm_decode_values_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int block_id = tid;
@@ -238,25 +295,41 @@ inline void decompress_uint16(
             output_data[base_idx + i] = val;
         }
     }
+    }
 }
 
 inline void compress_uint32(
     const uint32_t* input_data,          
     size_t input_len,                    
-    std::vector<int>& output_lengths,
-    std::vector<uint32_t>& centers,
-    std::vector<uint8_t>& codes,
-    std::vector<uint8_t>& bit_signals,
+    int* output_lengths,
+    uint32_t* centers,
+    uint8_t* codes,
+    uint8_t* bit_signals,
+    size_t& bit_signals_len,
     const mans::MansParams& params
 ) {
     int num_elements = (int)input_len;   
     int gsize = (num_elements + cmp_tblock_size * cmp_chunk - 1) / (cmp_tblock_size * cmp_chunk);
     int total_threads = gsize * cmp_tblock_size;
 
-    std::vector<int> signal_length(gsize, 0);
-    std::vector<int> bit_offsets(total_threads, 0);
-    centers.resize(gsize);
-    codes.resize(num_elements);
+    int* signal_length = nullptr;
+    int* bit_offsets = nullptr;
+    uint8_t* tmp_bit_signals = nullptr;
+
+    const int bytes_per_thread = cmp_chunk * max_bytes_signal_per_ele_32b;
+    const size_t tmp_bytes = static_cast<size_t>(total_threads) * bytes_per_thread;
+
+    {
+        MANS_TIMING_SCOPE("adm_alloc_scratch");
+        auto& cache = mans::cpu::BufferCache::instance();
+        signal_length = cache.get_t<int>("adm_u32_signal_length", static_cast<std::size_t>(gsize));
+        bit_offsets = cache.get_t<int>("adm_u32_bit_offsets", static_cast<std::size_t>(total_threads));
+        tmp_bit_signals = cache.get_t<uint8_t>("adm_u32_tmp_bit_signals", tmp_bytes);
+    }
+    if (!signal_length || !bit_offsets || !tmp_bit_signals) {
+        std::cerr << "Failed to allocate ADM scratch buffers.\n";
+        return;
+    }
 
     // static const uint8_t bitmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
     // static const uint8_t tail_mask[8] = {0xFF, 0x7F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01};
@@ -277,8 +350,6 @@ inline void compress_uint32(
     }
 
     // Allocate temporary buffer for bit_signals
-    std::vector<uint8_t> tmp_bit_signals(total_threads * cmp_chunk * max_bytes_signal_per_ele_32b, 0);
-
     // Encoding and setting codes, bit_signals (in temporary space)
     #pragma omp parallel for num_threads(params.adm_encode_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
@@ -286,10 +357,14 @@ inline void compress_uint32(
         int lane = thread_idx % cmp_tblock_size;
         int base_idx = warp * cmp_tblock_size * cmp_chunk + lane * cmp_chunk;
 
-        if (base_idx >= num_elements) continue;
-        int center = centers[warp];
+        uint8_t* bit_out = &tmp_bit_signals[thread_idx * bytes_per_thread];
+        std::memset(bit_out, 0, bytes_per_thread);
 
-        uint8_t* bit_out = &tmp_bit_signals[thread_idx * cmp_chunk * max_bytes_signal_per_ele_32b];
+        if (base_idx >= num_elements) {
+            bit_offsets[thread_idx] = 0;
+            continue;
+        }
+        int center = centers[warp];
 
         int bit_offset = 0;
 
@@ -343,7 +418,6 @@ inline void compress_uint32(
     }
 
     // Compute prefix sum (serially)
-    output_lengths.resize(gsize + 1);
     output_lengths[0] = 0;
     for (int i = 1; i <= gsize; ++i) {
         output_lengths[i] = output_lengths[i - 1] + signal_length[i - 1];
@@ -351,7 +425,7 @@ inline void compress_uint32(
 
     // Write back bit_signals
     int total_bit_bytes = output_lengths[gsize] * cmp_tblock_size;
-    bit_signals.resize(total_bit_bytes, 0);
+    bit_signals_len = static_cast<size_t>(total_bit_bytes);
 
     #pragma omp parallel for num_threads(params.adm_write_back_threads)
     for (int thread_idx = 0; thread_idx < total_threads; ++thread_idx) {
@@ -385,8 +459,18 @@ inline void decompress_uint32(
     int total_threads = gsize * cmp_tblock_size;
 
     // Step 1: Restore signal[]
-    std::vector<uint8_t> signals(num_elements, 0);
+    uint8_t* signals = nullptr;
 
+    MANS_TIMING_SCOPE("adm_alloc_scratch");
+    signals = mans::cpu::BufferCache::instance().get_t<uint8_t>(
+        "adm_u32_signals", num_elements);
+    if (!signals) {
+        std::cerr << "Failed to allocate ADM scratch buffer.\n";
+        return;
+    }
+
+    {
+        MANS_TIMING_SCOPE("adm/decompress/restore_signals");
     #pragma omp parallel for num_threads(params.adm_restore_signals_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int warp = tid / cmp_tblock_size;
@@ -424,9 +508,11 @@ inline void decompress_uint32(
             signals[dst_start_idx + i] = local_signal[i];
         }
     }
+    }
 
     // Step 2: Decode values
-
+    {
+        MANS_TIMING_SCOPE("adm/decompress/decode_values");
     #pragma omp parallel for num_threads(params.adm_decode_values_threads)
     for (int tid = 0; tid < total_threads; ++tid) {
         int block_id = tid;
@@ -448,6 +534,7 @@ inline void decompress_uint32(
 
             uint32_t val = (code % 2 == 1) ? center - diff : center + diff;
             output_data[base_idx + i] = val;
+        }
         }
     }
 }

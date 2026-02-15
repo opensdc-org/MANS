@@ -8,6 +8,7 @@ struct MansParams {
     uint32_t backend;       // 0: CPU, 1: GPU
     uint32_t dtype;         // 0: U16, 1: U32
     uint32_t adm_threshold; // (block max diff > adm_threshold) -> skip adm mode
+    uint32_t adm_decide_threads; // ADM decision (decide_use_adm)
 
     // --- ADM Compression Threads Config ---
     uint32_t adm_center_calc_threads;    // Center calculation

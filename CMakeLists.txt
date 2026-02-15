@@ -1,4 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
+
+# Default to Intel compilers unless user already specified one.
+if(NOT DEFINED CMAKE_C_COMPILER)
+  set(CMAKE_C_COMPILER icx CACHE STRING "" FORCE)
+endif()
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER icpx CACHE STRING "" FORCE)
+endif()
+
 project(MANS_ROOT LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -11,6 +20,8 @@ endif()
 
 message(STATUS "==========================================")
 message(STATUS "  *** CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ***")
+message(STATUS "  *** C COMPILER: ${CMAKE_C_COMPILER} ***")
+message(STATUS "  *** CXX COMPILER: ${CMAKE_CXX_COMPILER} ***")
 message(STATUS "==========================================")
 
 # =========================================================
@@ -18,12 +29,20 @@ message(STATUS "==========================================")
 # =========================================================
 option(BUILD_HDF5_PLUGIN "Build HDF5 compression filter plugin (H5Z-MANS)" ON)
 message(STATUS "  *** BUILD_HDF5_PLUGIN: ${BUILD_HDF5_PLUGIN} ***")
+option(HDF5_PREFER_PARALLEL "Prefer parallel HDF5 if available" ON)
+message(STATUS "  *** HDF5_PREFER_PARALLEL: ${HDF5_PREFER_PARALLEL} ***")
+option(ENABLE_TIMING "Enable timing collection (mans_timing.h)" ON)
+message(STATUS "  *** ENABLE_TIMING: ${ENABLE_TIMING} ***")
+
+if(ENABLE_TIMING)
+  add_compile_definitions(ENABLE_TIMING)
+endif()
 
 # -------------------------------
 # platform control
 # -------------------------------
 set(VALID_PLATFORMS "cpu" "nv" "amd" "all" "cpu_nv" "cpu_amd")
-set(TARGET_PLATFORM "cpu_nv" CACHE STRING "Target platform to build: cpu / nv / amd / all / cpu_nv / cpu_amd")
+set(TARGET_PLATFORM "cpu" CACHE STRING "Target platform to build: cpu / nv / amd / all / cpu_nv / cpu_amd")
 if (NOT TARGET_PLATFORM IN_LIST VALID_PLATFORMS)
   message(FATAL_ERROR "Invalid TARGET_PLATFORM='${TARGET_PLATFORM}'. Must be one of: ${VALID_PLATFORMS}.")
 endif()
@@ -62,7 +81,7 @@ set_target_properties(mans_common PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BI
 # -------------------------------
 if(BUILD_CPU)
   add_compile_definitions(MANS_ENABLE_CPU)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")#为了编译pan_utils
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")#为了编译pan_utils
   # root dir：build/cpu
   set(cpu_root_binary_dir ${CMAKE_BINARY_DIR}/bin/cpu)
   add_library(mans_cpu_core STATIC
@@ -77,7 +96,7 @@ if(BUILD_CPU)
   )
   target_compile_options(mans_cpu_core PRIVATE 
   $<$<CONFIG:Release>:-O3>
-  -fopenmp -march=native -mavx512f)
+  -march=native -mavx512f)
   target_link_libraries(mans_cpu_core PRIVATE OpenMP::OpenMP_CXX)
   # link cpu core to common
   target_link_libraries(mans_common PRIVATE mans_cpu_core)
@@ -85,71 +104,36 @@ if(BUILD_CPU)
 
   # adm dir：build/cpu/adm
   set(cpu_adm_binary_dir ${cpu_root_binary_dir}/adm)
-
-  # compress（from cpu/adm/cpuadm_compress.cpp , exec:"compress"）
-  add_executable(cpuadm_compress 
-    cpu/adm/cpuadm_compress.cpp
-    cpu/adm/adm_utils.cpp
-    )
-  set_target_properties(cpuadm_compress PROPERTIES
-      OUTPUT_NAME            compress
-      RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-      ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-      LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-  )
-  target_compile_options(cpuadm_compress PRIVATE 
-  -mavx512f -fopenmp -march=native 
-  $<$<CONFIG:Release>:-O3>)
-  target_link_libraries(cpuadm_compress PRIVATE OpenMP::OpenMP_CXX)
-
-  # decompress（from cpu/adm/cpuadm_decompress.cpp，exec: decompress）
-  add_executable(cpuadm_decompress
-   cpu/adm/cpuadm_decompress.cpp
-   cpu/adm/adm_utils.cpp
-   )
-  set_target_properties(cpuadm_decompress PROPERTIES
-      OUTPUT_NAME            decompress
-      RUNTIME_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-      ARCHIVE_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-      LIBRARY_OUTPUT_DIRECTORY ${cpu_adm_binary_dir}
-  )
-  target_compile_options(cpuadm_decompress PRIVATE
-   -mavx512f -fopenmp -march=native 
-   $<$<CONFIG:Release>:-O3>)
-  target_link_libraries(cpuadm_decompress PRIVATE OpenMP::OpenMP_CXX)
+  set(CPU_ADM_BINARY_DIR ${cpu_adm_binary_dir})
+  add_subdirectory(cpu/adm)
 
   # ========== MANS ==========
 
-  # mans compress：build/cpu/cpu_mans_compress
-  add_executable(cpu_mans_compress 
-    cpu/cpu_mans_compress.cpp
+  # mans bench：build/cpu/cpu_mans_bench
+  add_executable(cpu_mans_bench
+    cpu/cpu_mans_bench.cpp
   )
-  set_target_properties(cpu_mans_compress PROPERTIES
+  set_target_properties(cpu_mans_bench PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
-  target_compile_options(cpu_mans_compress PRIVATE $<$<CONFIG:Release>:-O3>)
-  # link mans cpu core library
-  target_link_libraries(cpu_mans_compress PRIVATE mans_common OpenMP::OpenMP_CXX)
+  target_compile_options(cpu_mans_bench PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(cpu_mans_bench PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
 
-  # mans decompress：build/cpu/cpu_mans_decompress
-  add_executable(cpu_mans_decompress
-   cpu/cpu_mans_decompress.cpp
-   )
-  set_target_properties(cpu_mans_decompress PROPERTIES
+  # mans autotune：build/cpu/cpu_mans_autotune
+  add_executable(cpu_mans_autotune
+    cpu/cpu_mans_autotune.cpp
+  )
+  set_target_properties(cpu_mans_autotune PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
-  target_compile_options(cpu_mans_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
-  target_link_libraries(cpu_mans_decompress PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
+  target_compile_options(cpu_mans_autotune PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(cpu_mans_autotune PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
 
+  
   # ========== CPU / pans submodule ==========
   set(cpu_pans_binary_dir ${cpu_root_binary_dir}/pans)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${cpu_pans_binary_dir})
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${cpu_pans_binary_dir})
+  set(CPU_PANS_BINARY_DIR ${cpu_pans_binary_dir})
   add_subdirectory(cpu/pans)
-
-  set_target_properties(cpuans_compress cpuans_decompress PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY ${cpu_pans_binary_dir}
-  )
 
 endif()
 

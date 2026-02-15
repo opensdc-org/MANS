@@ -2,6 +2,8 @@
 #include "pans_utils.h"
 #include "CpuANSEncode.h"
 #include "CpuANSDecode.h"
+#include "../../mans_timing.h"
+#include "../buffer_cache.h"
 
 #include <iostream>
 #include <vector>
@@ -33,32 +35,50 @@ void pans_compress(
     uint32_t batchSize = static_cast<uint32_t>(inputLen);
     const int precision = PANS_PRECISION;
 
-    uint32_t* outCompressedSize = (uint32_t*)malloc(sizeof(uint32_t));
-    uint8_t* encPtrs = (uint8_t*)malloc(getMaxCompressedSize(inputLen));
-    ANSCoalescedHeader* headerOut = (ANSCoalescedHeader*)encPtrs;
+    uint32_t* outCompressedSize = nullptr;
+    uint8_t* encPtrs = nullptr;
+    ANSCoalescedHeader* headerOut = nullptr;
     uint32_t maxNumCompressedBlocks;
 
     uint32_t maxUncompressedWords = batchSize / sizeof(ANSDecodedT);
     maxNumCompressedBlocks =
         (maxUncompressedWords + kDefaultBlockSize - 1) / kDefaultBlockSize;
     
-    uint4* table = (uint4*)malloc(sizeof(uint4) * kNumSymbols);
-    uint32_t* tempHistogram = (uint32_t*)malloc(sizeof(uint32_t) * kNumSymbols);
+    uint4* table = nullptr;
+    uint32_t* tempHistogram = nullptr;
     uint32_t uncoalescedBlockStride = getMaxBlockSizeUnCoalesced(kDefaultBlockSize);
-    uint8_t* compressedBlocks_host = (uint8_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint8_t) * maxNumCompressedBlocks * uncoalescedBlockStride);
-    uint32_t* compressedWords_host = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * maxNumCompressedBlocks);
-    uint32_t* compressedWords_host_prefix = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * maxNumCompressedBlocks);
-    uint32_t* compressedWordsPrefix_host = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * maxNumCompressedBlocks);
+    uint8_t* compressedBlocks_host = nullptr;
+    uint32_t* compressedWords_host = nullptr;
+    uint32_t* compressedWords_host_prefix = nullptr;
+    uint32_t* compressedWordsPrefix_host = nullptr;
+    {
+        MANS_TIMING_SCOPE("alloc_pans_compress");
+        auto& cache = mans::cpu::BufferCache::instance();
+        outCompressedSize = cache.get_t<uint32_t>("pans_out_compress_size", 1);
+        encPtrs = cache.get_t<uint8_t>("pans_enc", getMaxCompressedSize(inputLen));
+        headerOut = (ANSCoalescedHeader*)encPtrs;
+        table = cache.get_aligned_t<uint4>("pans_table", kBlockAlignment, kNumSymbols);
+        tempHistogram = cache.get_aligned_t<uint32_t>("pans_hist", kBlockAlignment, kNumSymbols);
+        compressedBlocks_host = cache.get_aligned_t<uint8_t>(
+            "pans_blocks", kBlockAlignment,
+            static_cast<std::size_t>(maxNumCompressedBlocks) * uncoalescedBlockStride);
+        compressedWords_host = cache.get_aligned_t<uint32_t>(
+            "pans_words", kBlockAlignment, maxNumCompressedBlocks);
+        compressedWords_host_prefix = cache.get_aligned_t<uint32_t>(
+            "pans_words_prefix", kBlockAlignment, maxNumCompressedBlocks);
+        compressedWordsPrefix_host = cache.get_aligned_t<uint32_t>(
+            "pans_words_prefix2", kBlockAlignment, maxNumCompressedBlocks);
+    }
+    if (!outCompressedSize || !encPtrs || !table || !tempHistogram ||
+        !compressedBlocks_host || !compressedWords_host ||
+        !compressedWords_host_prefix || !compressedWordsPrefix_host) {
+        std::cerr << "Error: pans_compress buffer allocation failed.\n";
+        outputLen = 0;
+        return;
+    }
     
     auto start = std::chrono::high_resolution_clock::now();  
+    MANS_TIMING_START("pans/compress_internal");
     ansEncode(
         table,
         tempHistogram,
@@ -74,6 +94,7 @@ void pans_compress(
         compressedWords_host,
         compressedWords_host_prefix,
         compressedWordsPrefix_host);
+    MANS_TIMING_STOP("pans/compress_internal");
     auto end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
     
@@ -160,15 +181,6 @@ void pans_compress(
     }
     }
 
-    // Clean up
-    free(outCompressedSize);
-    free(encPtrs);
-    free(table);
-    free(tempHistogram);
-    free(compressedBlocks_host);
-    free(compressedWords_host);
-    free(compressedWords_host_prefix);
-    free(compressedWordsPrefix_host);
 }
 
 // benchmark: call pans_compress multiple times to measure time
@@ -285,18 +297,36 @@ void pans_decompress(
     const int precision = PANS_PRECISION;
 
 
-    uint8_t* decPtrs = (uint8_t*)malloc(sizeof(uint8_t) * batchSize);
-    uint32_t* symbol = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * (1u << precision));
-    uint32_t* pdf = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * (1u << precision));
-    uint32_t* cdf = (uint32_t*)std::aligned_alloc(
-        kBlockAlignment,
-        sizeof(uint32_t) * (1u << precision));
+    uint8_t* decPtrs = nullptr;
+    uint32_t* symbol = nullptr;
+    uint32_t* pdf = nullptr;
+    uint32_t* cdf = nullptr;
+    bool owns_dec_buffer = false;
+    {
+        MANS_TIMING_SCOPE("alloc_pans_decompress");
+        if (decompressedData) {
+            decPtrs = decompressedData;
+        } else {
+            decPtrs = mans::cpu::BufferCache::instance().get_t<uint8_t>(
+                "pans_dec", batchSize);
+            owns_dec_buffer = false;
+        }
+        auto& cache = mans::cpu::BufferCache::instance();
+        symbol = cache.get_aligned_t<uint32_t>(
+            "pans_symbol", kBlockAlignment, (1u << precision));
+        pdf = cache.get_aligned_t<uint32_t>(
+            "pans_pdf", kBlockAlignment, (1u << precision));
+        cdf = cache.get_aligned_t<uint32_t>(
+            "pans_cdf", kBlockAlignment, (1u << precision));
+    }
+    if (!decPtrs || !symbol || !pdf || !cdf) {
+        std::cerr << "Error: pans_decompress buffer allocation failed.\n";
+        decompressedLen = 0;
+        return;
+    }
     
     auto start = std::chrono::high_resolution_clock::now();
+    MANS_TIMING_START("pans/decompress_internal");
     ansDecode(
         symbol,
         pdf,
@@ -304,21 +334,15 @@ void pans_decompress(
         precision,
         (uint8_t*)compressedData, // cast const away if api requires it
         decPtrs);
+    MANS_TIMING_STOP("pans/decompress_internal");
     auto end = std::chrono::high_resolution_clock::now();  
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
 
-    if (decompressedData) {
-        std::memcpy(decompressedData, decPtrs, batchSize * sizeof(uint8_t));
-    }
-    
-
     decompressedLen = batchSize;
 
-
-    free(decPtrs);
-    free(symbol);
-    free(pdf);
-    free(cdf);
+    if (owns_dec_buffer) {
+        free(decPtrs);
+    }
 }
 
 // benchmark: call pans_decompress multiple times to measure time

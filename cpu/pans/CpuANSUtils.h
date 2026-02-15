@@ -22,7 +22,7 @@
 #include <chrono>
 #include <atomic>
 #include <omp.h>
-
+#include "../../mans_timing.h"
 namespace cpu_ans {
 
 using ANSStateT = uint32_t;

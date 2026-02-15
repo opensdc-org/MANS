@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     params.backend = mans::Backend::CPU;
     params.adm_threshold = 4000; // default threshold
     // Default thread settings for ADM compression/decompression
+    params.adm_decide_threads          = 16;
     params.adm_center_calc_threads      = 32;
     params.adm_encode_threads           = 32;
     params.adm_warp_reduce_threads      = 32;
