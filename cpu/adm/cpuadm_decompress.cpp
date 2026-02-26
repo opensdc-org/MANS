@@ -42,9 +42,7 @@ int main(int argc, char** argv) {
         std::cerr << "Error: File too small or invalid format.\n";
         return 1;
     }
-    mans::MansParams params;
-    params.adm_restore_signals_threads=32;
-    params.adm_decode_values_threads=16;
+    mans::MansParams params{};
     adm::FileHeader header;
     std::memcpy(&header, merged.data(), sizeof(header));
     std::size_t num_elements = static_cast<std::size_t>(header.num_elements);

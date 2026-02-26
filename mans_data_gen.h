@@ -27,6 +27,7 @@ struct SyntheticConfig {
     double size_per_rank_mb = 256.0;
     double ratio_smooth = 1.0;
     double ratio_spike = 0.0;
+    double ratio_constant = 0.0;
     double ratio_random = 0.0;
     int noise_range = 20;
     std::size_t block_size = 512;
@@ -67,6 +68,10 @@ inline void apply_config_kv(SyntheticConfig& cfg, const std::string& key, const 
     }
     if (key == "ratio_spike") {
         cfg.ratio_spike = std::stod(val);
+        return;
+    }
+    if (key == "ratio_constant") {
+        cfg.ratio_constant = std::stod(val);
         return;
     }
     if (key == "ratio_random") {
@@ -264,9 +269,10 @@ inline std::vector<T> generate_synthetic_slice(std::uint32_t adm_threshold,
     const std::vector<double> weights = {
         std::max(0.0, cfg.ratio_smooth),
         std::max(0.0, cfg.ratio_spike),
+        std::max(0.0, cfg.ratio_constant),
         std::max(0.0, cfg.ratio_random),
     };
-    const double weight_sum = weights[0] + weights[1] + weights[2];
+    const double weight_sum = weights[0] + weights[1] + weights[2] + weights[3];
     if (weight_sum <= 0.0) {
         throw std::runtime_error("Synthetic ratios sum to 0");
     }
@@ -324,6 +330,11 @@ inline std::vector<T> generate_synthetic_slice(std::uint32_t adm_threshold,
                         out[local_idx] = static_cast<T>(block_base + spike_gap);
                     }
                 }
+                continue;
+            }
+
+            if (block_type == 2) {
+                out[local_idx] = block_base;
                 continue;
             }
 

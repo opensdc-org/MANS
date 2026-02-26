@@ -25,12 +25,12 @@ void decompress(
     size_t& out_size
 );
 
-std::size_t get_mans_max_compress_bytes_p(
+std::size_t get_mans_max_compress_bytes(
     std::size_t num_elements,
     const MansParams& params
 );
 
-std::size_t get_mans_exact_decompress_bytes_p(
+std::size_t get_mans_exact_decompress_bytes(
     const void* compressed_data,
     std::size_t compressed_len,
     const MansParams& params

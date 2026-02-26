@@ -84,10 +84,17 @@ if(BUILD_CPU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")#为了编译pan_utils
   # root dir：build/cpu
   set(cpu_root_binary_dir ${CMAKE_BINARY_DIR}/bin/cpu)
+
+  # ========== CPU / fse submodule ==========
+  set(cpu_fse_binary_dir ${cpu_root_binary_dir}/fse)
+  set(CPU_FSE_BINARY_DIR ${cpu_fse_binary_dir})
+  add_subdirectory(cpu/fse)
+
   add_library(mans_cpu_core STATIC
     cpu/mans_cpu.cpp
     cpu/adm/adm_utils.cpp
     cpu/pans/pans_utils.cpp
+    cpu/fse/fse_utils.cpp
   )
   # [Key] Enable PIC so it can be linked into a shared library
   set_property(TARGET mans_cpu_core PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -97,7 +104,7 @@ if(BUILD_CPU)
   target_compile_options(mans_cpu_core PRIVATE 
   $<$<CONFIG:Release>:-O3>
   -march=native -mavx512f)
-  target_link_libraries(mans_cpu_core PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(mans_cpu_core PRIVATE OpenMP::OpenMP_CXX PUBLIC fse_core)
   # link cpu core to common
   target_link_libraries(mans_common PRIVATE mans_cpu_core)
   # ========== ADM ==========
@@ -117,7 +124,7 @@ if(BUILD_CPU)
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
   target_compile_options(cpu_mans_bench PRIVATE $<$<CONFIG:Release>:-O3>)
-  target_link_libraries(cpu_mans_bench PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
+  target_link_libraries(cpu_mans_bench PRIVATE mans_common mans_cpu_core OpenMP::OpenMP_CXX)
 
   # mans autotune：build/cpu/cpu_mans_autotune
   add_executable(cpu_mans_autotune

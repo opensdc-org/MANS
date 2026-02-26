@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     auto stage = [&](const char* msg) {
-        if (rank == 0) std::printf("[mans-original-write] %s\n", msg);
+        if (rank == 0) std::printf("[mans_original_write] %s\n", msg);
     };
 
     stage("loading input");
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     H5Pclose(fapl);
 
     hsize_t chunk_bytes = static_cast<hsize_t>(chunk_size_mb * 1024.0 * 1024.0);
-    if (rank == 0) std::printf("[mans-original-write] chunk-size-mb=%.6g\n", chunk_size_mb);
+    if (rank == 0) std::printf("[mans_original_write] chunk-size-mb=%.6g\n", chunk_size_mb);
 
     hsize_t dims[1] = {(hsize_t)elems};
     hsize_t chunk[1] = {chunk_bytes / (hsize_t)sizeof(std::uint16_t)};
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
         double bw = (max_sec > 0.0) ? (mib / max_sec) : 0.0;
         double per_rank_approx = (nprocs > 0) ? (bw / (double)nprocs) : 0.0;
         double comp_ratio_x = (total_file_bytes > 0.0) ? (total_bytes / total_file_bytes) : 0.0;
-        std::printf("mans-original-write ranks=%d total=%.1f MiB time=%.4f s throughput=%.2f MiB/s per_rank~%.2f MiB/s comp_ratio=%.2fx\n",
+        std::printf("mans_original_write ranks=%d total=%.1f MiB time=%.4f s throughput=%.2f MiB/s per_rank~%.2f MiB/s comp_ratio=%.2fx\n",
                     nprocs, mib, max_sec, bw, per_rank_approx, comp_ratio_x);
     }
     MPI_Finalize();

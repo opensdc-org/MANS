@@ -181,21 +181,6 @@ RunStats run_once(const std::vector<T>& input,
 }
 
 template <typename T>
-void init_params(mans::MansParams& params) {
-    params.backend = mans::Backend::CPU;
-    params.dtype = std::is_same_v<T, std::uint16_t> ? mans::DataType::U16 : mans::DataType::U32;
-    params.adm_threshold = 4000;
-    params.adm_decide_threads = 16;
-    params.adm_center_calc_threads = 32;
-    params.adm_encode_threads = 32;
-    params.adm_warp_reduce_threads = 32;
-    params.adm_fill_tail_threads = 32;
-    params.adm_write_back_threads = 32;
-    params.adm_restore_signals_threads = 32;
-    params.adm_decode_values_threads = 32;
-}
-
-template <typename T>
 int run_bench_for_type(const std::vector<T>& input,
                        const std::vector<double>& chunks_mb,
                        mans::MansParams& params,
@@ -421,7 +406,8 @@ int main(int argc, char** argv) {
         }
 
         mans::MansParams params{};
-        init_params<std::uint16_t>(params);
+        params.backend = mans::Backend::CPU;
+        params.dtype = mans::DataType::U16;
         if (has_threads) {
             apply_thread_overrides(params, thread_list);
         }
@@ -450,7 +436,8 @@ int main(int argc, char** argv) {
         }
 
         mans::MansParams params{};
-        init_params<std::uint32_t>(params);
+        params.backend = mans::Backend::CPU;
+        params.dtype = mans::DataType::U32;
         if (has_threads) {
             apply_thread_overrides(params, thread_list);
         }

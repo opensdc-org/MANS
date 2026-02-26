@@ -22,6 +22,7 @@ struct GenOptions {
     std::string synth_config_file;
 
     std::optional<double> size_per_rank_mb_override;
+    std::optional<double> ratio_constant_override;
     std::optional<std::uint32_t> adm_threshold_override;
     std::optional<std::uint32_t> dtype_override;
     std::optional<std::size_t> ranks_override;
@@ -34,7 +35,7 @@ static void print_usage(const char* prog) {
         << "Usage:\n  " << prog
         << " [--config gen.cfg] [--output-name name.bin] [--output-dir DIR] [--output-prefix NAME]\n"
            "         [--synth-config synth.cfg] [--size-per-rank-mb MB] [--ranks N] [--jobs N]\n"
-           "         [--dtype u16|u32] [--adm-threshold N]\n";
+           "         [--ratio-constant R] [--dtype u16|u32] [--adm-threshold N]\n";
 }
 
 static std::uint32_t parse_dtype(std::string_view s) {
@@ -83,6 +84,10 @@ static std::optional<GenOptions> parse_args(int argc, char** argv) {
             opts.size_per_rank_mb_override = std::stod(need_value("--size-per-rank-mb"));
             continue;
         }
+        if (arg == "--ratio-constant") {
+            opts.ratio_constant_override = std::stod(need_value("--ratio-constant"));
+            continue;
+        }
         if (arg == "--ranks") {
             opts.ranks_override = static_cast<std::size_t>(std::stoull(need_value("--ranks")));
             continue;
@@ -109,6 +114,19 @@ static std::optional<GenOptions> parse_args(int argc, char** argv) {
     }
 
     return opts;
+}
+
+static void print_block_ratio_summary(const mans::h5::data_gen::SyntheticConfig& cfg) {
+    const double smooth = std::max(0.0, cfg.ratio_smooth);
+    const double spike = std::max(0.0, cfg.ratio_spike);
+    const double constant = std::max(0.0, cfg.ratio_constant);
+    const double random = std::max(0.0, cfg.ratio_random);
+    const double sum = smooth + spike + constant + random;
+
+    std::cout << "  block_ratio_smooth:   " << (sum > 0.0 ? smooth / sum : 0.0) << "\n";
+    std::cout << "  block_ratio_spike:    " << (sum > 0.0 ? spike / sum : 0.0) << "\n";
+    std::cout << "  block_ratio_constant: " << (sum > 0.0 ? constant / sum : 0.0) << "\n";
+    std::cout << "  block_ratio_random:   " << (sum > 0.0 ? random / sum : 0.0) << "\n";
 }
 
 template <typename T>
@@ -146,6 +164,7 @@ static int generate_and_write(const mans::h5::data_gen::SyntheticConfig& cfg,
     std::cout << "  elements:     " << total_elements << "\n";
     std::cout << "  raw_size_mb:  " << raw_mb << "\n";
     std::cout << "  adm_threshold:" << adm_threshold << "\n";
+    print_block_ratio_summary(cfg);
     return 0;
 }
 
@@ -181,6 +200,7 @@ static int generate_ranks_and_write(const mans::h5::data_gen::SyntheticConfig& c
     std::cout << "  output_dir:   " << output_dir.string() << "\n";
     std::cout << "  file_prefix:  " << output_prefix << "\n";
     std::cout << "  adm_threshold:" << adm_threshold << "\n";
+    print_block_ratio_summary(cfg);
     for (const auto& item : rank_outputs) {
         std::cout << "    rank " << item.rank << " -> " << item.output_path.string() << "\n";
     }
@@ -235,10 +255,20 @@ int main(int argc, char** argv) {
         // Keep default synthetic output ADM-friendly for decide_use_adm().
         gen_cfg.synth.ratio_smooth = 1.0;
         gen_cfg.synth.ratio_spike = 0.0;
+        gen_cfg.synth.ratio_constant = 0.0;
         gen_cfg.synth.ratio_random = 0.0;
         gen_cfg.synth.block_size = 512;
         const auto safe_noise = std::min<std::uint32_t>(adm_threshold, 20U);
         gen_cfg.synth.noise_range = static_cast<int>(safe_noise);
+    }
+    if (opts.ratio_constant_override.has_value()) {
+        gen_cfg.synth.ratio_constant = *opts.ratio_constant_override;
+        // Auto-adjust smooth so total weight stays near 1.0.
+        const double smooth = 1.0
+            - std::max(0.0, gen_cfg.synth.ratio_constant)
+            - std::max(0.0, gen_cfg.synth.ratio_spike)
+            - std::max(0.0, gen_cfg.synth.ratio_random);
+        gen_cfg.synth.ratio_smooth = std::max(0.0, smooth);
     }
 
     const std::size_t ranks = opts.ranks_override.value_or(1);

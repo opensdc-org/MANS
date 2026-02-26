@@ -150,6 +150,7 @@ mans::MansParams default_params() {
     mans::MansParams params{};
     params.backend = mans::Backend::CPU;
     params.dtype = mans::DataType::U16;
+    params.mode = mans::Mode::P;
     params.adm_threshold = kAdmThreshold;
     params.adm_decide_threads = 32;
     params.adm_center_calc_threads = 32;

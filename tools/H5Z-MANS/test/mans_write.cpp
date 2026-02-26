@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
     stage("building HDF5 dataset");
     mans::MansParams p{};
     p.backend = mans::Backend::CPU; p.dtype = mans::DataType::U16; p.adm_threshold = 4000;
+    p.mode=mans::Mode::R;
     p.adm_decide_threads = 16; p.adm_center_calc_threads = 32; p.adm_encode_threads = 32;
     p.adm_warp_reduce_threads = 32; p.adm_fill_tail_threads = 16; p.adm_write_back_threads = 16;
     p.adm_restore_signals_threads = 32; p.adm_decode_values_threads = 16;

@@ -88,6 +88,22 @@ void register_dump_on_exit() {
 
 using mans::h5::safe_malloc;
 
+constexpr std::size_t kMansParamsWords = sizeof(mans::MansParams) / sizeof(unsigned int);
+
+static bool parse_mans_params_from_cd(const unsigned int* cd_values,
+                                      std::size_t cd_nelmts,
+                                      mans::MansParams& out) {
+    if (!cd_values || cd_nelmts < kMansParamsWords) {
+        return false;
+    }
+
+    std::memcpy(&out, cd_values, sizeof(out));
+    if (out.mode != mans::Mode::P && out.mode != mans::Mode::R) {
+        return false;
+    }
+    return true;
+}
+
 static bool threads_all_zero(const mans::MansParams& params) {
     return params.adm_decide_threads == 0 &&
            params.adm_center_calc_threads == 0 &&
@@ -121,7 +137,7 @@ static herr_t H5Z_set_local_mans(hid_t dcpl_id, hid_t type_id, hid_t space_id) {
                              &cd_nelmts, nullptr, 0, nullptr, nullptr) < 0) {
         return 0;
     }
-    const size_t required_params = sizeof(mans::MansParams) / sizeof(unsigned int);
+    const size_t required_params = kMansParamsWords;
     if (cd_nelmts < required_params) {
         return 0;
     }
@@ -133,7 +149,9 @@ static herr_t H5Z_set_local_mans(hid_t dcpl_id, hid_t type_id, hid_t space_id) {
     }
 
     mans::MansParams params{};
-    std::memcpy(&params, cd_values.data(), sizeof(mans::MansParams));
+    if (!parse_mans_params_from_cd(cd_values.data(), cd_nelmts, params)) {
+        return 0;
+    }
     const bool need_auto_threads = threads_all_zero(params);
 
     std::vector<hsize_t> chunk_dims(static_cast<std::size_t>(ndims), 0);
@@ -223,14 +241,19 @@ static size_t H5Z_filter_mans(unsigned int flags, size_t cd_nelmts,
                               size_t *buf_size, void **buf)
 {
     maybe_begin_run_from_env();
-    size_t required_params = sizeof(mans::MansParams) / sizeof(unsigned int);
+    const size_t required_params = kMansParamsWords;
 
     if (cd_nelmts < required_params) {
         std::cerr << "[H5Z-MANS Error] Filter parameter count (" << cd_nelmts
-                  << ") must be at least " << required_params << " (MansParams).\n";
+                  << ") must be at least " << required_params
+                  << " (MansParams).\n";
         return 0;
     }
-    const mans::MansParams* params = reinterpret_cast<const mans::MansParams*>(cd_values);
+    mans::MansParams params{};
+    if (!parse_mans_params_from_cd(cd_values, cd_nelmts, params)) {
+        std::cerr << "[H5Z-MANS Error] Failed to parse MansParams.\n";
+        return 0;
+    }
 
     // Destination buffer pointer and its capacity
     void* dst_buf = nullptr;
@@ -243,26 +266,18 @@ static size_t H5Z_filter_mans(unsigned int flags, size_t cd_nelmts,
             // Decompress Path
             // ============================
             MANS_TIMING_SCOPE("filter/decompress");
-            size_t elem_size = (params->dtype == mans::DataType::U16) ? 2 : 4;
+            size_t elem_size = (params.dtype == mans::DataType::U16) ? 2 : 4;
             if (elem_size == 0) {
                 std::cerr << "[H5Z-MANS Error] Invalid dtype in params.\n";
                 return 0;
             }
 
-            if (cd_nelmts > required_params) {
-                const size_t chunk_elems = static_cast<size_t>(cd_values[required_params]);
-                if (chunk_elems > 0) {
-                    dst_capacity = chunk_elems * elem_size;
-                }
-            }
-            if (dst_capacity == 0 && buf_size && *buf_size > 0) {
-                dst_capacity = *buf_size;
-            }
-            if (dst_capacity == 0) {
+            dst_capacity = mans::get_mans_exact_decompress_bytes(*buf, nbytes, params);
+            if (dst_capacity == 0 || dst_capacity % elem_size != 0) {
                 std::cerr << "[H5Z-MANS Error] Failed to determine decompressed size.\n";
                 return 0;
             }
-            
+
             dst_buf = safe_malloc(dst_capacity);
             if (!dst_buf) return 0;
 
@@ -270,7 +285,7 @@ static size_t H5Z_filter_mans(unsigned int flags, size_t cd_nelmts,
             out_len = dst_capacity; 
 
             // Call decompress API (no vector)
-            mans::decompress(*buf, nbytes, *params, static_cast<uint8_t*>(dst_buf), out_len);
+            mans::decompress(*buf, nbytes, params, static_cast<uint8_t*>(dst_buf), out_len);
 
         } else {
             // ============================
@@ -278,25 +293,25 @@ static size_t H5Z_filter_mans(unsigned int flags, size_t cd_nelmts,
             // ============================
             MANS_TIMING_SCOPE("filter/compress");
             // Check data alignment/size validity
-            size_t elem_size = (params->dtype == mans::DataType::U16) ? 2 : 4;
+            size_t elem_size = (params.dtype == mans::DataType::U16) ? 2 : 4;
             if (nbytes % elem_size != 0) {
                 std::cerr << "[H5Z-MANS Error] Input buffer size (" << nbytes
                           << ") is not a multiple of element size (" << elem_size
-                          << "). dtype=" << (params->dtype == mans::DataType::U16 ? "U16" : "U32")
+                          << "). dtype=" << (params.dtype == mans::DataType::U16 ? "U16" : "U32")
                           << "\n";
                 return 0;
             }
             size_t num_elements = nbytes / elem_size;
 
             // Allocation: worst-case bound for MANS (covers ADM + PANS path)
-            dst_capacity = mans::get_mans_max_compress_bytes_p(num_elements, *params);
+            dst_capacity = mans::get_mans_max_compress_bytes(num_elements, params);
             dst_buf = safe_malloc(dst_capacity);
             if (!dst_buf) return 0;
 
             out_len = dst_capacity;
 
             // Call compress API (no vector)
-            mans::compress(*buf, num_elements, *params, static_cast<uint8_t*>(dst_buf), out_len);
+            mans::compress(*buf, num_elements, params, static_cast<uint8_t*>(dst_buf), out_len);
         }
 
         // ==========================================
