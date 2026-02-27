@@ -1,25 +1,55 @@
-# PANS
-PANS is a parallel implementation of the Asymmetric Numeral Systems (ANS) compression algorithm. It supports asymmetric compression and decompression across different hardware architectures, enabling flexible deployment based on system requirements. Specifically, it allows:
-- Parallel compression on NVIDIA/AMD GPUs using [dietGPU](https://github.com/facebookresearch/dietgpu/), with parallel decompression on multi-core CPUs.
-- Parallel compression on multi-core CPUs using PANS, with parallel decompression on NVIDIA GPUs via [dietGPU](https://github.com/facebookresearch/dietgpu/).
+# NVIDIA ANS (CUDA)
 
-## Building
+CUDA ANS encoder/decoder used by MANS NVIDIA pipeline.
 
-Clone this repo using
+Typical pipeline on NVIDIA:
+1. `nv_mapping_uint16` / `nv_mapping_uint32` (ADM mapping)
+2. `cudaans_compress`
+3. `cudaans_decompress`
 
-```shell
-git clone https://github.com/hpdps-group/PANS.git
+## Build
+
+From repo root:
+
+```bash
+cmake -S . -B build -DTARGET_PLATFORM=nv -DBUILD_HDF5_PLUGIN=OFF
+cmake --build build -j
 ```
 
-Do the standard CMake thing:
+If you also need CPU side tools, use `TARGET_PLATFORM=cpu_nv`.
 
-```shell
-cd PANS; mkdir build; cd build;
-cmake .. && make
-```
-## Run
+Generated binaries:
+- `build/bin/nv/nv_mapping_uint16`
+- `build/bin/nv/nv_mapping_uint32`
+- `build/bin/nv/cudaans_compress`
+- `build/bin/nv/cudaans_decompress`
 
-```shell
-compress: ./bin/cudaans_compress input_file temp_file
-decompress: ./bin/cudaans_decompress temp_file output_file
+## Usage
+
+ADM mapping:
+
+```bash
+./build/bin/nv/nv_mapping_uint16 <input file> <output file>
+./build/bin/nv/nv_mapping_uint32 <input file> <output file>
 ```
+
+ANS compress/decompress:
+
+```bash
+./build/bin/nv/cudaans_compress <inputfile> <tempfile>
+./build/bin/nv/cudaans_decompress <input.file> <output.file>
+```
+
+Example chain (`u16`):
+
+```bash
+./build/bin/nv/nv_mapping_uint16 input_u16.bin mapped_u16.bin
+./build/bin/nv/cudaans_compress mapped_u16.bin mapped_u16.ans
+./build/bin/nv/cudaans_decompress mapped_u16.ans mapped_u16.restore.bin
+```
+
+## Notes
+
+- The ANS example binaries use internal precision `10` (hardcoded in source).
+- `cudaans_decompress` reads metadata/header from compressed input.
+- For full MANS CPU autotune + benchmark workflow, see root [README.md](../../README.md).

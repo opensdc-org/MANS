@@ -1,25 +1,56 @@
-# PANS
-PANS is a parallel implementation of the Asymmetric Numeral Systems (ANS) compression algorithm. It supports asymmetric compression and decompression across different hardware architectures, enabling flexible deployment based on system requirements. Specifically, it allows:
-- Parallel compression on NVIDIA/AMD GPUs using [dietGPU](https://github.com/facebookresearch/dietgpu/), with parallel decompression on multi-core CPUs.
-- Parallel compression on multi-core CPUs using PANS, with parallel decompression on NVIDIA GPUs via [dietGPU](https://github.com/facebookresearch/dietgpu/).
+# AMD ANS (HIP)
 
-## Building
+HIP ANS encoder/decoder used by MANS AMD pipeline.
 
-Clone this repo using
+Typical pipeline on AMD:
+1. `amd_mapping_uint16` / `amd_mapping_uint32` (ADM mapping)
+2. `hipans_compress`
+3. `hipans_decompress`
 
-```shell
-git clone https://github.com/hpdps-group/PANS.git
+## Build
+
+From repo root:
+
+```bash
+cmake -S . -B build -DTARGET_PLATFORM=amd -DBUILD_HDF5_PLUGIN=OFF
+cmake --build build -j
 ```
 
-Do the standard CMake thing:
+If you also need CPU side tools, use `TARGET_PLATFORM=cpu_amd`.
 
-```shell
-cd PANS; mkdir build; cd build;
-cmake .. && make
-```
-## Run
+Generated binaries:
+- `build/bin/amd/amd_mapping_uint16`
+- `build/bin/amd/amd_mapping_uint32`
+- `build/bin/hipans_compress`
+- `build/bin/hipans_decompress`
 
-```shell
-compress: ./bin/hipans_compress input_file temp_file
-decompress: ./bin/hipans_decompress temp_file output_file
+## Usage
+
+ADM mapping:
+
+```bash
+./build/bin/amd/amd_mapping_uint16 <input file> <output file>
+./build/bin/amd/amd_mapping_uint32 <input file> <output file>
 ```
+
+ANS compress/decompress:
+
+```bash
+./build/bin/hipans_compress <inputfile> <tempfile>
+./build/bin/hipans_decompress <input.file> <output.file>
+```
+
+Example chain (`u16`):
+
+```bash
+./build/bin/amd/amd_mapping_uint16 input_u16.bin mapped_u16.bin
+./build/bin/hipans_compress mapped_u16.bin mapped_u16.ans
+./build/bin/hipans_decompress mapped_u16.ans mapped_u16.restore.bin
+```
+
+## Notes
+
+- The ANS example binaries use internal precision `10` (hardcoded in source).
+- `hipans_decompress` reads metadata/header from compressed input.
+- `amd/ans/CMakeLists.txt` currently pins HIP compiler paths; adjust if your ROCm installation differs.
+- For full MANS CPU autotune + benchmark workflow, see root [README.md](../../README.md).

@@ -105,7 +105,7 @@ git clone https://github.com/ewTomato/MANS.git
 
 ```shell
 cd MANS; mkdir build; cd build;
-cmake -DTARGET_PLATFORM=cpu_nv .. && make (this is for cpu and nvidia platform)
+cmake -DTARGET_PLATFORM=cpu_nv .. && make -j   # cpu + nvidia
 ```
 
 <!-- ## Instructions for Use
@@ -127,47 +127,39 @@ cmake -DTARGET_PLATFORM=cpu_nv .. && make (this is for cpu and nvidia platform)
 
 ## 🚀 Usage
 
-_Comprehensive usage examples are being finalized and will be added soon._  
-Below is the general workflow for running MANS once build targets are installed.
+Below is a minimal workflow based on current binaries in this repository.
 
-### **Basic Command-Line Workflow (Coming Soon)**
+### **CPU: autotune first, then auto-pick threads**
 
-**Compression**
-On the CPU
+1) Run autotune on target device, generate thread CSV:
 ```bash
-./build/bin/cpu/cpu_mans_compress [datatype: u2 or u4] input_file outputfile save_adm
-./build/bin/cpu/cpu_mans_decompress [datatype: u2 or u4] outputfile input_file save_adm
+./build/bin/cpu/cpu_mans_autotune --csv ./build/thread_sweep.csv --out ./build/best_threads.csv
 ```
-- `save_adm`: 1 to save ADM intermediate file
-On the NVIDIA GPU
+
+2) Run bench without `--threads`; it auto-loads CSV and selects nearest thread config by chunk size:
 ```bash
-./build/bin/nv/nv_mapping_uint16 input_file output_file_adm 
+cd build
+./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode r --chunks 0,0.25,1 --csv bench.csv
+```
+Auto-load order:
+- `MANS_THREAD_CSV` env var (if set)
+- otherwise `best_threads.csv` in current working directory
+
+### **NVIDIA GPU**
+
+```bash
+./build/bin/nv/nv_mapping_uint16 input_file output_file_adm
 ./build/bin/nv/cudaans_compress output_file_adm output_file_mans
+./build/bin/nv/cudaans_decompress output_file_mans output_file_adm_restore
 ```
 
-On the AMD GPU
+### **AMD GPU**
+
 ```bash
-./build/bin/amd/amd_mapping_uint16 input_file output_file_adm 
-./build/bin/amd/hipans_compress output_file_adm output_file_mans
+./build/bin/amd/amd_mapping_uint16 input_file output_file_adm
+./build/bin/hipans_compress output_file_adm output_file_mans
+./build/bin/hipans_decompress output_file_mans output_file_adm_restore
 ```
-
-<!-- **Decompression**
-On the CPU
-```bash
-
-./build/bin/cpu/cpuans_decompress output_file_mans output_file_adm
-```
-
-On the NVIDIA GPU
-```bash
-
-./build/bin/nv/cudaans_decompress output_file_mans output_file_adm
-```
-
-On the AMD GPU
-```bash
-./build/bin/amd/hipans_decompress output_file_mans output_file_adm
-``` -->
 
 ### **HDF5 Filter Plugin: H5Z-MANS**
 see [tools/H5Z-MANS/README.md](tools/H5Z-MANS/README.md) for detailed instructions on building and using the HDF5 filter plugin for MANS.

@@ -171,3 +171,39 @@ target_link_libraries(fse_read PRIVATE ${HDF5_LIBRARIES} MPI::MPI_C)
 set_target_properties(fse_read PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/h5z-mans
 )
+
+# =========================================================
+# Target 14: fse_ans_write (minimal MPI FSE-ANS compressed write test)
+# =========================================================
+add_executable(fse_ans_write test/fse_ans_write.cpp)
+target_link_libraries(fse_ans_write PRIVATE ${HDF5_LIBRARIES} MPI::MPI_C dl)
+set_target_properties(fse_ans_write PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/h5z-mans
+)
+
+# =========================================================
+# Target 15: fse_ans_read (minimal MPI FSE-ANS compressed read test)
+# =========================================================
+add_executable(fse_ans_read test/fse_ans_read.cpp)
+target_link_libraries(fse_ans_read PRIVATE ${HDF5_LIBRARIES} MPI::MPI_C dl)
+set_target_properties(fse_ans_read PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/h5z-mans
+)
+
+# =========================================================
+# Target 16: fse_huffman_write (minimal MPI FSE-Huffman compressed write test)
+# =========================================================
+add_executable(fse_huffman_write test/fse_huffman_write.cpp)
+target_link_libraries(fse_huffman_write PRIVATE ${HDF5_LIBRARIES} MPI::MPI_C dl)
+set_target_properties(fse_huffman_write PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/h5z-mans
+)
+
+# =========================================================
+# Target 17: fse_huffman_read (minimal MPI FSE-Huffman compressed read test)
+# =========================================================
+add_executable(fse_huffman_read test/fse_huffman_read.cpp)
+target_link_libraries(fse_huffman_read PRIVATE ${HDF5_LIBRARIES} MPI::MPI_C dl)
+set_target_properties(fse_huffman_read PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/h5z-mans
+)

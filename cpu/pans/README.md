@@ -1,30 +1,52 @@
-# PANS
+# CPU PANS (Parallel ANS)
 
-(C) 2025 by Institute of Computing Technology, Chinese Academy of Sciences. 
-- Developer: Jinwu Yang 
-- Advisor: Dingwen Tao, Guangming Tan
+This directory contains the CPU PANS implementation used by MANS.
 
-PANS is a parallel implementation of the Asymmetric Numeral Systems (ANS) compression algorithm. It supports asymmetric compression and decompression across different hardware architectures, enabling flexible deployment based on system requirements. Specifically, it allows:
-- Parallel compression on NVIDIA/AMD GPUs using [dietGPU](https://github.com/facebookresearch/dietgpu/), with parallel decompression on multi-core CPUs.
-- Parallel compression on multi-core CPUs using PANS, with parallel decompression on NVIDIA GPUs via [dietGPU](https://github.com/facebookresearch/dietgpu/).
+It operates on byte streams (`uint8_t`) and is typically used as the second stage after ADM.
 
-## Building
+## Build
 
-Clone this repo using
+Build from repo root (PANS targets are built when CPU platform is enabled):
 
-```shell
-git clone https://github.com/hpdps-group/PANS.git
+```bash
+cmake -S . -B build -DTARGET_PLATFORM=cpu
+cmake --build build -j
 ```
 
-Do the standard CMake thing:
+Generated binaries:
+- `build/bin/cpu/pans/cpuans_compress`
+- `build/bin/cpu/pans/cpuans_decompress`
+- `build/bin/cpu/pans/cpuans_bench_chunked`
 
-```shell
-cd PANS; mkdir build; cd build;
-cmake .. && make
-```
-## Run
+## Usage
 
-```shell
-compress: ./cpuans_compress input_file temp_file
-decompress: ./cpuans_decompress temp_file output_file
+### Compress
+
+```bash
+./build/bin/cpu/pans/cpuans_compress <input.file> <output.file>
 ```
+
+### Decompress
+
+```bash
+./build/bin/cpu/pans/cpuans_decompress <input.file> <output.file>
+```
+
+### Chunk Benchmark
+
+```bash
+./build/bin/cpu/pans/cpuans_bench_chunked <input.bin> [--chunks 0.125,0.25,0.5,1,2,8,256] [--csv out.csv]
+```
+
+Output CSV columns:
+- `chunk_label`
+- `chunk_bytes`
+- `ratio_pct`
+- `comp_mbps`
+- `decomp_mbps`
+
+## Notes
+
+- Input is treated as raw bytes, not typed integers.
+- OpenMP thread behavior depends on runtime environment (for example `OMP_NUM_THREADS`).
+- For end-to-end MANS autotuned workflow, see top-level [README.md](../../README.md).

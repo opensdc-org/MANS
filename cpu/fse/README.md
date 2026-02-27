@@ -1,53 +1,43 @@
-# Minimal FSE (CMake)
+# Minimal FSE (CPU)
 
-这个目录是从原始工程中抽离出的最小 FSE 核心子集，仅保留：
+This directory is a minimal FSE subset used by MANS CPU mode.
 
-- FSE 核心压缩/解压实现
-- 必要依赖（bitstream/hist/error/mem/debug）
-- 一个最简 bench：`fse_bench`
+Included:
+- FSE core compression/decompression implementation
+- Required dependencies (`bitstream/hist/error/mem/debug`)
+- Optional minimal bench program: `fse_bench`
 
-不包含：
+Not included:
+- Large original CLI/tooling set (`programs/`, fullbench, fuzzer, probagen, etc.)
 
-- 原 `programs/` 下复杂命令行工具
-- fullbench/fuzzer/probagen 等测试工具
-- HUF 压缩实现源码
+## Build Inside Main Project
 
-## 目录结构
-
-- `include/`：FSE 核心头文件
-- `src/`：FSE 核心实现
-- `bench/fse_bench.c`：最简压缩程序（输入原始文件，输出压缩文件）
-
-## 构建
-
-在仓库根目录执行：
+When building MANS with CPU enabled, `fse_core` is built automatically:
 
 ```bash
-cmake -S . -B build
+cmake -S . -B build -DTARGET_PLATFORM=cpu
 cmake --build build -j
 ```
 
-或仅构建子目录：
+## Standalone Build (This Subdirectory Only)
+
+`FSE_BUILD_BENCH` is `OFF` by default. Turn it on if you want `fse_bench`.
 
 ```bash
-cmake -S fse -B build
-cmake --build build -j
+cmake -S cpu/fse -B build-fse -DFSE_BUILD_BENCH=ON
+cmake --build build-fse -j
 ```
 
-## 运行
+## Run Bench
 
 ```bash
-./build/fse_bench /path/to/input.bin /path/to/output.mfse
+./build-fse/fse_bench /path/to/input.bin /path/to/output.mfse
 ```
 
-输出会包含：
+The bench prints raw/compressed size and ratios.
 
-- raw 大小
-- compressed 大小
-- `raw/compressed`
-- `compressed/raw`
+## Directory Layout
 
-注意：
-
-- 分块与 `raw` / `rle` 回退逻辑已下沉到库中 `FSE_compress()` / `FSE_decompress()`。
-- `bench` 只负责文件读写和调用 `FSE_compress()`。
+- `include/`: FSE headers
+- `src/`: FSE core source
+- `bench/fse_bench.c`: minimal file-to-file compress utility

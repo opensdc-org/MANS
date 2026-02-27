@@ -1,86 +1,108 @@
+# H5Z-MANS: HDF5 Filter Plugin
 
-# H5Z-MANS: HDF5 Compression Filter Plugin for MANS
+`H5Z-MANS` is an HDF5 filter plugin for MANS compression.
 
 ## Features
 
-* **Dynamic Loading:** Built as a shared library (`.so` / `.dll`), allowing usage without recompiling HDF5 applications.
-* **CPU Backend:** Multi-threaded acceleration using OpenMP (AVX512 optimizations).
-* **Configurable:** Runtime tuning via filter parameters (`cd_values`) generated from a config file.
-* **Data Type Support:** Unsigned 16-bit and 32-bit integer datasets only.
+- Shared-library plugin loadable via `HDF5_PLUGIN_PATH`
+- MANS filter (`id=32001`) and pass-through NONE filter (`id=32002`)
+- Benchmark/test executables for MANS/ZSTD/SZ3/GZIP/NONE and MPI read/write cases
+- Supports unsigned integer datasets (`u16` / `u32` in MANS path)
 
----
+## Build
 
-## Build Instructions
-
-This plugin is built as part of the main MANS project. Ensure the `BUILD_HDF5_PLUGIN` option is enabled (default: ON) and HDF5 is installed.
+Build from repo root with CPU backend enabled (plugin uses CPU MANS path):
 
 ```bash
-mkdir build && cd build
-
-# Configure (Ensure BUILD_HDF5_PLUGIN is ON)
-cmake .. -DBUILD_HDF5_PLUGIN=ON 
-
-# Build
-make -j
-
+cmake -S . -B build -DTARGET_PLATFORM=cpu -DBUILD_HDF5_PLUGIN=ON
+cmake --build build -j
 ```
 
-### Build Artifacts
+If you need GPU binaries too, use `TARGET_PLATFORM=cpu_nv`, `cpu_amd`, or `all`.
 
-After a successful build, the artifacts will be located at:
+Main artifacts:
+- `build/bin/plugins/libH5Z-MANS.so`
+- `build/bin/plugins/libH5Z-NONE.so`
+- `build/bin/h5z-mans/H5Z-MANS_test`
+- `build/bin/h5z-mans/mans_data_gen`
+- `build/bin/h5z-mans/mans_write`, `mans_read`
+- `build/bin/h5z-mans/none_write`, `none_read`
+- `build/bin/h5z-mans/sz3_write`, `sz3_read`
+- `build/bin/h5z-mans/zstd_write`, `zstd_read`
+- `build/bin/h5z-mans/fse_write`, `fse_read`
+- `build/bin/h5z-mans/fse_ans_write`, `fse_ans_read`
+- `build/bin/h5z-mans/fse_huffman_write`, `fse_huffman_read`
 
-* **Plugin Library:** `build/bin/plugins/libH5Z-MANS.so`
-* **Test Utility:** `build/bin/h5z-mans/H5Z-MANS_test`
+## Runtime Setup
 
----
-
-## Usage
-
-### Environment Setup (Crucial)
-
-HDF5 requires the `HDF5_PLUGIN_PATH` environment variable to locate external filters. You must point this to the directory containing `libH5Z-MANS.so`.
+Set plugin search path before running HDF5 tools:
 
 ```bash
-# Assuming you are in the project root/build directory
-export HDF5_PLUGIN_PATH=$(pwd)/bin/plugins
-
+export HDF5_PLUGIN_PATH=/workspace/MANS/build/bin/plugins
 ```
 
-### Filter ID
-
-* **H5Z-MANS filter ID:** `32001`
-
-### HDF5 Notes
-
-* H5Z-MANS only supports **unsigned integer** datasets with element size **2 bytes (U16)** or **4 bytes (U32)**.
-* If your application does not find the plugin, verify `HDF5_PLUGIN_PATH` and ensure the file name is `libH5Z-MANS.so`.
-
-## Testing & Verification
-
-A dedicated test tool `H5Z-MANS_test` is provided to verify compression integrity (Bit-Exact check) and measure compression ratio.
-
-### 1. Create a Configuration File
-
-See [example.conf](example.conf). The config controls backend, dtype, ADM threshold, and thread counts used to populate `cd_values`.
-
-### 2. Run the Test
+If combining with external plugins (for example SZ3), append additional paths:
 
 ```bash
-# 1. Export Plugin Path
-export HDF5_PLUGIN_PATH=<path of build>/bin/plugins
+export HDF5_PLUGIN_PATH="/workspace/SZ3/build/tools/H5Z-SZ3:/workspace/MANS/build/bin/plugins"
+```
 
-# 2. Run Test
-# Usage: ./bin/h5z-mans/H5Z-MANS_test <config_file> <output.h5> [input.bin] [OPTIONS]
+## Filter IDs Used in Test Tools
 
+- `MANS`: `32001`
+- `NONE`: `32002`
+- `FSE`: `32028`
+- `ZSTD`: `32015`
+- `SZ3`: `32024`
+- `GZIP/DEFLATE`: `1` (built-in HDF5)
 
-Options:
-  --size <MB>        Set synthetic data size in MB (default: 256.0)
-  --chunk <MB>       Set chunk size in MB (default: 32.0)
-  --filter <name>    Set filter: mans, zstd, deflate, sz3 (default: mans)
+Notes:
+- `MANS`/`NONE` are provided by this repo (`libH5Z-MANS.so`, `libH5Z-NONE.so`).
+- `FSE` id `32028` is used by `fse_*` test tools and requires FSE plugin availability in `HDF5_PLUGIN_PATH` (for example `libH5Zfse.so`).
+
+## Quick Usage
+
+### 1) Unified benchmark test
+
+```bash
+./build/bin/h5z-mans/H5Z-MANS_test \
+  [--dataset-mb N] \
+  [--chunk-mb N] \
+  [--filter mans|zstd|sz3|gzip|none] \
+  [--threads v1,v2,v3,v4,v5,v6,v7,v8] \
+  [--output file.h5]
 ```
 
 Notes:
-* If `input.bin` is not provided, synthetic data is generated.
-* SZ3 config format can be referenced from `https://github.com/szcompressor/SZ3/blob/master/tools/sz3/sz3.config`.
+- `--threads` is only used when `--filter mans`.
+- default output timing CSV is `hdf5_timing.csv`.
 
+### 2) Synthetic data generator
 
+```bash
+./build/bin/h5z-mans/mans_data_gen \
+  [--config gen.cfg] [--synth-config synth.cfg] \
+  [--output-dir DIR] [--output-name name.bin] [--output-prefix NAME] \
+  [--size-per-rank-mb MB] [--ranks N] [--jobs N] \
+  [--ratio-constant R] [--dtype u16|u32] [--adm-threshold N]
+```
+
+### 3) MPI write/read micro-tests
+
+Writer binaries accept optional chunk size:
+
+```bash
+mpirun -n 1 ./build/bin/h5z-mans/mans_write --chunk-size-mb 4
+mpirun -n 1 ./build/bin/h5z-mans/mans_read
+```
+
+Same `--chunk-size-mb` pattern applies to:
+- `none_write`, `sz3_write`, `zstd_write`, `fse_write`, `fse_ans_write`, `fse_huffman_write`
+
+## Config File for MANS Parameters
+
+See `tools/H5Z-MANS/example.conf` for `MansParams` fields serialized into `cd_values`.
+
+## Related
+
+Top-level workflow and autotune guidance: [README.md](../../README.md)
