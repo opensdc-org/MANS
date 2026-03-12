@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <cerrno>
+#include <limits>
 #include <vector>
 
 #include <hdf5.h>
@@ -11,10 +13,86 @@
 #define FILTER_ID_MANS 32001
 #define CHECK_H5(x) do { if ((x) < 0) { std::fprintf(stderr, "HDF5 failed: %s\n", #x); std::exit(1); } } while (0)
 
+static bool parse_positive_hsize(const char* text, hsize_t& out) {
+    if (!text || *text == '\0') {
+        return false;
+    }
+    char* end = nullptr;
+    errno = 0;
+    unsigned long long v = std::strtoull(text, &end, 10);
+    if (errno != 0 || end == nullptr || *end != '\0' || v == 0) {
+        return false;
+    }
+    if (v > static_cast<unsigned long long>(std::numeric_limits<hsize_t>::max())) {
+        return false;
+    }
+    out = static_cast<hsize_t>(v);
+    return true;
+}
+
+static bool product_with_overflow(const std::vector<hsize_t>& dims, hsize_t& out) {
+    out = 1;
+    for (hsize_t d : dims) {
+        if (d == 0) return false;
+        if (out > (std::numeric_limits<hsize_t>::max() / d)) {
+            return false;
+        }
+        out *= d;
+    }
+    return true;
+}
+
+static bool set_chunk_shape_to_mans_params(const std::vector<hsize_t>& chunk_dims, mans::MansParams& p) {
+    const auto u32_max = static_cast<hsize_t>(std::numeric_limits<std::uint32_t>::max());
+    p.dims = 1;
+    p.nx = 0;
+    p.ny = 0;
+    p.nz = 0;
+    if (chunk_dims.empty()) return false;
+
+    if (chunk_dims.size() == 1) {
+        if (chunk_dims[0] == 0 || chunk_dims[0] > u32_max) return false;
+        p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
+        return true;
+    }
+
+    if (chunk_dims[0] == 0 || chunk_dims[0] > u32_max ||
+        chunk_dims[1] == 0 || chunk_dims[1] > u32_max) {
+        return false;
+    }
+
+    if (chunk_dims.size() == 2) {
+        p.dims = 2;
+        p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
+        p.ny = static_cast<std::uint32_t>(chunk_dims[1]);
+        return true;
+    }
+
+    hsize_t merged_z = 1;
+    for (size_t i = 2; i < chunk_dims.size(); ++i) {
+        if (chunk_dims[i] == 0 || merged_z > (u32_max / chunk_dims[i])) {
+            return false;
+        }
+        merged_z *= chunk_dims[i];
+    }
+    p.dims = 3;
+    p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
+    p.ny = static_cast<std::uint32_t>(chunk_dims[1]);
+    p.nz = static_cast<std::uint32_t>(merged_z);
+    return true;
+}
+
 int main(int argc, char** argv) {
     double chunk_size_mb = 8.0;
+    const char* bin_template = "datasets/rank%d.bin";
+    const char* h5_template = "datasets/rank%d.h5";
+    std::vector<hsize_t> cli_dims;
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--chunk-size-mb") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --chunk-size-mb\n");
+                return 1;
+            }
             char* end = nullptr;
             double value = std::strtod(argv[++i], &end);
             if (end == nullptr || *end != '\0' || value <= 0.0) {
@@ -22,6 +100,37 @@ int main(int argc, char** argv) {
                 return 1;
             }
             chunk_size_mb = value;
+        } else if (std::strcmp(argv[i], "--bin-template") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --bin-template\n");
+                return 1;
+            }
+            bin_template = argv[++i];
+        } else if (std::strcmp(argv[i], "--h5-template") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --h5-template\n");
+                return 1;
+            }
+            h5_template = argv[++i];
+        } else if (std::strcmp(argv[i], "--dims") == 0) {
+            int consumed = 0;
+            while (i + 1 < argc && std::strncmp(argv[i + 1], "--", 2) != 0) {
+                hsize_t dim = 0;
+                if (!parse_positive_hsize(argv[i + 1], dim)) {
+                    std::fprintf(stderr, "invalid dim value: %s\n", argv[i + 1]);
+                    return 1;
+                }
+                cli_dims.push_back(dim);
+                ++i;
+                ++consumed;
+            }
+            if (consumed == 0) {
+                std::fprintf(stderr, "missing values for --dims\n");
+                return 1;
+            }
+        } else {
+            std::fprintf(stderr, "unknown argument: %s\n", argv[i]);
+            return 1;
         }
     }
 
@@ -34,9 +143,19 @@ int main(int argc, char** argv) {
     };
 
     stage("loading input");
-    char in[64], out[64];
-    std::snprintf(in, sizeof(in), "datasets/rank%d.bin", rank);
-    std::snprintf(out, sizeof(out), "datasets/rank%d.h5", rank);
+    char in[4096], out[4096];
+    int in_len = std::snprintf(in, sizeof(in), bin_template, rank);
+    int out_len = std::snprintf(out, sizeof(out), h5_template, rank);
+    if (in_len < 0 || static_cast<size_t>(in_len) >= sizeof(in)) {
+        std::fprintf(stderr, "rank %d invalid --bin-template: %s\n", rank, bin_template);
+        MPI_Finalize();
+        return 1;
+    }
+    if (out_len < 0 || static_cast<size_t>(out_len) >= sizeof(out)) {
+        std::fprintf(stderr, "rank %d invalid --h5-template: %s\n", rank, h5_template);
+        MPI_Finalize();
+        return 1;
+    }
     std::FILE* fp = std::fopen(in, "rb");
     if (!fp) { std::fprintf(stderr, "rank %d missing input: %s\n", rank, in); return 1; }
     std::fseek(fp, 0, SEEK_END);
@@ -49,13 +168,56 @@ int main(int argc, char** argv) {
     if (std::fread(data.data(), 1, bytes, fp) != bytes) { std::fprintf(stderr, "read failed: %s\n", in); return 1; }
     std::fclose(fp);
 
+    std::vector<hsize_t> dims = cli_dims;
+    if (dims.empty()) {
+        dims.push_back(static_cast<hsize_t>(elems));
+    } else {
+        hsize_t dims_elems = 0;
+        if (!product_with_overflow(dims, dims_elems) || dims_elems != static_cast<hsize_t>(elems)) {
+            std::fprintf(stderr, "rank %d --dims element count mismatch with input file: dims_elems=%llu file_elems=%llu\n",
+                         rank,
+                         static_cast<unsigned long long>(dims_elems),
+                         static_cast<unsigned long long>(elems));
+            MPI_Finalize();
+            return 1;
+        }
+    }
+
+    hsize_t chunk_bytes = static_cast<hsize_t>(chunk_size_mb * 1024.0 * 1024.0);
+    hsize_t target_chunk_elems = chunk_bytes / static_cast<hsize_t>(sizeof(std::uint16_t));
+    if (target_chunk_elems == 0) target_chunk_elems = 1;
+    std::vector<hsize_t> chunk = dims;
+    if (chunk.size() == 1) {
+        if (chunk[0] > target_chunk_elems) chunk[0] = target_chunk_elems;
+    } else {
+        hsize_t tail_prod = 1;
+        for (size_t i = 1; i < dims.size(); ++i) {
+            if (tail_prod > (std::numeric_limits<hsize_t>::max() / dims[i])) {
+                std::fprintf(stderr, "rank %d dims overflow when computing chunk shape\n", rank);
+                MPI_Finalize();
+                return 1;
+            }
+            tail_prod *= dims[i];
+        }
+        hsize_t lead = target_chunk_elems / tail_prod;
+        if (lead == 0) lead = 1;
+        if (lead > dims[0]) lead = dims[0];
+        chunk[0] = lead;
+    }
+    if (rank == 0) std::printf("[mans_write] chunk-size-mb=%.6g\n", chunk_size_mb);
+
     stage("building HDF5 dataset");
     mans::MansParams p{};
     p.backend = mans::Backend::CPU; p.dtype = mans::DataType::U16; p.adm_threshold = 4000;
     p.mode=mans::Mode::R;
-    p.adm_decide_threads = 16; p.adm_center_calc_threads = 32; p.adm_encode_threads = 32;
-    p.adm_warp_reduce_threads = 32; p.adm_fill_tail_threads = 16; p.adm_write_back_threads = 16;
-    p.adm_restore_signals_threads = 32; p.adm_decode_values_threads = 16;
+    p.adm_decide_threads = 1; p.adm_center_calc_threads = 1; p.adm_encode_threads = 1;
+    p.adm_warp_reduce_threads = 1; p.adm_fill_tail_threads = 1; p.adm_write_back_threads = 1;
+    p.adm_restore_signals_threads = 1; p.adm_decode_values_threads = 1;
+    if (!set_chunk_shape_to_mans_params(chunk, p)) {
+        std::fprintf(stderr, "rank %d invalid chunk dims for MansParams\n", rank);
+        MPI_Finalize();
+        return 1;
+    }
     std::vector<unsigned int> cd(sizeof(p) / sizeof(unsigned int), 0);
     std::memcpy(cd.data(), &p, sizeof(p));
 
@@ -63,16 +225,10 @@ int main(int argc, char** argv) {
     hid_t file = H5Fcreate(out, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
     H5Pclose(fapl);
 
-    hsize_t chunk_bytes = static_cast<hsize_t>(chunk_size_mb * 1024.0 * 1024.0);
-    if (rank == 0) std::printf("[mans_write] chunk-size-mb=%.6g\n", chunk_size_mb);
-
-    hsize_t dims[1] = {(hsize_t)elems};
-    hsize_t chunk[1] = {chunk_bytes / (hsize_t)sizeof(std::uint16_t)};
-    if (chunk[0] == 0 || chunk[0] > dims[0]) chunk[0] = dims[0];
-
-    hid_t space = H5Screate_simple(1, dims, nullptr);
+    const int ndims = static_cast<int>(dims.size());
+    hid_t space = H5Screate_simple(ndims, dims.data(), nullptr);
     hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
-    CHECK_H5(H5Pset_chunk(dcpl, 1, chunk));
+    CHECK_H5(H5Pset_chunk(dcpl, ndims, chunk.data()));
     CHECK_H5(H5Pset_filter(dcpl, FILTER_ID_MANS, 0, cd.size(), cd.data()));
     hid_t dset = H5Dcreate2(file, "data", H5T_NATIVE_USHORT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     H5Pclose(dcpl);

@@ -38,6 +38,10 @@ public:
         register_field("backend",       offsetof(mans::MansParams, backend),       ParamType::UINT32);
         register_field("dtype",         offsetof(mans::MansParams, dtype),         ParamType::UINT32);
         register_field("mode",          offsetof(mans::MansParams, mode),          ParamType::UINT32);
+        register_field("dims",          offsetof(mans::MansParams, dims),          ParamType::UINT32);
+        register_field("nx",            offsetof(mans::MansParams, nx),            ParamType::UINT32);
+        register_field("ny",            offsetof(mans::MansParams, ny),            ParamType::UINT32);
+        register_field("nz",            offsetof(mans::MansParams, nz),            ParamType::UINT32);
         register_field("adm_threshold", offsetof(mans::MansParams, adm_threshold), ParamType::UINT32);
         register_field("adm_decide_threads", offsetof(mans::MansParams, adm_decide_threads), ParamType::UINT32);
 

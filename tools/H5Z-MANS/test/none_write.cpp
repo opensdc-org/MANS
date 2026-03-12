@@ -12,8 +12,14 @@
 
 int main(int argc, char** argv) {
     double chunk_size_mb = 8.0;
+    const char* bin_template = "datasets/rank%d.bin";
+    const char* h5_template = "datasets/rank%d.h5";
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--chunk-size-mb") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --chunk-size-mb\n");
+                return 1;
+            }
             char* end = nullptr;
             double value = std::strtod(argv[++i], &end);
             if (end == nullptr || *end != '\0' || value <= 0.0) {
@@ -21,6 +27,21 @@ int main(int argc, char** argv) {
                 return 1;
             }
             chunk_size_mb = value;
+        } else if (std::strcmp(argv[i], "--bin-template") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --bin-template\n");
+                return 1;
+            }
+            bin_template = argv[++i];
+        } else if (std::strcmp(argv[i], "--h5-template") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --h5-template\n");
+                return 1;
+            }
+            h5_template = argv[++i];
+        } else {
+            std::fprintf(stderr, "unknown argument: %s\n", argv[i]);
+            return 1;
         }
     }
 
@@ -33,9 +54,19 @@ int main(int argc, char** argv) {
     };
 
     stage("loading input");
-    char in[64], out[64];
-    std::snprintf(in, sizeof(in), "datasets/rank%d.bin", rank);
-    std::snprintf(out, sizeof(out), "datasets/rank%d.h5", rank);
+    char in[4096], out[4096];
+    int in_len = std::snprintf(in, sizeof(in), bin_template, rank);
+    int out_len = std::snprintf(out, sizeof(out), h5_template, rank);
+    if (in_len < 0 || static_cast<size_t>(in_len) >= sizeof(in)) {
+        std::fprintf(stderr, "rank %d invalid --bin-template: %s\n", rank, bin_template);
+        MPI_Finalize();
+        return 1;
+    }
+    if (out_len < 0 || static_cast<size_t>(out_len) >= sizeof(out)) {
+        std::fprintf(stderr, "rank %d invalid --h5-template: %s\n", rank, h5_template);
+        MPI_Finalize();
+        return 1;
+    }
     std::FILE* fp = std::fopen(in, "rb");
     if (!fp) { std::fprintf(stderr, "rank %d missing input: %s\n", rank, in); return 1; }
     std::fseek(fp, 0, SEEK_END);

@@ -19,6 +19,7 @@ struct CsvThreadConfig {
     uint32_t adm_decide_threads = 0;
     uint32_t compress_threads = 0;
     uint32_t decompress_threads = 0;
+    uint32_t dims = 1;
 };
 
 inline bool load_thread_csv(const std::string& path,
@@ -48,6 +49,7 @@ inline bool load_thread_csv(const std::string& path,
         std::string decide_str;
         std::string comp_str;
         std::string decomp_str;
+        std::string dims_str;
         if (!std::getline(ss, chunk_str, ',')) {
             continue;
         }
@@ -60,13 +62,20 @@ inline bool load_thread_csv(const std::string& path,
         if (!std::getline(ss, decomp_str, ',')) {
             continue;
         }
+        if (!std::getline(ss, dims_str, ',')) {
+            continue;
+        }
         CsvThreadConfig cfg{};
         try {
             cfg.chunk_elements = static_cast<std::size_t>(std::stoull(chunk_str));
             cfg.adm_decide_threads = static_cast<uint32_t>(std::stoul(decide_str));
             cfg.compress_threads = static_cast<uint32_t>(std::stoul(comp_str));
             cfg.decompress_threads = static_cast<uint32_t>(std::stoul(decomp_str));
+            cfg.dims = static_cast<uint32_t>(std::stoul(dims_str));
         } catch (...) {
+            continue;
+        }
+        if (cfg.dims < 1 || cfg.dims > 3) {
             continue;
         }
         configs.push_back(cfg);
@@ -81,20 +90,18 @@ inline bool load_thread_csv(const std::string& path,
 
 inline bool find_nearest_threads(const std::vector<CsvThreadConfig>& configs,
                                  std::size_t target_elements,
+                                 uint32_t target_dims,
                                  CsvThreadConfig& out) {
-    if (target_elements <= 4096) {
-        out.chunk_elements = target_elements;
-        out.adm_decide_threads = 1;
-        out.compress_threads = 1;
-        out.decompress_threads = 1;
-        return true;
-    }
+
     if (configs.empty()) {
         return false;
     }
     std::size_t best_diff = std::numeric_limits<std::size_t>::max();
     bool found = false;
     for (const auto& cfg : configs) {
+        if (cfg.dims != target_dims) {
+            continue;
+        }
         std::size_t diff = (cfg.chunk_elements > target_elements)
                                ? (cfg.chunk_elements - target_elements)
                                : (target_elements - cfg.chunk_elements);

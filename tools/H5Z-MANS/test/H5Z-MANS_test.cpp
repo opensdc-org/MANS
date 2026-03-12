@@ -287,6 +287,7 @@ static mans::MansParams build_mans_params(const Options& opts) {
 
 static bool resolve_auto_threads(const std::string& csv_path,
                                  std::size_t chunk_elems,
+                                 std::uint32_t dims,
                                  std::vector<int>& out_threads) {
     std::vector<mans::cpu::CsvThreadConfig> configs;
     std::string error;
@@ -294,7 +295,7 @@ static bool resolve_auto_threads(const std::string& csv_path,
         return false;
     }
     mans::cpu::CsvThreadConfig chosen{};
-    if (!mans::cpu::find_nearest_threads(configs, chunk_elems, chosen)) {
+    if (!mans::cpu::find_nearest_threads(configs, chunk_elems, dims, chosen)) {
         return false;
     }
     out_threads = {
@@ -630,7 +631,7 @@ static void print_config(const Options& opts,
             const char* csv_env = std::getenv("MANS_THREAD_CSV");
             std::string csv_path = (csv_env && csv_env[0] != '\0') ? csv_env : "best_threads.csv";
             std::vector<int> auto_threads;
-            if (resolve_auto_threads(csv_path, chunk_elems, auto_threads)) {
+            if (resolve_auto_threads(csv_path, chunk_elems, 1, auto_threads)) {
                 std::cout << "  threads:            ";
                 for (std::size_t i = 0; i < auto_threads.size(); ++i) {
                     std::cout << auto_threads[i];

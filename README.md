@@ -105,7 +105,7 @@ git clone https://github.com/ewTomato/MANS.git
 
 ```shell
 cd MANS; mkdir build; cd build;
-cmake -DTARGET_PLATFORM=cpu_nv .. && make -j   # cpu + nvidia
+cmake -DTARGET_PLATFORM=cpu_nv -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .. && make -j   # cpu + nvidia
 ```
 
 <!-- ## Instructions for Use
@@ -131,19 +131,36 @@ Below is a minimal workflow based on current binaries in this repository.
 
 ### **CPU: autotune first, then auto-pick threads**
 
-1) Run autotune on target device, generate thread CSV:
+`cpu_mans_autotune` now generates synthetic **u16** datasets internally and sweeps all three mappings (`dims=1/2/3`) in one run.
+- data-size list is configurable by `--data-size-mb-list`
+- output CSV contains a `dims` column
+
+1) Run autotune and generate thread CSV:
 ```bash
-./build/bin/cpu/cpu_mans_autotune --csv ./build/thread_sweep.csv --out ./build/best_threads.csv
+./build/bin/cpu/cpu_mans_autotune \
+  --data-size-mb-list 0.00390625,0.0078125,1,4 \
+  --csv ./build/thread_sweep.csv --out ./build/best_threads.csv
 ```
 
-2) Run bench without `--threads`; it auto-loads CSV and selects nearest thread config by chunk size:
+Optional: control synthetic block-type ratios (smooth/spike/constant/random):
+```bash
+./build/bin/cpu/cpu_mans_autotune \
+  --ratio-smooth 1.0 --ratio-spike 0.0 --ratio-constant 0.0 --ratio-random 0.0
+```
+
+2) Run bench without `--threads`; it auto-loads CSV and selects nearest thread config by input size:
 ```bash
 cd build
-./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode r --chunks 0,0.25,1 --csv bench.csv
+./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode r --dims 1 134217728 --csv bench.csv
 ```
 Auto-load order:
 - `MANS_THREAD_CSV` env var (if set)
 - otherwise `best_threads.csv` in current working directory
+
+Debug warning for ADM bypass:
+```bash
+MANS_WARN_IF_NO_ADM=1 ./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode r --dims 1 134217728
+```
 
 ### **NVIDIA GPU**
 

@@ -79,6 +79,7 @@ void pans_compress(
     
     auto start = std::chrono::high_resolution_clock::now();  
     MANS_TIMING_START("pans/compress_internal");
+    MANS_TIMING_START("mans/entropy_encode_core");
     ansEncode(
         table,
         tempHistogram,
@@ -94,6 +95,7 @@ void pans_compress(
         compressedWords_host,
         compressedWords_host_prefix,
         compressedWordsPrefix_host);
+    MANS_TIMING_STOP("mans/entropy_encode_core");
     MANS_TIMING_STOP("pans/compress_internal");
     auto end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
@@ -327,6 +329,7 @@ void pans_decompress(
     
     auto start = std::chrono::high_resolution_clock::now();
     MANS_TIMING_START("pans/decompress_internal");
+    MANS_TIMING_START("mans/entropy_decode_core");
     ansDecode(
         symbol,
         pdf,
@@ -334,6 +337,7 @@ void pans_decompress(
         precision,
         (uint8_t*)compressedData, // cast const away if api requires it
         decPtrs);
+    MANS_TIMING_STOP("mans/entropy_decode_core");
     MANS_TIMING_STOP("pans/decompress_internal");
     auto end = std::chrono::high_resolution_clock::now();  
     duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;

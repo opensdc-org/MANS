@@ -2,31 +2,40 @@
 set -euo pipefail
 
 ###### ***** Editable Constants (NO ARGS) ***** ######
-# SLURM_NODES_LIST=(20)
-# SLURM_NODES_LIST=(1 2 4 6 8 10 12 14 16 18 20)
-SLURM_NODES_LIST=(1 4 8 12 16 20 24 28 32 36 40)
-DATA_GB_PER_NODE=32
+# SLURM_NODES_LIST=(1)
+SLURM_NODES_LIST=(1 10 20 25 30 35 40)
+# SLURM_NODES_LIST=(1)
+# SLURM_NODES_LIST=(16)
 NPROC_PER_NODE=64
 CPU_LIMIT=1
-CHUNK_SIZES_MB=(1.0)
+CHUNK_SIZES_MB=(4.0)
+DATASET_DIMS=(758 852 841)
 ENABLE_READ_EXCLUDE=0
-
+MAX_ACTIVE_JOBS=10
 BEST_THREAD_DIR="/public/share/acnnprvuzd/MANS/slurms/runs_autotune"
-DATA_GEN_BIN="/public/share/acnnprvuzd/MANS/build/bin/h5z-mans/mans_data_gen"
 READ_BIN_DIR="/public/share/acnnprvuzd/MANS/build/bin/h5z-mans"
-# LIST=(sz3)
-LIST=(mans mans_original none sz3 fse)
+
+LIST=(mans fse_ans fse_huffman mans_original none)
+# LIST=(fse_ans fse_huffman mans_original mans none)
+CACHE_BUST_FILTERS=(mans mans_original)
+
+SOURCE_DATASET_BIN="/public/share/acnnprvuzd/MANS/datasets/sfc-gi/2-sfc-1_758x842x841_1048576kB.u2"
+RUNS_DIR_PREFIX="runs_sweep_dataset"
 
 HDF5_PLUGIN_PATH_VALUE="/public/share/acnnprvuzd/MANS/build/bin/plugins"
 HDF5_PLUGIN_PRELOAD_VALUE="libH5Z-MANS.so"
 
+MODULE_SETUP_LINES=(
+  "module purge"
+  "module load compiler/cmake/3.20.4"
+  "module load hdf5-1.14.3-intelmpi2021_p"
+  "module unload compiler/devtoolset/7.3.1"
+  "module load compiler/gcc/9.3.0"
+)
+
 SLURM_PARTITION="sdicnormal"
 SLURM_TIME="06:00:00"
 JOB_NAME_PREFIX="mans-chunk-sweep"
-
-DTYPE="u16"
-ADM_THRESHOLD=4000
-DATA_GEN_PROCS_PER_NODE=32
 ###### ***** End Constants ***** ######
 
 if (( CPU_LIMIT != 1 )); then
@@ -38,12 +47,29 @@ if (( NPROC_PER_NODE % CPU_LIMIT != 0 )); then
   exit 1
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-if [[ ! -x "${DATA_GEN_BIN}" ]]; then
-  echo "[ERROR] binary not found or not executable: ${DATA_GEN_BIN}" >&2
+if (( MAX_ACTIVE_JOBS < 1 )); then
+  echo "[ERROR] MAX_ACTIVE_JOBS must be >= 1" >&2
   exit 1
 fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODULE_SETUP_SCRIPT="$(printf '%s\n' "${MODULE_SETUP_LINES[@]}")"
+SUBMIT_USER="${USER:-$(id -un)}"
+
+if [[ ! -f "${SOURCE_DATASET_BIN}" ]]; then
+  echo "[ERROR] source dataset not found: ${SOURCE_DATASET_BIN}" >&2
+  exit 1
+fi
+
+source_base="$(basename "${SOURCE_DATASET_BIN}")"
+DATASET_NAME="${source_base%.*}"
+if [[ -z "${DATASET_NAME}" ]]; then
+  echo "[ERROR] failed to derive dataset name from SOURCE_DATASET_BIN=${SOURCE_DATASET_BIN}" >&2
+  exit 1
+fi
+DATASET_COPIES_DIR="${SCRIPT_DIR}/dataset_copies"
+DATASET_BIN_DIR="${DATASET_COPIES_DIR}/${DATASET_NAME}"
+mkdir -p "${DATASET_BIN_DIR}"
 
 for bin_prefix in "${LIST[@]}"; do
   write_bin="${READ_BIN_DIR}/${bin_prefix}_write"
@@ -56,10 +82,33 @@ for bin_prefix in "${LIST[@]}"; do
   done
 done
 
+for bust_prefix in "${CACHE_BUST_FILTERS[@]}"; do
+  bust_write_bin="${READ_BIN_DIR}/${bust_prefix}_write"
+  if [[ ! -x "${bust_write_bin}" ]]; then
+    echo "[ERROR] cache-bust write binary not found or not executable: ${bust_write_bin}" >&2
+    exit 1
+  fi
+done
+
 ###### ***** Helpers ***** ######
+wait_for_submit_slot() {
+  local active
+  while true; do
+    active="$(squeue -u "${SUBMIT_USER}" -h 2>/dev/null | wc -l | tr -d ' ')"
+    if [[ -z "${active}" ]]; then
+      active=0
+    fi
+    if (( active < MAX_ACTIVE_JOBS )); then
+      return 0
+    fi
+    echo "[WAIT] active jobs for ${SUBMIT_USER}: ${active} (limit=${MAX_ACTIVE_JOBS}), waiting 100s..." >&2
+    sleep 100
+  done
+}
+
 wait_job_running_and_get_nodelist() {
   local job_id="$1"
-  local st nodelist
+  local st nodelist sacct_state
 
   echo "[WAIT] job ${job_id} -> RUNNING to get nodelist ..." >&2
   while true; do
@@ -67,6 +116,15 @@ wait_job_running_and_get_nodelist() {
     nodelist="$(squeue -j "${job_id}" -h -o "%N" 2>/dev/null | head -n 1 || true)"
 
     if [[ -z "${st}" ]]; then
+      if command -v sacct >/dev/null 2>&1; then
+        sacct_state="$(sacct -n -X -P -j "${job_id}" -o State 2>/dev/null | head -n 1 | cut -d'|' -f1 | tr -d '[:space:]' || true)"
+        if [[ -z "${sacct_state}" || "${sacct_state}" == PENDING* || "${sacct_state}" == CONFIGURING* || "${sacct_state}" == RUNNING* || "${sacct_state}" == COMPLETING* ]]; then
+          sleep 2
+          continue
+        fi
+        echo "[ERROR] job ${job_id} not found in squeue, sacct state=${sacct_state}" >&2
+        return 1
+      fi
       echo "[ERROR] job ${job_id} not found in squeue" >&2
       return 1
     fi
@@ -81,7 +139,24 @@ wait_job_running_and_get_nodelist() {
   done
 }
 
+pick_cache_bust_prefix() {
+  local current="$1"
+  local cand
+  for cand in "${CACHE_BUST_FILTERS[@]}"; do
+    if [[ "${cand}" == "${current}" ]]; then
+      continue
+    fi
+    if [[ -x "${READ_BIN_DIR}/${cand}_write" ]]; then
+      printf '%s\n' "${cand}"
+      return 0
+    fi
+  done
+  return 1
+}
+
 echo "###### ***** Generate Slurm Files (single write/read templates per prefix) ***** ######"
+
+echo "[INFO] dataset bins dir: ${DATASET_BIN_DIR}"
 
 prev_read_job_id=""
 ntasks_per_node=$((NPROC_PER_NODE / CPU_LIMIT))
@@ -90,7 +165,13 @@ for bin_prefix in "${LIST[@]}"; do
   write_bin="${READ_BIN_DIR}/${bin_prefix}_write"
   read_bin="${READ_BIN_DIR}/${bin_prefix}_read"
 
-  RUNS_DIR="${SCRIPT_DIR}/runs_sweep_${bin_prefix}"
+  cache_bust_prefix="$(pick_cache_bust_prefix "${bin_prefix}" || true)"
+  if [[ -z "${cache_bust_prefix}" ]]; then
+    echo "[ERROR] no cache-bust candidate available for ${bin_prefix} from CACHE_BUST_FILTERS=(${CACHE_BUST_FILTERS[*]})" >&2
+    exit 1
+  fi
+
+  RUNS_DIR="${SCRIPT_DIR}/${RUNS_DIR_PREFIX}_${bin_prefix}"
   LOGS_DIR="${RUNS_DIR}/logs"
   DATASETS_DIR="${RUNS_DIR}/datasets"
   CSV_PATH="${RUNS_DIR}/chunksize_thread_sweep.csv"
@@ -112,30 +193,26 @@ CSV_EOF
 
 set -euo pipefail
 
-module purge
-module load compiler/cmake/3.20.4
-module load hdf5-1.14.3-intelmpi2021_p
-module unload compiler/devtoolset/7.3.1
-module load compiler/gcc/9.3.0
+${MODULE_SETUP_SCRIPT}
 
 RUNS_DIR="${RUNS_DIR}"
 LOGS_DIR="${LOGS_DIR}"
 DATASETS_DIR="${DATASETS_DIR}"
+DATASET_BIN_DIR="${DATASET_BIN_DIR}"
 CSV_PATH="${CSV_PATH}"
 BEST_THREAD_DIR="${BEST_THREAD_DIR}"
-DATA_GEN_BIN="${DATA_GEN_BIN}"
+SOURCE_DATASET_BIN="${SOURCE_DATASET_BIN}"
+READ_BIN_DIR="${READ_BIN_DIR}"
 WRITE_BIN="${write_bin}"
-DTYPE="${DTYPE}"
-ADM_THRESHOLD=${ADM_THRESHOLD}
-DATA_GEN_PROCS_PER_NODE=${DATA_GEN_PROCS_PER_NODE}
 BIN_PREFIX="${bin_prefix}"
+DATASET_DIMS=(${DATASET_DIMS[*]})
 
 CHUNK_MB="\${SWEEP_CHUNK_MB:?SWEEP_CHUNK_MB is required}"
 SLURM_NODES_COUNT="\${SWEEP_SLURM_NODES:?SWEEP_SLURM_NODES is required}"
 RANK="\${SWEEP_RANK:?SWEEP_RANK is required}"
 NTASKS_PER_NODE="\${SWEEP_NTASKS_PER_NODE:?SWEEP_NTASKS_PER_NODE is required}"
 CPU_LIMIT="\${SWEEP_CPU_LIMIT:?SWEEP_CPU_LIMIT is required}"
-PER_RANK_MB="\${SWEEP_PER_RANK_MB:?SWEEP_PER_RANK_MB is required}"
+CACHE_BUST_PREFIX="\${SWEEP_CACHE_BUST_PREFIX:?SWEEP_CACHE_BUST_PREFIX is required}"
 
 export OMP_NUM_THREADS="\${CPU_LIMIT}"
 export OMP_PLACES=cores
@@ -171,46 +248,96 @@ parse_metric_from_text() {
 }
 
 cd "\${RUNS_DIR}"
-mkdir -p "\${DATASETS_DIR}" "\${LOGS_DIR}"
+mkdir -p "\${DATASETS_DIR}" "\${LOGS_DIR}" "\${DATASET_BIN_DIR}"
 
-generated_count=\$(find "\${DATASETS_DIR}" -maxdepth 1 -type f -name 'rank*.bin' | wc -l | tr -d ' ')
-if (( generated_count != RANK )); then
-  echo "[INFO] regenerate datasets for rank=\${RANK} (existing=\${generated_count})"
-  rm -f "\${DATASETS_DIR}"/rank*.bin
-  rm -f "\${DATASETS_DIR}"/rank*.h5
+if [[ ! -f "\${SOURCE_DATASET_BIN}" ]]; then
+  echo "[ERROR] source dataset missing: \${SOURCE_DATASET_BIN}" >&2
+  exit 1
+fi
 
-  gen_procs_per_node=\${DATA_GEN_PROCS_PER_NODE}
-  if (( gen_procs_per_node < 1 )); then gen_procs_per_node=1; fi
-  if (( gen_procs_per_node > NTASKS_PER_NODE )); then gen_procs_per_node=\${NTASKS_PER_NODE}; fi
+if [[ "\${CACHE_BUST_PREFIX}" == "\${BIN_PREFIX}" ]]; then
+  echo "[ERROR] CACHE_BUST_PREFIX(\${CACHE_BUST_PREFIX}) must differ from BIN_PREFIX(\${BIN_PREFIX})" >&2
+  exit 1
+fi
+CACHE_BUST_WRITE_BIN="\${READ_BIN_DIR}/\${CACHE_BUST_PREFIX}_write"
+if [[ ! -x "\${CACHE_BUST_WRITE_BIN}" ]]; then
+  echo "[ERROR] cache-bust write binary not executable: \${CACHE_BUST_WRITE_BIN}" >&2
+  exit 1
+fi
 
-  gen_ntasks=\$((SLURM_NNODES * gen_procs_per_node))
-  if (( gen_ntasks > RANK )); then gen_ntasks=\${RANK}; fi
+source_sig="\$(stat -Lc '%s:%Y' "\${SOURCE_DATASET_BIN}")"
+source_stamp="\${SOURCE_DATASET_BIN}|\${source_sig}"
+stamp_file="\${DATASET_BIN_DIR}/.source_dataset_stamp"
+existing_stamp=""
+if [[ -f "\${stamp_file}" ]]; then
+  existing_stamp="\$(cat "\${stamp_file}")"
+fi
 
-  gen_cpus_per_task=\${CPU_LIMIT}
-  if (( gen_cpus_per_task < 1 )); then gen_cpus_per_task=1; fi
+if [[ "\${existing_stamp}" != "\${source_stamp}" ]]; then
+  echo "[INFO] refresh rank bins in \${DATASET_BIN_DIR} from source=\${SOURCE_DATASET_BIN}"
+  rm -f "\${DATASET_BIN_DIR}"/rank*.bin
+fi
 
-  export DATA_GEN_BIN DATASETS_DIR RANK PER_RANK_MB DTYPE ADM_THRESHOLD
-  srun --nodes "\${SLURM_NNODES}" \\
-       --ntasks "\${gen_ntasks}" \\
-       --ntasks-per-node "\${gen_procs_per_node}" \\
-       --cpus-per-task "\${gen_cpus_per_task}" \\
-       /bin/bash -c '
-         set -euo pipefail
-         for ((r = SLURM_PROCID; r < RANK; r += SLURM_NTASKS)); do
-           "\${DATA_GEN_BIN}" \
-             --output-name "\${DATASETS_DIR}/rank\${r}.bin" \
-             --size-per-rank-mb "\${PER_RANK_MB}" \
-             --dtype "\${DTYPE}" \
-             --adm-threshold "\${ADM_THRESHOLD}" \
-             --ratio-constant 0.75
-         done
-       '
+missing_required=0
+for ((r = 0; r < RANK; ++r)); do
+  if [[ ! -f "\${DATASET_BIN_DIR}/rank\${r}.bin" ]]; then
+    missing_required=\$((missing_required + 1))
+  fi
+done
 
-  generated_count=\$(find "\${DATASETS_DIR}" -maxdepth 1 -type f -name 'rank*.bin' | wc -l | tr -d ' ')
-  if (( generated_count != RANK )); then
-    echo "[ERROR] dataset generation incomplete: expected \${RANK}, got \${generated_count}" >&2
+if (( missing_required > 0 )); then
+  echo "[INFO] generate rank bins: need=\${missing_required} rank=\${RANK}"
+  export SOURCE_DATASET_BIN DATASET_BIN_DIR RANK NTASKS_PER_NODE
+  srun --nodes="\${SLURM_NODES_COUNT}" \
+       --ntasks="\${SLURM_NODES_COUNT}" \
+       --ntasks-per-node=1 \
+       --cpus-per-task=1 \
+       bash -c '
+set -euo pipefail
+node_id="\${SLURM_NODEID:?SLURM_NODEID is required}"
+start=\$((node_id * NTASKS_PER_NODE))
+end=\$((start + NTASKS_PER_NODE))
+for ((r = start; r < end && r < RANK; ++r)); do
+  dst="\${DATASET_BIN_DIR}/rank\${r}.bin"
+  if [[ ! -f "\${dst}" ]]; then
+    cp -f --reflink=auto "\${SOURCE_DATASET_BIN}" "\${dst}"
+  fi
+done
+'
+fi
+
+missing_required_after=0
+for ((r = 0; r < RANK; ++r)); do
+  if [[ ! -f "\${DATASET_BIN_DIR}/rank\${r}.bin" ]]; then
+    missing_required_after=\$((missing_required_after + 1))
+  fi
+done
+if (( missing_required_after != 0 )); then
+  echo "[ERROR] dataset bin setup incomplete: missing=\${missing_required_after} required_rank=\${RANK}" >&2
+  exit 1
+fi
+printf '%s\n' "\${source_stamp}" > "\${stamp_file}"
+
+BIN_TEMPLATE="\${DATASET_BIN_DIR}/rank%d.bin"
+TEST_H5_TEMPLATE="\${DATASETS_DIR}/rank%d.h5"
+CACHE_H5_TEMPLATE="\${DATASETS_DIR}/cache_\${CACHE_BUST_PREFIX}_rank%d.h5"
+
+WRITE_DIMS_ARGS=()
+if [[ "\${BIN_PREFIX}" == "mans" ]]; then
+  if (( \${#DATASET_DIMS[@]} == 0 )); then
+    echo "[ERROR] DATASET_DIMS is empty but BIN_PREFIX=mans" >&2
     exit 1
   fi
+  WRITE_DIMS_ARGS=(--dims "\${DATASET_DIMS[@]}")
+fi
+
+CACHE_DIMS_ARGS=()
+if [[ "\${CACHE_BUST_PREFIX}" == "mans" ]]; then
+  if (( \${#DATASET_DIMS[@]} == 0 )); then
+    echo "[ERROR] DATASET_DIMS is empty but CACHE_BUST_PREFIX=mans" >&2
+    exit 1
+  fi
+  CACHE_DIMS_ARGS=(--dims "\${DATASET_DIMS[@]}")
 fi
 
 chunk_tag="\${CHUNK_MB//./p}"
@@ -218,7 +345,11 @@ export MANS_TIMING_ITER=1
 export MANS_TIMING_DUMP_PATH="\${RUNS_DIR}/plugin_timing_\${BIN_PREFIX}_r\${RANK}_cpu\${CPU_LIMIT}_c\${chunk_tag}_write.csv"
 
 set +e
-write_output="\$(mpirun -np "\${RANK}" --bind-to core --map-by ppr:\${NTASKS_PER_NODE}:node:pe=\${CPU_LIMIT} "\${WRITE_BIN}" --chunk-size-mb "\${CHUNK_MB}" 2>&1)"
+write_cmd=(mpirun -np "\${RANK}" --bind-to core --map-by ppr:\${NTASKS_PER_NODE}:node:pe=\${CPU_LIMIT} "\${WRITE_BIN}" --chunk-size-mb "\${CHUNK_MB}" --bin-template "\${BIN_TEMPLATE}" --h5-template "\${TEST_H5_TEMPLATE}")
+if (( \${#WRITE_DIMS_ARGS[@]} > 0 )); then
+  write_cmd+=("\${WRITE_DIMS_ARGS[@]}")
+fi
+write_output="\$("\${write_cmd[@]}" 2>&1)"
 mpirun_rc=\$?
 set -e
 printf '%s\n' "\${write_output}"
@@ -249,6 +380,25 @@ thr="\${metric%%,*}"
 t="\${metric##*,}"
 
 echo "\${CHUNK_MB},\${SLURM_NODES_COUNT},\${RANK},\${CPU_LIMIT},compress,\${thr},\${t},\${BEST_THREAD_CSV}" >> "\${CSV_PATH}"
+
+# cache-busting write: run a different filter write, then remove its output
+export MANS_TIMING_DUMP_PATH="\${RUNS_DIR}/plugin_timing_\${BIN_PREFIX}_r\${RANK}_cpu\${CPU_LIMIT}_c\${chunk_tag}_cache.csv"
+set +e
+cache_cmd=(mpirun -np "\${RANK}" --bind-to core --map-by ppr:\${NTASKS_PER_NODE}:node:pe=\${CPU_LIMIT} "\${CACHE_BUST_WRITE_BIN}" --chunk-size-mb "\${CHUNK_MB}" --bin-template "\${BIN_TEMPLATE}" --h5-template "\${CACHE_H5_TEMPLATE}")
+if (( \${#CACHE_DIMS_ARGS[@]} > 0 )); then
+  cache_cmd+=("\${CACHE_DIMS_ARGS[@]}")
+fi
+cache_output="\$("\${cache_cmd[@]}" 2>&1)"
+cache_rc=\$?
+set -e
+printf '%s\n' "\${cache_output}"
+
+if (( cache_rc != 0 )); then
+  echo "[ERROR] cache-busting write failed rc=\${cache_rc} filter=\${CACHE_BUST_PREFIX}" >&2
+  exit "\${cache_rc}"
+fi
+
+rm -f "\${DATASETS_DIR}"/cache_*.h5
 SLURM_WRITE_EOF
 
   cat > "${read_slurm}" <<SLURM_READ_EOF
@@ -259,11 +409,7 @@ SLURM_WRITE_EOF
 
 set -euo pipefail
 
-module purge
-module load compiler/cmake/3.20.4
-module load hdf5-1.14.3-intelmpi2021_p
-module unload compiler/devtoolset/7.3.1
-module load compiler/gcc/9.3.0
+${MODULE_SETUP_SCRIPT}
 
 RUNS_DIR="${RUNS_DIR}"
 LOGS_DIR="${LOGS_DIR}"
@@ -315,12 +461,15 @@ parse_metric_from_text() {
 cd "\${RUNS_DIR}"
 mkdir -p "\${DATASETS_DIR}" "\${LOGS_DIR}"
 
+TEST_H5_TEMPLATE="\${DATASETS_DIR}/rank%d.h5"
+
 chunk_tag="\${CHUNK_MB//./p}"
 export MANS_TIMING_ITER=1
 export MANS_TIMING_DUMP_PATH="\${RUNS_DIR}/plugin_timing_\${BIN_PREFIX}_r\${RANK}_cpu\${CPU_LIMIT}_c\${chunk_tag}_read.csv"
 
 set +e
-read_output="\$(mpirun -np "\${RANK}" --bind-to core --map-by ppr:\${NTASKS_PER_NODE}:node:pe=\${CPU_LIMIT} "\${READ_BIN}" 2>&1)"
+read_cmd=(mpirun -np "\${RANK}" --bind-to core --map-by ppr:\${NTASKS_PER_NODE}:node:pe=\${CPU_LIMIT} "\${READ_BIN}" --h5-template "\${TEST_H5_TEMPLATE}")
+read_output="\$("\${read_cmd[@]}" 2>&1)"
 mpirun_rc=\$?
 set -e
 printf '%s\n' "\${read_output}"
@@ -351,9 +500,6 @@ thr="\${metric%%,*}"
 t="\${metric##*,}"
 
 echo "\${CHUNK_MB},\${SLURM_NODES_COUNT},\${RANK},\${CPU_LIMIT},decompress,\${thr},\${t},\${BEST_THREAD_CSV}" >> "\${CSV_PATH}"
-
-# hard constraint: keep only one active rank*.h5 set
-rm -f "\${DATASETS_DIR}"/rank*.h5
 SLURM_READ_EOF
 
   chmod +x "${write_slurm}" "${read_slurm}"
@@ -370,17 +516,16 @@ SLURM_READ_EOF
     fi
 
     NPROC_TOTAL=$((NPROC_PER_NODE * slurm_nodes))
-    TOTAL_DATA_GB=$((DATA_GB_PER_NODE * slurm_nodes))
     rank=${NPROC_TOTAL}
-    per_rank_mb=$(( TOTAL_DATA_GB * 1024 / rank ))
 
     echo
-    echo "====== prefix=${bin_prefix} nodes=${slurm_nodes} rank=${rank} cpu=${CPU_LIMIT} ======"
+    echo "====== prefix=${bin_prefix} nodes=${slurm_nodes} rank=${rank} cpu=${CPU_LIMIT} cache_bust=${cache_bust_prefix} ======"
 
     for chunk_mb in "${CHUNK_SIZES_MB[@]}"; do
       chunk_tag="${chunk_mb//./p}"
-      common_export="ALL,SWEEP_CHUNK_MB=${chunk_mb},SWEEP_SLURM_NODES=${slurm_nodes},SWEEP_RANK=${rank},SWEEP_NTASKS_PER_NODE=${ntasks_per_node},SWEEP_CPU_LIMIT=${CPU_LIMIT},SWEEP_PER_RANK_MB=${per_rank_mb}"
+      common_export="ALL,SWEEP_CHUNK_MB=${chunk_mb},SWEEP_SLURM_NODES=${slurm_nodes},SWEEP_RANK=${rank},SWEEP_NTASKS_PER_NODE=${ntasks_per_node},SWEEP_CPU_LIMIT=${CPU_LIMIT},SWEEP_CACHE_BUST_PREFIX=${cache_bust_prefix}"
 
+      wait_for_submit_slot
       if [[ -z "${prev_read_job_id}" ]]; then
         write_job_id="$(sbatch --parsable \
           --job-name="${JOB_NAME_PREFIX}-${bin_prefix}-w-n${slurm_nodes}-c${chunk_tag}" \
@@ -408,6 +553,7 @@ SLURM_READ_EOF
       write_job_id="${write_job_id%%;*}"
       echo "[SUBMIT] write job_id=${write_job_id} prefix=${bin_prefix} nodes=${slurm_nodes} chunk=${chunk_mb}"
 
+      wait_for_submit_slot
       if (( ENABLE_READ_EXCLUDE != 0 )); then
         write_nodes="$(wait_job_running_and_get_nodelist "${write_job_id}")"
         read_job_id="$(sbatch --parsable \
@@ -445,8 +591,8 @@ SLURM_READ_EOF
     done
   done
 
-  # cleanup this prefix's datasets after its full chain finishes
   if [[ -n "${prev_read_job_id}" ]]; then
+    wait_for_submit_slot
     cleanup_job_id="$(sbatch --parsable \
       --dependency=afterok:${prev_read_job_id} \
       --job-name="${JOB_NAME_PREFIX}-${bin_prefix}-cleanup" \
@@ -456,17 +602,17 @@ SLURM_READ_EOF
       --partition="${SLURM_PARTITION}" \
       --output="${LOGS_DIR}/${bin_prefix}-cleanup.out" \
       --error="${LOGS_DIR}/${bin_prefix}-cleanup.err" \
-      --wrap="rm -f \"${DATASETS_DIR}\"/rank*.bin \"${DATASETS_DIR}\"/rank*.h5")"
+      --wrap="rm -f \"${DATASETS_DIR}\"/*.h5")"
     cleanup_job_id="${cleanup_job_id%%;*}"
     echo "[SUBMIT] cleanup job_id=${cleanup_job_id} prefix=${bin_prefix} datasets=${DATASETS_DIR}"
     prev_read_job_id="${cleanup_job_id}"
   fi
 
 done
-
 echo
 echo "All jobs submitted in strict sequence: prefix outer, then node, then chunk(write->read->cleanup)."
 echo "run dirs:"
 for bin_prefix in "${LIST[@]}"; do
-  echo "  ${SCRIPT_DIR}/runs_sweep_${bin_prefix}"
+  echo "  ${SCRIPT_DIR}/${RUNS_DIR_PREFIX}_${bin_prefix}"
 done
+echo "dataset bins dir: ${DATASET_BIN_DIR}"

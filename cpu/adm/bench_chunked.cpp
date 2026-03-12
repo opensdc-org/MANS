@@ -210,11 +210,15 @@ int run_bench_for_type(const std::vector<T>& input,
         }
         if (auto_threads && !auto_threads->empty()) {
             mans::cpu::CsvThreadConfig chosen{};
-            if (mans::cpu::find_nearest_threads(*auto_threads, chunk_elements, chosen)) {
+            if (mans::cpu::find_nearest_threads(
+                    *auto_threads,
+                    chunk_elements,
+                    static_cast<uint32_t>(params.dims),
+                    chosen)) {
                 apply_auto_thread_config(params, chosen);
             } else {
                 std::cerr << "No matching thread config found for chunk elements: "
-                          << chunk_elements << "\n";
+                          << chunk_elements << ", dims: " << params.dims << "\n";
             }
         }
 

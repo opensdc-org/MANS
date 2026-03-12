@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 
-# Default to Intel compilers unless user already specified one.
-if(NOT DEFINED CMAKE_C_COMPILER)
-  set(CMAKE_C_COMPILER icx CACHE STRING "" FORCE)
-endif()
-if(NOT DEFINED CMAKE_CXX_COMPILER)
-  set(CMAKE_CXX_COMPILER icpx CACHE STRING "" FORCE)
-endif()
+# # Default to Intel compilers unless user already specified one.
+# if(NOT DEFINED CMAKE_C_COMPILER)
+#   set(CMAKE_C_COMPILER icx CACHE STRING "" FORCE)
+# endif()
+# if(NOT DEFINED CMAKE_CXX_COMPILER)
+#   set(CMAKE_CXX_COMPILER icpx CACHE STRING "" FORCE)
+# endif()
 
 project(MANS_ROOT LANGUAGES CXX C)
 
@@ -134,7 +134,7 @@ if(BUILD_CPU)
       RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
   )
   target_compile_options(cpu_mans_autotune PRIVATE $<$<CONFIG:Release>:-O3>)
-  target_link_libraries(cpu_mans_autotune PRIVATE mans_cpu_core OpenMP::OpenMP_CXX)
+  target_link_libraries(cpu_mans_autotune PRIVATE mans_common mans_cpu_core OpenMP::OpenMP_CXX)
 
   
   # ========== CPU / pans submodule ==========
@@ -156,6 +156,8 @@ if(BUILD_NV)
   string(STRIP "${INSTALLED_GPU_CCS}" INSTALLED_GPU_CCS_STRIPPED)
   string(REPLACE " " ";" INSTALLED_GPU_CCS_LIST "${INSTALLED_GPU_CCS_STRIPPED}")
   string(REPLACE "." "" DETECTED_CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_LIST}")
+  string(REPLACE "+PTX" "" DETECTED_CUDA_ARCH_LIST "${DETECTED_CUDA_ARCH_LIST}")
+  string(REPLACE "+ptx" "" DETECTED_CUDA_ARCH_LIST "${DETECTED_CUDA_ARCH_LIST}")
   message(STATUS "Auto-detected CUDA architectures: ${DETECTED_CUDA_ARCH_LIST}")
 
   set(nv_adm_binary_dir ${CMAKE_BINARY_DIR}/nv/adm)

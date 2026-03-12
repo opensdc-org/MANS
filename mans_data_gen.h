@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -46,6 +47,138 @@ struct RankDatasetInfo {
     std::size_t elements = 0;
     fs::path output_path{};
 };
+
+struct GeneratedDims {
+    std::uint32_t dims = 1;
+    std::uint32_t nx = 0;
+    std::uint32_t ny = 0;
+    std::uint32_t nz = 0;
+    std::size_t target_elements = 0;
+    std::size_t logical_elements = 0;
+    std::size_t block_elements = 512;
+};
+
+inline std::size_t align_up(std::size_t v, std::size_t a) {
+    if (a == 0) {
+        return v;
+    }
+    return ((v + a - 1) / a) * a;
+}
+
+inline bool mul_overflow(std::size_t a, std::size_t b, std::size_t& out) {
+    if (a == 0 || b == 0) {
+        out = 0;
+        return false;
+    }
+    if (a > (std::numeric_limits<std::size_t>::max() / b)) {
+        return true;
+    }
+    out = a * b;
+    return false;
+}
+
+inline std::size_t adm_block_elements_for_dims(std::uint32_t dims) {
+    if (dims == 1) {
+        return 512;
+    }
+    if (dims == 2) {
+        return 16 * 16;
+    }
+    if (dims == 3) {
+        return 16 * 16 * 16;
+    }
+    throw std::runtime_error("dims must be 1, 2, or 3");
+}
+
+inline GeneratedDims infer_generated_dims(std::uint32_t dims, std::size_t target_elements) {
+    if (target_elements == 0) {
+        throw std::runtime_error("target_elements must be > 0");
+    }
+    if (dims < 1 || dims > 3) {
+        throw std::runtime_error("dims must be 1, 2, or 3");
+    }
+
+    GeneratedDims out{};
+    out.dims = dims;
+    out.target_elements = target_elements;
+    out.block_elements = adm_block_elements_for_dims(dims);
+
+    if (dims == 1) {
+        out.nx = static_cast<std::uint32_t>(
+            std::min<std::size_t>(target_elements,
+                                  static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())));
+        out.ny = 0;
+        out.nz = 0;
+        out.logical_elements = out.nx;
+        if (out.logical_elements < target_elements) {
+            throw std::runtime_error("target_elements exceeds uint32_t range for dims=1");
+        }
+        return out;
+    }
+
+    if (dims == 2) {
+        const std::size_t tile_x = 16;
+        const std::size_t tile_y = 16;
+
+        const long double root = std::sqrt(static_cast<long double>(target_elements));
+        std::size_t nx = align_up(std::max<std::size_t>(tile_x, static_cast<std::size_t>(root)), tile_x);
+        if (nx == 0) {
+            nx = tile_x;
+        }
+        std::size_t ny = align_up((target_elements + nx - 1) / nx, tile_y);
+        if (ny == 0) {
+            ny = tile_y;
+        }
+
+        std::size_t logical = 0;
+        if (mul_overflow(nx, ny, logical)) {
+            throw std::runtime_error("dims=2 shape overflows size_t");
+        }
+
+        if (nx > std::numeric_limits<std::uint32_t>::max() ||
+            ny > std::numeric_limits<std::uint32_t>::max()) {
+            throw std::runtime_error("dims=2 shape exceeds uint32_t range");
+        }
+
+        out.nx = static_cast<std::uint32_t>(nx);
+        out.ny = static_cast<std::uint32_t>(ny);
+        out.nz = 0;
+        out.logical_elements = logical;
+        return out;
+    }
+
+    const std::size_t tile = 16;
+    const long double root = std::cbrt(static_cast<long double>(target_elements));
+    std::size_t nx = align_up(std::max<std::size_t>(tile, static_cast<std::size_t>(root)), tile);
+    std::size_t ny = nx;
+    std::size_t xy = 0;
+    if (mul_overflow(nx, ny, xy)) {
+        throw std::runtime_error("dims=3 nx*ny overflow");
+    }
+    if (xy == 0) {
+        throw std::runtime_error("dims=3 invalid nx*ny");
+    }
+    std::size_t nz = align_up((target_elements + xy - 1) / xy, tile);
+    if (nz == 0) {
+        nz = tile;
+    }
+
+    std::size_t logical = 0;
+    if (mul_overflow(xy, nz, logical)) {
+        throw std::runtime_error("dims=3 shape overflows size_t");
+    }
+    if (nx > std::numeric_limits<std::uint32_t>::max() ||
+        ny > std::numeric_limits<std::uint32_t>::max() ||
+        nz > std::numeric_limits<std::uint32_t>::max()) {
+        throw std::runtime_error("dims=3 shape exceeds uint32_t range");
+    }
+
+    out.nx = static_cast<std::uint32_t>(nx);
+    out.ny = static_cast<std::uint32_t>(ny);
+    out.nz = static_cast<std::uint32_t>(nz);
+    out.logical_elements = logical;
+    return out;
+}
 
 inline std::string trim_copy(const std::string& str) {
     const char* whitespace = " \t\r\n";
@@ -342,6 +475,181 @@ inline std::vector<T> generate_synthetic_slice(std::uint32_t adm_threshold,
         }
     }
 
+    return out;
+}
+
+template <typename T>
+inline std::vector<T> generate_synthetic_by_dims(std::uint32_t adm_threshold,
+                                                 const SyntheticConfig& cfg,
+                                                 const GeneratedDims& shape) {
+    if (shape.target_elements == 0) {
+        return {};
+    }
+    if (shape.dims < 1 || shape.dims > 3) {
+        throw std::runtime_error("shape.dims must be 1, 2, or 3");
+    }
+    if (shape.nx == 0) {
+        throw std::runtime_error("shape.nx must be > 0");
+    }
+    if (shape.dims >= 2 && shape.ny == 0) {
+        throw std::runtime_error("shape.ny must be > 0 when dims>=2");
+    }
+    if (shape.dims == 3 && shape.nz == 0) {
+        throw std::runtime_error("shape.nz must be > 0 when dims==3");
+    }
+
+    const auto max_val = std::numeric_limits<T>::max();
+    const std::vector<double> weights = {
+        std::max(0.0, cfg.ratio_smooth),
+        std::max(0.0, cfg.ratio_spike),
+        std::max(0.0, cfg.ratio_constant),
+        std::max(0.0, cfg.ratio_random),
+    };
+    const double weight_sum = weights[0] + weights[1] + weights[2] + weights[3];
+    if (weight_sum <= 0.0) {
+        throw std::runtime_error("Synthetic ratios sum to 0");
+    }
+
+    const int max_noise = std::max(0, cfg.noise_range);
+    const int threshold_limited_noise =
+        (adm_threshold > static_cast<std::uint32_t>(std::numeric_limits<int>::max()))
+            ? max_noise
+            : std::min(max_noise, static_cast<int>(adm_threshold));
+
+    std::vector<T> out(shape.target_elements);
+    const std::size_t ny_eff = (shape.dims >= 2) ? static_cast<std::size_t>(shape.ny) : 1;
+    const std::size_t nz_eff = (shape.dims == 3) ? static_cast<std::size_t>(shape.nz) : 1;
+    const std::size_t nx = static_cast<std::size_t>(shape.nx);
+    const auto idx3 = [nx, ny_eff](std::size_t x, std::size_t y, std::size_t z) -> std::size_t {
+        return x + y * nx + z * nx * ny_eff;
+    };
+
+    if (shape.dims == 1) {
+        const std::size_t block_size = adm_block_elements_for_dims(1);
+        const std::size_t block_count = (shape.target_elements + block_size - 1) / block_size;
+        for (std::size_t b = 0; b < block_count; ++b) {
+            const std::size_t block_start = b * block_size;
+            const std::size_t block_end = std::min(block_start + block_size, shape.target_elements);
+
+            const auto block_seed = cfg.seed + static_cast<std::uint64_t>(b * 1315423911ULL);
+            std::mt19937_64 rng(block_seed);
+            std::discrete_distribution<int> type_dist(weights.begin(), weights.end());
+            std::uniform_int_distribution<int> noise_dist(0, threshold_limited_noise);
+            std::uniform_int_distribution<unsigned long long> full_range_dist(0, max_val);
+
+            const int block_type = type_dist(rng);
+            const T block_base = static_cast<T>(full_range_dist(rng));
+
+            for (std::size_t i = block_start; i < block_end; ++i) {
+                if (block_type == 0) {
+                    const int noise = noise_dist(rng);
+                    if (block_base > (max_val - static_cast<T>(threshold_limited_noise))) {
+                        out[i] = static_cast<T>(block_base - static_cast<T>(noise));
+                    } else {
+                        out[i] = static_cast<T>(block_base + static_cast<T>(noise));
+                    }
+                    continue;
+                }
+                if (block_type == 1) {
+                    out[i] = block_base;
+                    if (i == block_start + 1) {
+                        const std::uint32_t spike_gap = adm_threshold + 500;
+                        if (static_cast<unsigned long long>(block_base) + spike_gap > max_val) {
+                            out[i] = static_cast<T>(block_base - spike_gap);
+                        } else {
+                            out[i] = static_cast<T>(block_base + spike_gap);
+                        }
+                    }
+                    continue;
+                }
+                if (block_type == 2) {
+                    out[i] = block_base;
+                    continue;
+                }
+                out[i] = static_cast<T>(full_range_dist(rng));
+            }
+        }
+        return out;
+    }
+
+    const std::size_t blk_x = 16;
+    const std::size_t blk_y = 16;
+    const std::size_t blk_z = (shape.dims == 3) ? 16 : 1;
+
+    const std::size_t grid_x = (nx + blk_x - 1) / blk_x;
+    const std::size_t grid_y = (ny_eff + blk_y - 1) / blk_y;
+    const std::size_t grid_z = (nz_eff + blk_z - 1) / blk_z;
+    const std::size_t block_count = grid_x * grid_y * grid_z;
+
+    for (std::size_t b = 0; b < block_count; ++b) {
+        const std::size_t bx = b % grid_x;
+        const std::size_t tmp = b / grid_x;
+        const std::size_t by = tmp % grid_y;
+        const std::size_t bz = tmp / grid_y;
+
+        const std::size_t x0 = bx * blk_x;
+        const std::size_t y0 = by * blk_y;
+        const std::size_t z0 = bz * blk_z;
+        const std::size_t x1 = std::min(x0 + blk_x, nx);
+        const std::size_t y1 = std::min(y0 + blk_y, ny_eff);
+        const std::size_t z1 = std::min(z0 + blk_z, nz_eff);
+
+        const auto block_seed = cfg.seed + static_cast<std::uint64_t>(b * 1315423911ULL);
+        std::mt19937_64 rng(block_seed);
+        std::discrete_distribution<int> type_dist(weights.begin(), weights.end());
+        std::uniform_int_distribution<int> noise_dist(0, threshold_limited_noise);
+        std::uniform_int_distribution<unsigned long long> full_range_dist(0, max_val);
+
+        const int block_type = type_dist(rng);
+        const T block_base = static_cast<T>(full_range_dist(rng));
+        std::size_t local_counter = 0;
+
+        for (std::size_t z = z0; z < z1; ++z) {
+            for (std::size_t y = y0; y < y1; ++y) {
+                for (std::size_t x = x0; x < x1; ++x) {
+                    const std::size_t idx = idx3(x, y, z);
+                    if (idx >= shape.target_elements) {
+                        ++local_counter;
+                        continue;
+                    }
+
+                    if (block_type == 0) {
+                        const int noise = noise_dist(rng);
+                        if (block_base > (max_val - static_cast<T>(threshold_limited_noise))) {
+                            out[idx] = static_cast<T>(block_base - static_cast<T>(noise));
+                        } else {
+                            out[idx] = static_cast<T>(block_base + static_cast<T>(noise));
+                        }
+                        ++local_counter;
+                        continue;
+                    }
+
+                    if (block_type == 1) {
+                        out[idx] = block_base;
+                        if (local_counter == 1) {
+                            const std::uint32_t spike_gap = adm_threshold + 500;
+                            if (static_cast<unsigned long long>(block_base) + spike_gap > max_val) {
+                                out[idx] = static_cast<T>(block_base - spike_gap);
+                            } else {
+                                out[idx] = static_cast<T>(block_base + spike_gap);
+                            }
+                        }
+                        ++local_counter;
+                        continue;
+                    }
+
+                    if (block_type == 2) {
+                        out[idx] = block_base;
+                        ++local_counter;
+                        continue;
+                    }
+
+                    out[idx] = static_cast<T>(full_range_dist(rng));
+                    ++local_counter;
+                }
+            }
+        }
+    }
     return out;
 }
 

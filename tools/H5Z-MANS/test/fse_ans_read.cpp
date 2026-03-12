@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include <hdf5.h>
@@ -10,6 +11,20 @@
 #define CHECK_H5(x) do { if ((x) < 0) { std::fprintf(stderr, "HDF5 failed: %s\n", #x); std::exit(1); } } while (0)
 
 int main(int argc, char** argv) {
+    const char* h5_template = "datasets/rank%d.h5";
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--h5-template") == 0) {
+            if (i + 1 >= argc) {
+                std::fprintf(stderr, "missing value for --h5-template\n");
+                return 1;
+            }
+            h5_template = argv[++i];
+        } else {
+            std::fprintf(stderr, "unknown argument: %s\n", argv[i]);
+            return 1;
+        }
+    }
+
     MPI_Init(&argc, &argv);
     int rank = 0, nprocs = 1;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -25,8 +40,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    char in[64];
-    std::snprintf(in, sizeof(in), "datasets/fse_ans_rank%d.h5", rank);
+    char in[4096];
+    int in_len = std::snprintf(in, sizeof(in), h5_template, rank);
+    if (in_len < 0 || static_cast<size_t>(in_len) >= sizeof(in)) {
+        std::fprintf(stderr, "rank %d invalid --h5-template: %s\n", rank, h5_template);
+        MPI_Finalize();
+        return 1;
+    }
 
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
     hid_t file = H5Fopen(in, H5F_ACC_RDONLY, fapl);

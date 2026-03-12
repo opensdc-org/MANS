@@ -51,18 +51,19 @@ std::size_t adm_max_compressed_size(std::size_t num_elements) {
     const std::size_t gsize = (num_elements + block - 1) / block;
     const std::size_t len1 = (gsize + 1) * sizeof(int);
     const std::size_t len2 = gsize * sizeof(T);
-    const std::size_t len3 = num_elements * sizeof(std::uint8_t);
+    const std::size_t len3 = (gsize + 7) / 8;
+    const std::size_t len4 = num_elements * sizeof(std::uint8_t);
 
     if constexpr (std::is_same_v<T, std::uint16_t>) {
-        const std::size_t max_len4 =
+        const std::size_t max_len5 =
             gsize * adm::cmp_tblock_size * adm::cmp_chunk *
             adm::max_bytes_signal_per_ele_16b;
-        return sizeof(adm::FileHeader) + len1 + len2 + len3 + max_len4;
+        return sizeof(adm::FileHeader) + len1 + len2 + len3 + len4 + max_len5;
     } else if constexpr (std::is_same_v<T, std::uint32_t>) {
-        const std::size_t max_len4 =
+        const std::size_t max_len5 =
             gsize * adm::cmp_tblock_size * adm::cmp_chunk *
             adm::max_bytes_signal_per_ele_32b;
-        return sizeof(adm::FileHeader) + len1 + len2 + len3 + max_len4;
+        return sizeof(adm::FileHeader) + len1 + len2 + len3 + len4 + max_len5;
     } else {
         static_assert(std::is_same_v<T, std::uint16_t> || std::is_same_v<T, std::uint32_t>,
                       "adm_max_compressed_size only supports uint16_t and uint32_t");

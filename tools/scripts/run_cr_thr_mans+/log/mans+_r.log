@@ -1,0 +1,4086 @@
+[info] datasets: 136
+[info] u2_root: /hwj/data/testdata/u2
+[info] u4_root: /hwj/data/testdata/u4
+[info] csv: /hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/mans+_r_results.csv
+[info] log: /hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/log/mans+_r.log
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_127x127x127_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.xHctvB.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.56773821 | 518.4         | 483.6        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_15x15x15_8kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.yoVxo3.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.95663601 | 104.1         | 194.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_203x203x203_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.HAbbCh.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.25448290 | 529.8         | 486.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_20x20x20_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.S4W4Sp.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.10619297 | 174.7         | 272.7        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_31x31x31_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.KPKGs1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.29874875 | 344.5         | 453.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_322x322x322_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.Jr11Wu.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.24604747 | 469.3         | 440.3        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_50x50x50_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.JHUqW1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.52534725 | 415.2         | 418.3        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_511x511x511_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.PKWj7W.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.21152867 | 471.4         | 442.3        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_80x80x80_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.zs8j9e.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.62148417 | 486.8         | 485.9        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_127x127x127_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.aQTDmp.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.52767877 | 532.5         | 496.9        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_15x15x15_8kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.6xAhez.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.25062972 | 106.9         | 196.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_203x203x203_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.W3JF6Y.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.94925805 | 554.5         | 509.7        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_20x20x20_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.91BMtA.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.42600277 | 181.4         | 280.0        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_31x31x31_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.qxjthv.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.77496394 | 344.7         | 449.9        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_322x322x322_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.gslIyr.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.62825674 | 542.0         | 508.4        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_50x50x50_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.tTpHYA.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.31586893 | 450.3         | 453.6        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_511x511x511_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.bDs7Yq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.18701407 | 546.9         | 504.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_758x842x841_1048576kB.u2 --dims 3 841 842 758
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_758x842x841_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 841 842 758
+  Timing CSV: /tmp/cpu_mans_bench_uall.acIBEX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.64115825 | 512.4         | 481.1        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_80x80x80_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.nLmlpQ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.60622817 | 535.8         | 544.0        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_127x127x127_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.k7SG6H.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.37264552 | 477.9         | 453.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_14958x185x194_1048576kB.u2 --dims 3 194 185 14958
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_14958x185x194_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 14958
+  Timing CSV: /tmp/cpu_mans_bench_uall.KwWdXY.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.01716842 | 458.8         | 419.1        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_15x15x15_8kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.2k0pJR.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.88601036 | 103.0         | 201.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_20x20x20_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.UB0NaE.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.10046130 | 178.2         | 286.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_233x185x194_16384kB.u2 --dims 3 194 185 233
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_233x185x194_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 233
+  Timing CSV: /tmp/cpu_mans_bench_uall.mdX1C9.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.19686230 | 471.1         | 448.1        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_31x31x31_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.521v6e.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.53163979 | 348.7         | 457.0        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_3739x185x194_262144kB.u2 --dims 3 194 185 3739
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_3739x185x194_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 3739
+  Timing CSV: /tmp/cpu_mans_bench_uall.62ekbb.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.86545175 | 451.6         | 428.4        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_50x50x50_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.xk8iYZ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.02557042 | 367.5         | 404.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_80x80x80_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.PWQucs.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.01820750 | 469.4         | 474.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_934x185x194_65536kB.u2 --dims 3 194 185 934
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_934x185x194_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 934
+  Timing CSV: /tmp/cpu_mans_bench_uall.PgSX5i.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.07892654 | 459.1         | 444.6        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_127x127x127_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.N8cKjF.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.60513771 | 540.4         | 454.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_15x15x15_8kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.KEJBvm.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.91586328 | 111.2         | 197.8        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_203x203x203_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.EzrA5a.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.78572163 | 555.0         | 473.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_20x20x20_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.esYiEm.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 6.28190027 | 186.1         | 265.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_31x31x31_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.gE32QK.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 6.74538662 | 349.4         | 415.1        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_322x322x322_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.Ldp4IB.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.45522383 | 582.5         | 503.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_50x50x50_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.OGZToO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.01203265 | 480.5         | 427.8        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_511x511x511_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.FS8Ldr.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.12541087 | 577.9         | 518.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_80x80x80_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.GeSzHE.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.57558944 | 560.9         | 500.1        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.0VA0l0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.91689137 | 548.1         | 550.1        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.xnXciP.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.93870212 | 540.5         | 517.5        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.LUkp0W.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.65779622 | 183.5         | 298.8        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.uiNZOk.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.98059778 | 492.6         | 494.1        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.DIQfcb.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.93331069 | 527.1         | 505.7        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.fyJu3B.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.60943026 | 66.9          | 143.9        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.7Eqwp5.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 1.91855733 | 380.6         | 445.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.eIMbD6.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.61805510 | 583.7         | 548.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.3OtBoW.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.15195206 | 622.9         | 586.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.xeZCKE.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.99500587 | 632.1         | 605.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.MUS0XS.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.32466688 | 204.4         | 318.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.jJ2W4i.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.23135617 | 511.7         | 495.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.vkC3S0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.48348839 | 622.4         | 590.6        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.pIsnO5.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.80937131 | 617.6         | 587.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.sfDb2V.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.84160757 | 61.6          | 148.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.dYgJll.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.88981756 | 396.3         | 473.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.YB1JJO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.25487084 | 626.8         | 589.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.D6O4bW.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.39619816 | 580.3         | 554.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.pU6yAG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.16284861 | 618.9         | 593.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.sBs1N6.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.75349589 | 635.1         | 610.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.X6hG9Y.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.18481013 | 201.4         | 320.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.v9nSLY.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.13429733 | 516.5         | 506.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.QpkvLG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.31558160 | 605.6         | 590.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.9mUuab.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.55454131 | 619.6         | 593.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.ZSDC6e.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 4.98903776 | 64.4          | 134.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.SVkoDM.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.67656994 | 396.2         | 474.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.Fl2aSu.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.08981766 | 629.7         | 597.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.4KA8kx.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 9.30248403 | 585.9         | 547.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.xzERHQ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.04166633 | 616.4         | 594.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.wVoPFc.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.47306326 | 630.0         | 587.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.kLAS0F.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.45043247 | 197.8         | 317.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.l1vnIO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.89166271 | 517.2         | 494.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.Fdk4ke.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.28027560 | 609.2         | 581.6        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.h7EDVG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.27737661 | 612.9         | 578.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.7Jbmoa.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 5.00122100 | 65.2          | 147.6        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.l42CJ0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 6.02076252 | 405.0         | 472.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.6QgjFj.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.26135728 | 624.8         | 587.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.ACp6km.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 51.27260281 | 729.6         | 796.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.jsbIbk.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 80.55363285 | 596.4         | 556.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.fHCaMN.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 85.11427905 | 609.7         | 577.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.ZY2trS.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 12.84012539 | 195.3         | 291.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.1MDQvr.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 56.55749730 | 671.6         | 793.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.cOh0r2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 80.09711119 | 604.5         | 571.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.Q4Pm0p.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 68.50639445 | 627.6         | 603.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.ka8caX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 12.88050314 | 61.6          | 140.3        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.slMj2c.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 27.88765957 | 383.1         | 432.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.X6d7qu.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 82.46642057 | 598.2         | 571.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.1ZIqme.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 41.54256963 | 556.6         | 527.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.IqZnIJ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 60.83825378 | 588.2         | 552.2        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.E3BsMq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 67.13921092 | 604.8         | 566.2        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.3Eo8mZ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 12.57405986 | 198.0         | 284.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.sH5W2G.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 35.16351442 | 483.1         | 478.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.aON1MX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 61.34712654 | 593.5         | 556.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.Gbo097.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 55.46113770 | 593.6         | 557.6        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.IvPFCS.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 9.68321513 | 61.1          | 139.2        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.d2kHa2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 25.12883436 | 377.3         | 431.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.hIqo62.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 68.59883060 | 603.9         | 554.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.VqMMCs.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 32.17082899 | 557.4         | 526.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_1048576kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.qKxAxh.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 50.66628137 | 586.0         | 548.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_16384kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.zJrgoC.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 49.48943677 | 606.2         | 565.7        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.6R4SMX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.22398589 | 201.0         | 285.2        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.y4BMzs.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 18.99318939 | 494.2         | 474.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_262144kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.45TzB1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 49.33864910 | 601.7         | 560.2        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.Dh23HQ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 46.74048320 | 594.3         | 558.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.kM9HfI.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 6.00586510 | 68.8          | 146.1        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.m86CJb.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 10.48240563 | 389.7         | 427.8        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_65536kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.vSTETC.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 50.74589946 | 602.8         | 551.6        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.TUCMVM.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.96408027 | 592.0         | 601.1        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.zY94Ur.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.67537557 | 191.9         | 318.7        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.vvXpk1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.95117476 | 528.0         | 538.4        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.jvvPnU.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 3.04199373 | 636.7         | 633.9        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.m2A4to.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.55520898 | 63.7          | 142.6        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.zbGiq9.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.91867819 | 403.8         | 476.2        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_1024kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.tignbl.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.41352674 | 597.9         | 593.9        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_16kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.gIAShD.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.18832643 | 190.5         | 318.4        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_256kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.tjYUkv.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.40772989 | 525.7         | 532.7        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4096kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.oRtE4e.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.51763175 | 598.1         | 577.3        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.D9M2tR.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.00882786 | 59.6          | 139.1        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_64kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.GYwGk4.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.41224971 | 393.7         | 472.0        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_8192kB.u2 --dims 1 4194304
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_8192kB.u2
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.eFHnA7.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 2.52157234 | 598.9         | 589.5        
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_1024kB.u4 --dims 1 262144
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_1024kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 262144
+  Timing CSV: /tmp/cpu_mans_bench_uall.GdyizG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 10.91448081 | 1191.4        | 1113.5       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_1048576kB.u4 --dims 1 268435456
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_1048576kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 268435456
+  Timing CSV: /tmp/cpu_mans_bench_uall.RyCzR4.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 11.39453939 | 1307.7        | 1223.7       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_16384kB.u4 --dims 1 4194304
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_16384kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.C2T0IA.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 11.39449211 | 1338.9        | 1234.1       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_16kB.u4 --dims 1 4096
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_16kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4096
+  Timing CSV: /tmp/cpu_mans_bench_uall.sTSkdV.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.58700210 | 255.9         | 468.5        
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_256kB.u4 --dims 1 65536
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_256kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 65536
+  Timing CSV: /tmp/cpu_mans_bench_uall.Qc0ETp.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 10.58825430 | 1013.7        | 1006.2       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_262144kB.u4 --dims 1 67108864
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_262144kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 67108864
+  Timing CSV: /tmp/cpu_mans_bench_uall.LsU2AB.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 11.39367331 | 1310.7        | 1216.8       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_4096kB.u4 --dims 1 1048576
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_4096kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1048576
+  Timing CSV: /tmp/cpu_mans_bench_uall.Eg2O2G.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 11.18564586 | 1314.4        | 1212.7       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_4kB.u4 --dims 1 1024
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_4kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1024
+  Timing CSV: /tmp/cpu_mans_bench_uall.CtP2ts.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 7.34050179 | 67.8          | 160.2        
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_64kB.u4 --dims 1 16384
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_64kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16384
+  Timing CSV: /tmp/cpu_mans_bench_uall.oz7IuG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 8.97999452 | 643.3         | 814.9        
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_65536kB.u4 --dims 1 16777216
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_65536kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16777216
+  Timing CSV: /tmp/cpu_mans_bench_uall.cpp6ox.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 11.39989825 | 1337.2        | 1242.2       
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_1024kB.u4 --dims 1 262144
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_1024kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 262144
+  Timing CSV: /tmp/cpu_mans_bench_uall.P8RTmN.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 29.97644368 | 1091.7        | 988.7        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16384kB.u4 --dims 1 4194304
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16384kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.ClCUm1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 54.79598662 | 1176.4        | 1065.2       
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16kB.u4 --dims 1 4096
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4096
+  Timing CSV: /tmp/cpu_mans_bench_uall.IpSOfD.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 17.86695747 | 254.4         | 418.8        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_256kB.u4 --dims 1 65536
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_256kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 65536
+  Timing CSV: /tmp/cpu_mans_bench_uall.DFY5sp.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 47.78417791 | 928.9         | 898.5        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4096kB.u4 --dims 1 1048576
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4096kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1048576
+  Timing CSV: /tmp/cpu_mans_bench_uall.ybLrLI.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 42.40225644 | 1123.2        | 1022.6       
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4kB.u4 --dims 1 1024
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1024
+  Timing CSV: /tmp/cpu_mans_bench_uall.nuZV2q.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 15.69348659 | 81.6          | 172.3        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_64kB.u4 --dims 1 16384
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_64kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16384
+  Timing CSV: /tmp/cpu_mans_bench_uall.WHtHxs.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 23.30583215 | 607.5         | 751.7        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_65536kB.u4 --dims 1 16777216
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_65536kB.u4
+  Mode: r
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16777216
+  Timing CSV: /tmp/cpu_mans_bench_uall.nDqgX2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+header size: 48 bytes
+whole    | 53.80386711 | 1136.6        | 1030.9       
+[done] finished. csv=/hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/mans+_r_results.csv

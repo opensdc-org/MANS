@@ -6,9 +6,9 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # --------------------------
 # Constants to edit
 # --------------------------
-U2_DATASET_ROOT="${U2_DATASET_ROOT:-/workspace/MANS/datasets/testdata/u2}"
-U4_DATASET_ROOT="${U4_DATASET_ROOT:-/workspace/MANS/datasets/testdata/u4}"
-WORKDIR="${WORKDIR:-/workspace/MANS/build}"
+U2_DATASET_ROOT="${U2_DATASET_ROOT:-/hwj/data/testdata/u2}"
+U4_DATASET_ROOT="${U4_DATASET_ROOT:-/hwj/data/testdata/u4}"
+WORKDIR="${WORKDIR:-/hwj/project/MANSplus/build}"
 MODE="${MODE:-r}"
 # --------------------------
 # Constants to edit
@@ -31,6 +31,89 @@ printf 'dataset_folder,dataset_name,file_size_bytes,algo,input_type,ratio,comp_m
 dataset_files=()
 dataset_types=()
 
+read_dims_from_meta() {
+    local meta_file="$1"
+    python3 - "${meta_file}" <<'PY'
+import json
+import sys
+
+meta_path = sys.argv[1]
+with open(meta_path, "r", encoding="utf-8") as f:
+    obj = json.load(f)
+
+raw = obj.get("chosen_block_shape_zyx")
+if not isinstance(raw, list) or len(raw) < 1 or len(raw) > 3:
+    sys.exit(1)
+
+vals = []
+for v in raw:
+    if isinstance(v, bool):
+        sys.exit(1)
+    if not isinstance(v, (int, float)):
+        sys.exit(1)
+    iv = int(v)
+    if iv <= 0:
+        sys.exit(1)
+    vals.append(iv)
+
+# metadata is z,y,x; bench needs x,y,z
+vals = list(reversed(vals))
+print(f"{len(vals)} " + " ".join(str(x) for x in vals))
+PY
+}
+
+resolve_dims_args() {
+    local dataset_file="$1"
+    local input_type="$2"
+    local file_size_bytes="$3"
+
+    local bytes_per_elem=0
+    case "${input_type}" in
+        -u2|u2) bytes_per_elem=2 ;;
+        -u4|u4) bytes_per_elem=4 ;;
+        *)
+            echo "[error] unsupported input type: ${input_type}" | tee -a "${LOG_FILE}"
+            return 1
+            ;;
+    esac
+    if (( file_size_bytes % bytes_per_elem != 0 )); then
+        echo "[error] file size is not aligned to dtype bytes: ${dataset_file} (${file_size_bytes} bytes, dtype_bytes=${bytes_per_elem})" | tee -a "${LOG_FILE}"
+        return 1
+    fi
+    local elem_count=$((file_size_bytes / bytes_per_elem))
+
+    # u4 benchmark uses 1D shape only (no 3D mapping path)
+    case "${input_type}" in
+        -u4|u4)
+            printf '1 %s\n' "${elem_count}"
+            return 0
+            ;;
+    esac
+
+    local meta_file="${dataset_file}.json"
+    if [[ -f "${meta_file}" ]]; then
+        local dims_line=""
+        if dims_line="$(read_dims_from_meta "${meta_file}" 2>/dev/null || true)" && [[ -n "${dims_line}" ]]; then
+            local -a tokens=()
+            read -r -a tokens <<< "${dims_line}"
+            local prod=1
+            local idx
+            for ((idx=1; idx<${#tokens[@]}; idx++)); do
+                prod=$((prod * tokens[idx]))
+            done
+            if (( prod == elem_count )); then
+                echo "${dims_line}"
+                return 0
+            fi
+            echo "[warn] metadata dims product mismatch, fallback to 1D: ${dataset_file}" | tee -a "${LOG_FILE}"
+        else
+            echo "[warn] failed to parse dims from metadata, fallback to 1D: ${meta_file}" | tee -a "${LOG_FILE}"
+        fi
+    fi
+
+    printf '1 %s\n' "${elem_count}"
+}
+
 add_dataset_files() {
     local root="$1"
     local input_type="$2"
@@ -41,9 +124,14 @@ add_dataset_files() {
     fi
 
     local files=()
+    local pattern="*"
+    case "${input_type}" in
+        -u2|u2) pattern="*.u2" ;;
+        -u4|u4) pattern="*.u4" ;;
+    esac
     while IFS= read -r -d '' file; do
         files+=("${file}")
-    done < <(find "${root}" -type f -print0 | sort -z)
+    done < <(find "${root}" -type f -name "${pattern}" -print0 | sort -z)
 
     if [[ ${#files[@]} -eq 0 ]]; then
         echo "[warn] no files found under, skip: ${root}" | tee -a "${LOG_FILE}"
@@ -81,19 +169,33 @@ for i in "${!dataset_files[@]}"; do
     dataset_folder="$(basename -- "$(dirname -- "${dataset_file}")")"
     dataset_name="$(basename -- "${dataset_file}")"
     file_size_bytes="$(stat -c%s "${dataset_file}")"
+    dims_args="$(resolve_dims_args "${dataset_file}" "${input_type}" "${file_size_bytes}")"
+    if [[ -z "${dims_args}" ]]; then
+        err="resolve_dims_failed"
+        printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+            "${dataset_folder}" \
+            "${dataset_name}" \
+            "${file_size_bytes}" \
+            "${ALGO}" \
+            "${input_type}" \
+            "" "" "" \
+            "${err}" >> "${CSV_FILE}"
+        echo "[warn] skip dataset due to dim parse failure: ${dataset_file}" | tee -a "${LOG_FILE}"
+        continue
+    fi
+    read -r -a dims_tokens <<< "${dims_args}"
 
     tmp_csv="$(mktemp /tmp/cpu_mans_bench_uall.XXXXXX.csv)"
     tmp_log="$(mktemp /tmp/cpu_mans_bench_uall.XXXXXX.log)"
 
-    echo "[run] (${input_type}) ${dataset_file}" | tee -a "${LOG_FILE}"
-    if (cd "${WORKDIR}" && "${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --chunks "${CHUNKS_MB}" --threshold "${THRESHOLD}" --csv "${tmp_csv}") > "${tmp_log}" 2>&1; then
+    echo "[run] (${input_type}) ${dataset_file} --dims ${dims_args}" | tee -a "${LOG_FILE}"
+    if (cd "${WORKDIR}" && "${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --threshold "${THRESHOLD}" --dims "${dims_tokens[@]}" --csv "${tmp_csv}") > "${tmp_log}" 2>&1; then
         cat "${tmp_log}" >> "${LOG_FILE}"
         wrote_rows=0
-        while IFS=, read -r chunk_label chunk_bytes ratio_pct comp_mbps decomp_mbps; do
+        while IFS=, read -r chunk_label chunk_bytes ratio comp_mbps decomp_mbps; do
             if [[ -z "${chunk_label}" ]]; then
                 continue
             fi
-            ratio="$(awk -v pct="${ratio_pct}" 'BEGIN { if (pct + 0 > 0) printf "%.2f", 100.0 / pct; else print "" }')"
             printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
                 "${dataset_folder}" \
                 "${dataset_name}" \

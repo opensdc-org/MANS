@@ -1,6 +1,7 @@
 #include "fse_utils.h"
 
 #include "../buffer_cache.h"
+#include "../../mans_timing.h"
 
 #include <chrono>
 #include <cstring>
@@ -145,7 +146,9 @@ void fse_compress(const std::uint8_t* input_data,
     }
 
     const auto start = std::chrono::high_resolution_clock::now();
+    MANS_TIMING_START("mans/entropy_encode_core");
     const std::size_t csize = FSE_compress(scratch, bound, input_data, input_len);
+    MANS_TIMING_STOP("mans/entropy_encode_core");
     const auto end = std::chrono::high_resolution_clock::now();
     duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
 
@@ -198,7 +201,9 @@ void fse_decompress(const std::uint8_t* compressed_data,
     }
 
     const auto start = std::chrono::high_resolution_clock::now();
+    MANS_TIMING_START("mans/entropy_decode_core");
     const std::size_t dsize = FSE_decompress(decompressed_data, raw_len, compressed_data, compressed_len);
+    MANS_TIMING_STOP("mans/entropy_decode_core");
     const auto end = std::chrono::high_resolution_clock::now();
     duration_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1e3;
 

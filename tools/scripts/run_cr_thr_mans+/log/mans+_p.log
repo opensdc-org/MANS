@@ -1,0 +1,2046 @@
+[info] datasets: 136
+[info] u2_root: /hwj/data/testdata/u2
+[info] u4_root: /hwj/data/testdata/u4
+[info] csv: /hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/mans+_p_results.csv
+[info] log: /hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/log/mans+_p.log
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_127x127x127_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.lng26q.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.85750177 | 2113.1        | 1993.0       
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_15x15x15_8kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.rXHtzO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.40384615 | 80.4          | 10.1         
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_203x203x203_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.1Su7W7.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.66286309 | 2481.0        | 2468.4       
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_20x20x20_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.PmVnqx.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.72108844 | 162.9         | 22.8         
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_31x31x31_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.ruYfk6.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.95897894 | 354.6         | 82.2         
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_322x322x322_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.mcGa8V.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.94812265 | 2431.3        | 2613.7       
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_50x50x50_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.lWMRmF.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.96461436 | 662.0         | 294.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_511x511x511_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.neiT7y.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.90065370 | 2617.3        | 2923.9       
+[run] (-u2) /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-pcg-gb/pcg-gb_80x80x80_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.TviyEW.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.95700788 | 1480.0        | 987.0        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_127x127x127_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.LVZ9b2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.33997998 | 2196.3        | 2131.5       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_15x15x15_8kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.0lZXPD.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.09065934 | 80.9          | 10.1         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_203x203x203_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.LT8Wm2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.93904490 | 2654.7        | 2625.7       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_20x20x20_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.UrBEyf.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.62976407 | 160.2         | 21.8         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_31x31x31_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.iOdZEW.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.15379253 | 399.6         | 84.7         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_322x322x322_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.tFvfaI.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.70143688 | 2679.5        | 2768.7       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_50x50x50_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.ygh07x.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.19632067 | 662.6         | 296.2        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_511x511x511_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.jezbdo.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.41103415 | 2813.3        | 2947.1       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_758x842x841_1048576kB.u2 --dims 3 841 842 758
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_758x842x841_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 841 842 758
+  Timing CSV: /tmp/cpu_mans_bench_uall.jD4y99.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.11745422 | 2861.4        | 3148.7       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-gi/2-sfc-1_80x80x80_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.u7GS5j.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.38611520 | 1622.9        | 1014.0       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_127x127x127_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.Y9Um5S.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.44969145 | 2306.7        | 2179.1       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_14958x185x194_1048576kB.u2 --dims 3 194 185 14958
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_14958x185x194_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 14958
+  Timing CSV: /tmp/cpu_mans_bench_uall.FdxWk7.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.28583733 | 2661.8        | 3037.8       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_15x15x15_8kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.Zt1oFN.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.93989547 | 78.9          | 10.3         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_20x20x20_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.x0LgeU.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.43053173 | 152.4         | 23.2         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_233x185x194_16384kB.u2 --dims 3 194 185 233
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_233x185x194_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 233
+  Timing CSV: /tmp/cpu_mans_bench_uall.TjFoRB.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.35752305 | 2388.2        | 2577.1       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_31x31x31_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.hO2d6N.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.95106101 | 363.8         | 83.5         
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_3739x185x194_262144kB.u2 --dims 3 194 185 3739
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_3739x185x194_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 3739
+  Timing CSV: /tmp/cpu_mans_bench_uall.A9aXXe.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.18858552 | 2564.7        | 2930.5       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_50x50x50_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.XGZH3k.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.12219003 | 637.9         | 297.7        
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_80x80x80_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.CJN3Db.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.88906444 | 1681.3        | 1046.5       
+[run] (-u2) /hwj/data/testdata/u2/3d-sfc-l/sfc-l_934x185x194_65536kB.u2 --dims 3 194 185 934
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-sfc-l/sfc-l_934x185x194_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 194 185 934
+  Timing CSV: /tmp/cpu_mans_bench_uall.hmYhjN.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.31862235 | 2494.9        | 2830.7       
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_127x127x127_4096kB.u2 --dims 3 127 127 127
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_127x127x127_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 127 127 127
+  Timing CSV: /tmp/cpu_mans_bench_uall.ROY659.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.72984649 | 2234.1        | 2042.5       
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_15x15x15_8kB.u2 --dims 3 15 15 15
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_15x15x15_8kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 15 15 15
+  Timing CSV: /tmp/cpu_mans_bench_uall.htS6zR.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.88824885 | 80.1          | 10.3         
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_203x203x203_16384kB.u2 --dims 3 203 203 203
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_203x203x203_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 203 203 203
+  Timing CSV: /tmp/cpu_mans_bench_uall.6Tfzvq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.52209687 | 2663.9        | 2468.4       
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_20x20x20_16kB.u2 --dims 3 20 20 20
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_20x20x20_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 20 20 20
+  Timing CSV: /tmp/cpu_mans_bench_uall.PCDTpt.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.81927711 | 147.4         | 23.3         
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_31x31x31_64kB.u2 --dims 3 31 31 31
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_31x31x31_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 31 31 31
+  Timing CSV: /tmp/cpu_mans_bench_uall.KcohwT.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.57049364 | 327.9         | 85.5         
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_322x322x322_65536kB.u2 --dims 3 322 322 322
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_322x322x322_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 322 322 322
+  Timing CSV: /tmp/cpu_mans_bench_uall.BvA3jH.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.40054494 | 2633.4        | 2571.0       
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_50x50x50_256kB.u2 --dims 3 50 50 50
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_50x50x50_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 50 50 50
+  Timing CSV: /tmp/cpu_mans_bench_uall.WEwXph.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.08543531 | 697.5         | 296.5        
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_511x511x511_262144kB.u2 --dims 3 511 511 511
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_511x511x511_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 511 511 511
+  Timing CSV: /tmp/cpu_mans_bench_uall.vTxikj.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.15269955 | 2602.7        | 2774.0       
+[run] (-u2) /hwj/data/testdata/u2/3d-spdi-m/spdi-m_80x80x80_1024kB.u2 --dims 3 80 80 80
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/3d-spdi-m/spdi-m_80x80x80_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 3 80 80 80
+  Timing CSV: /tmp/cpu_mans_bench_uall.tYVvKd.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.38109051 | 1762.2        | 989.1        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.nqm8u5.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.74054844 | 2550.3        | 1343.6       
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.CKwmA5.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.74713310 | 3974.7        | 6654.4       
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.KtUsBR.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.56455309 | 175.0         | 22.3         
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.2NYPST.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.78543017 | 1257.2        | 371.3        
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.ruOcFn.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.74597963 | 3283.4        | 4236.1       
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.6VnPEZ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.39509537 | 50.7          | 6.0          
+[run] (-u2) /hwj/data/testdata/u2/exafel/exafel_59200x388_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/exafel/exafel_59200x388_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.1ftC7V.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.73009504 | 489.1         | 95.4         
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.cAuRYb.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.36191450 | 2031.7        | 1428.2       
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.i43w3a.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.39464847 | 4530.1        | 9364.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.eyKFKt.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.57325288 | 4176.3        | 7920.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.rFaaIr.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.22268041 | 169.1         | 23.7         
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.2shc3x.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.21700366 | 860.4         | 364.0        
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.8swBiZ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.48240079 | 4602.8        | 8850.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.hfrpT1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.84299399 | 3284.1        | 4664.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.PhLlA0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.82872928 | 53.4          | 6.0          
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.ldaqUf.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.38309256 | 385.6         | 96.1         
+[run] (-u2) /hwj/data/testdata/u2/haac/vx_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vx_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.hJrRj2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.41648174 | 4401.1        | 9528.5       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.VbCtNw.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.24938924 | 2027.1        | 1422.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.zMI7dq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.40475565 | 4275.7        | 9304.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.ICzcqI.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.50565368 | 4189.8        | 7880.7       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.0MBRu9.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.12072435 | 156.5         | 24.3         
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.UCQSYj.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.13363622 | 813.0         | 381.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.syEykm.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.51347373 | 4587.4        | 8761.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.Fya3Nt.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.75066373 | 3255.1        | 4758.2       
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.yJSZo2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.89265537 | 52.1          | 6.4          
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.jhEUuS.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.26444560 | 384.1         | 94.3         
+[run] (-u2) /hwj/data/testdata/u2/haac/vy_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vy_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.ZHi91q.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.44788929 | 4565.8        | 9461.2       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.3KOhyu.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.57444818 | 1867.6        | 1404.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.7q4KOX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.40720347 | 4568.3        | 9340.1       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.xVwuXq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.85214860 | 4123.3        | 7815.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.dDcabL.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.29350105 | 154.9         | 24.7         
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.0BIZ1V.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.46588824 | 838.0         | 377.6        
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.DMgcU0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.49854933 | 4560.0        | 8939.4       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.Wok5Qq.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.98576414 | 3233.0        | 4702.7       
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.MFwsb2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.89265537 | 51.7          | 6.0          
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.vx7gne.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.44492675 | 387.7         | 93.1         
+[run] (-u2) /hwj/data/testdata/u2/haac/vz_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/vz_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.gMrgdo.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.53715650 | 4455.8        | 9497.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.Am2ENT.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.88185969 | 1568.1        | 1446.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.GgxYku.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 6.99405724 | 6009.8        | 9423.2       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.hlg6t1.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.41954380 | 4829.9        | 8005.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.Y0GEtk.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.90733591 | 136.9         | 24.1         
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.bxmgCM.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 11.86816371 | 450.3         | 374.4        
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.QO6K5c.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 6.99537282 | 6048.3        | 8899.2       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.B9WWZ8.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.96859767 | 3188.0        | 4581.1       
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.DPeBoA.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.45217391 | 49.6          | 5.7          
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.ZXRfZw.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.25281602 | 229.1         | 94.2         
+[run] (-u2) /hwj/data/testdata/u2/haac/xx_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/xx_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.KL8Ju7.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.04372790 | 5640.5        | 9447.8       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.M8YUXY.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.51182934 | 1562.2        | 1429.4       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.ZOZATI.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.56550089 | 6063.1        | 9049.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.SKvUQ3.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.30982287 | 4986.0        | 7810.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.zPV7Ba.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.84674330 | 141.8         | 24.7         
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.H8vynJ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.31413283 | 515.5         | 375.5        
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.Awq2A4.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.57956007 | 6012.6        | 8935.6       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.vDVsgX.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.82099441 | 3289.5        | 4716.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.H1BYmR.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.96899225 | 50.6          | 6.0          
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.aiE6Eu.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.00244200 | 234.1         | 90.1         
+[run] (-u2) /hwj/data/testdata/u2/haac/yy_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/yy_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.yEa82V.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.04929189 | 5795.7        | 9535.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.oJyCMg.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 9.49178072 | 1622.9        | 1393.1       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_1048576kB.u2 --dims 1 536870912
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_1048576kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 536870912
+  Timing CSV: /tmp/cpu_mans_bench_uall.pcdK01.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.87854277 | 5809.9        | 9510.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_16384kB.u2 --dims 1 8388608
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_16384kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8388608
+  Timing CSV: /tmp/cpu_mans_bench_uall.1k2rka.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 9.61277577 | 4890.3        | 7917.9       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.YhOFkP.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 5.34725849 | 164.0         | 23.7         
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.aeGBQk.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 8.08886695 | 646.8         | 392.9        
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_262144kB.u2 --dims 1 134217728
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_262144kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 134217728
+  Timing CSV: /tmp/cpu_mans_bench_uall.ywSonK.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.83335438 | 6072.6        | 8910.0       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.tovO5A.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.44252793 | 3066.5        | 4722.7       
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.8TVPs2.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.22012579 | 50.1          | 6.0          
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.2e2VXM.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 6.39500390 | 314.2         | 96.1         
+[run] (-u2) /hwj/data/testdata/u2/haac/zz_1073726487_65536kB.u2 --dims 1 33554432
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/haac/zz_1073726487_65536kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 33554432
+  Timing CSV: /tmp/cpu_mans_bench_uall.7eYi6m.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.78323571 | 5781.7        | 9548.4       
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.8XpY02.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.50562979 | 2665.0        | 1457.9       
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.vKzzhp.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.37311703 | 175.2         | 24.2         
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.0PHMaj.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.50999617 | 1329.6        | 393.4        
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.3IU8RT.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.53131261 | 3748.5        | 4629.7       
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.VdQCs0.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.88929889 | 50.0          | 5.8          
+[run] (-u2) /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/modis/EV-Band26_2030x1354_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.EVXGXd.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.50137405 | 504.6         | 96.5         
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_1024kB.u2 --dims 1 524288
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_1024kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 524288
+  Timing CSV: /tmp/cpu_mans_bench_uall.4ZZaue.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.10189387 | 3195.1        | 1437.3       
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_16kB.u2 --dims 1 8192
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_16kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 8192
+  Timing CSV: /tmp/cpu_mans_bench_uall.ylojjU.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.00195503 | 178.0         | 24.2         
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_256kB.u2 --dims 1 131072
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_256kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 131072
+  Timing CSV: /tmp/cpu_mans_bench_uall.0biJPD.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.12875983 | 1470.0        | 379.1        
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4096kB.u2 --dims 1 2097152
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4096kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2097152
+  Timing CSV: /tmp/cpu_mans_bench_uall.dgzDyY.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.13746458 | 4798.7        | 4667.8       
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4kB.u2 --dims 1 2048
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_4kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 2048
+  Timing CSV: /tmp/cpu_mans_bench_uall.PvEDaa.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 1.61514196 | 51.9          | 6.1          
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_64kB.u2 --dims 1 32768
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_64kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 32768
+  Timing CSV: /tmp/cpu_mans_bench_uall.maSmtJ.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.13722932 | 522.1         | 89.9         
+[run] (-u2) /hwj/data/testdata/u2/tomobank/tomo00022_4194304_8192kB.u2 --dims 1 4194304
+Command-line arguments:
+  Input type: -u2
+  Input file: /hwj/data/testdata/u2/tomobank/tomo00022_4194304_8192kB.u2
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.nG7hKV.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 2.06798922 | 4169.5        | 6421.4       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_1024kB.u4 --dims 1 262144
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_1024kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 262144
+  Timing CSV: /tmp/cpu_mans_bench_uall.jTSQAU.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 8.10437148 | 3515.4        | 1409.6       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_1048576kB.u4 --dims 1 268435456
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_1048576kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 268435456
+  Timing CSV: /tmp/cpu_mans_bench_uall.ekFp0h.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.61574808 | 9462.1        | 12021.8      
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_16384kB.u4 --dims 1 4194304
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_16384kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.gtMYCw.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.97265846 | 8947.0        | 8786.8       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_16kB.u4 --dims 1 4096
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_16kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4096
+  Timing CSV: /tmp/cpu_mans_bench_uall.e2i0rM.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 6.34055728 | 197.7         | 23.9         
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_256kB.u4 --dims 1 65536
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_256kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 65536
+  Timing CSV: /tmp/cpu_mans_bench_uall.SII7YE.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.92071549 | 1156.7        | 347.9        
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_262144kB.u4 --dims 1 67108864
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_262144kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 67108864
+  Timing CSV: /tmp/cpu_mans_bench_uall.owjjJG.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.62421385 | 9601.4        | 11474.3      
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_4096kB.u4 --dims 1 1048576
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_4096kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1048576
+  Timing CSV: /tmp/cpu_mans_bench_uall.kXls52.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 8.08500008 | 7250.7        | 4418.7       
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_4kB.u4 --dims 1 1024
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_4kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1024
+  Timing CSV: /tmp/cpu_mans_bench_uall.9t2gxi.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 3.53103448 | 51.9          | 5.4          
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_64kB.u4 --dims 1 16384
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_64kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16384
+  Timing CSV: /tmp/cpu_mans_bench_uall.fgGuy4.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.85426654 | 558.2         | 96.4         
+[run] (-u4) /hwj/data/testdata/u4/big-tpch/col_360011594_65536kB.u4 --dims 1 16777216
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/big-tpch/col_360011594_65536kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16777216
+  Timing CSV: /tmp/cpu_mans_bench_uall.OZDdoU.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 7.60425220 | 10053.7       | 11710.3      
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_1024kB.u4 --dims 1 262144
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_1024kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 262144
+  Timing CSV: /tmp/cpu_mans_bench_uall.7Vlr09.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 11.49653539 | 1656.2        | 1432.9       
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16384kB.u4 --dims 1 4194304
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16384kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4194304
+  Timing CSV: /tmp/cpu_mans_bench_uall.K6HmOs.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 13.84523770 | 7805.2        | 10829.7      
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16kB.u4 --dims 1 4096
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_16kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 4096
+  Timing CSV: /tmp/cpu_mans_bench_uall.NGPF0A.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 10.18905473 | 213.4         | 25.1         
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_256kB.u4 --dims 1 65536
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_256kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 65536
+  Timing CSV: /tmp/cpu_mans_bench_uall.BRVTgO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 18.35742297 | 653.1         | 375.4        
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4096kB.u4 --dims 1 1048576
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4096kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1048576
+  Timing CSV: /tmp/cpu_mans_bench_uall.VEo1vH.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 12.16022266 | 4083.5        | 4959.4       
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4kB.u4 --dims 1 1024
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_4kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 1024
+  Timing CSV: /tmp/cpu_mans_bench_uall.tecKLn.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 4.78504673 | 56.3          | 5.9          
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_64kB.u4 --dims 1 16384
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_64kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16384
+  Timing CSV: /tmp/cpu_mans_bench_uall.3cVgpe.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 16.89072165 | 423.1         | 94.7         
+[run] (-u4) /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_65536kB.u4 --dims 1 16777216
+Command-line arguments:
+  Input type: -u4
+  Input file: /hwj/data/testdata/u4/suitesparse/kron-g500-logn19_43562265_65536kB.u4
+  Mode: p
+  Threshold: 4000
+  Warmup iterations: 5
+  Benchmark iterations: 10
+  Dims: 1 16777216
+  Timing CSV: /tmp/cpu_mans_bench_uall.MipURO.csv.timing.csv
+
+Input    | Ratio     | Comp MB/s     | Decomp MB/s  
+----------------------------------------------------
+Auto thread config disabled: Failed to open CSV: best_threads.csv
+whole    | 13.86755363 | 10008.8       | 13155.0      
+[done] finished. csv=/hwj/project/MANSplus/tools/scripts/run_cr_thr_mans+/mans+_p_results.csv

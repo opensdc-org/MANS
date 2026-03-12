@@ -115,6 +115,115 @@ static bool threads_all_zero(const mans::MansParams& params) {
            params.adm_decode_values_threads == 0;
 }
 
+static bool apply_dims_from_chunk_dims(const std::vector<hsize_t>& chunk_dims,
+                                       mans::MansParams& params,
+                                       std::string& error) {
+    if (chunk_dims.empty()) {
+        error = "chunk_dims is empty";
+        return false;
+    }
+
+    const auto u32_max = static_cast<std::uint64_t>(std::numeric_limits<std::uint32_t>::max());
+    auto to_u32 = [&](std::uint64_t v, const char* name, std::uint32_t& out) -> bool {
+        if (v == 0 || v > u32_max) {
+            error = std::string("invalid ") + name + " in chunk dims";
+            return false;
+        }
+        out = static_cast<std::uint32_t>(v);
+        return true;
+    };
+
+    params.dims = 1;
+    params.nx = 0;
+    params.ny = 0;
+    params.nz = 0;
+
+    if (chunk_dims.size() == 1) {
+        return to_u32(static_cast<std::uint64_t>(chunk_dims[0]), "nx", params.nx);
+    }
+
+    if (chunk_dims.size() == 2) {
+        params.dims = 2;
+        if (!to_u32(static_cast<std::uint64_t>(chunk_dims[0]), "nx", params.nx)) {
+            return false;
+        }
+        if (!to_u32(static_cast<std::uint64_t>(chunk_dims[1]), "ny", params.ny)) {
+            return false;
+        }
+        return true;
+    }
+
+    params.dims = 3;
+    if (!to_u32(static_cast<std::uint64_t>(chunk_dims[0]), "nx", params.nx)) {
+        return false;
+    }
+    if (!to_u32(static_cast<std::uint64_t>(chunk_dims[1]), "ny", params.ny)) {
+        return false;
+    }
+
+    std::uint64_t merged_z = 1;
+    for (std::size_t i = 2; i < chunk_dims.size(); ++i) {
+        const auto d = static_cast<std::uint64_t>(chunk_dims[i]);
+        if (d == 0 || merged_z > (u32_max / d)) {
+            error = "invalid nz in chunk dims";
+            return false;
+        }
+        merged_z *= d;
+    }
+    if (!to_u32(merged_z, "nz", params.nz)) {
+        return false;
+    }
+    return true;
+}
+
+static bool expected_chunk_elements_from_params(const mans::MansParams& params, std::size_t& out) {
+    std::uint64_t elements = 0;
+    if (params.dims <= 1) {
+        if (params.nx == 0) return false;
+        elements = static_cast<std::uint64_t>(params.nx);
+    } else if (params.dims == 2) {
+        if (params.nx == 0 || params.ny == 0) return false;
+        const std::uint64_t nx = static_cast<std::uint64_t>(params.nx);
+        const std::uint64_t ny = static_cast<std::uint64_t>(params.ny);
+        if (nx > (std::numeric_limits<std::uint64_t>::max() / ny)) return false;
+        elements = nx * ny;
+    } else {
+        if (params.nx == 0 || params.ny == 0 || params.nz == 0) return false;
+        const std::uint64_t nx = static_cast<std::uint64_t>(params.nx);
+        const std::uint64_t ny = static_cast<std::uint64_t>(params.ny);
+        const std::uint64_t nz = static_cast<std::uint64_t>(params.nz);
+        if (nx > (std::numeric_limits<std::uint64_t>::max() / ny)) return false;
+        const std::uint64_t xy = nx * ny;
+        if (xy > (std::numeric_limits<std::uint64_t>::max() / nz)) return false;
+        elements = xy * nz;
+    }
+    if (elements == 0 || elements > static_cast<std::uint64_t>(std::numeric_limits<std::size_t>::max())) {
+        return false;
+    }
+    out = static_cast<std::size_t>(elements);
+    return true;
+}
+
+static void apply_effective_dims_for_chunk_elements(std::size_t actual_elements, mans::MansParams& params) {
+    std::size_t expected_elements = 0;
+    if (!expected_chunk_elements_from_params(params, expected_elements)) {
+        return;
+    }
+    if (actual_elements >= expected_elements || actual_elements == 0) {
+        return;
+    }
+    const auto u32_max = static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max());
+    if (actual_elements > u32_max) {
+        return;
+    }
+    // Tail chunks have fewer elements than the nominal chunk shape.
+    // Use a deterministic 1D layout so compression writes exact per-chunk dims into header.
+    params.dims = 1;
+    params.nx = static_cast<std::uint32_t>(actual_elements);
+    params.ny = 0;
+    params.nz = 0;
+}
+
 // =========================================================
 // set_local: auto-apply thread config based on chunk size
 // =========================================================
@@ -167,6 +276,15 @@ static herr_t H5Z_set_local_mans(hid_t dcpl_id, hid_t type_id, hid_t space_id) {
         chunk_elements *= static_cast<std::size_t>(chunk_dims[static_cast<std::size_t>(i)]);
     }
 
+    {
+        std::string dims_error;
+        if (!apply_dims_from_chunk_dims(chunk_dims, params, dims_error)) {
+            std::cerr << "[H5Z-MANS Warning] Failed to apply dims from HDF5 chunk: "
+                      << dims_error << "\n";
+            return 0;
+        }
+    }
+
     const char* csv_env = std::getenv("MANS_THREAD_CSV");
     std::string csv_path = (csv_env && csv_env[0] != '\0') ? csv_env : "best_threads.csv";
 
@@ -176,7 +294,8 @@ static herr_t H5Z_set_local_mans(hid_t dcpl_id, hid_t type_id, hid_t space_id) {
         std::string error;
         if (!load_thread_csv(csv_path, configs, error)) {
             std::cerr << "[H5Z-MANS Warning] " << error << "\n";
-        } else if (!find_nearest_threads(configs, chunk_elements, chosen)) {
+        } else if (!find_nearest_threads(
+                       configs, chunk_elements, static_cast<uint32_t>(params.dims), chosen)) {
             std::cerr << "[H5Z-MANS Warning] No matching thread config found.\n";
         } else {
             params.adm_decide_threads = chosen.adm_decide_threads;
@@ -302,6 +421,7 @@ static size_t H5Z_filter_mans(unsigned int flags, size_t cd_nelmts,
                 return 0;
             }
             size_t num_elements = nbytes / elem_size;
+            apply_effective_dims_for_chunk_elements(num_elements, params);
 
             // Allocation: worst-case bound for MANS (covers ADM + PANS path)
             dst_capacity = mans::get_mans_max_compress_bytes(num_elements, params);
