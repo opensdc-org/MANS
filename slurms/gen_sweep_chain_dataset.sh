@@ -273,21 +273,33 @@ if [[ -f "\${stamp_file}" ]]; then
   existing_stamp="\$(cat "\${stamp_file}")"
 fi
 
-if [[ "\${existing_stamp}" != "\${source_stamp}" ]]; then
-  echo "[INFO] refresh rank bins in \${DATASET_BIN_DIR} from source=\${SOURCE_DATASET_BIN}"
-  rm -f "\${DATASET_BIN_DIR}"/rank*.bin
+source_real="\$(readlink -f "\${SOURCE_DATASET_BIN}" 2>/dev/null || printf '%s\n' "\${SOURCE_DATASET_BIN}")"
+dataset_bin_dir_real="\$(readlink -f "\${DATASET_BIN_DIR}" 2>/dev/null || printf '%s\n' "\${DATASET_BIN_DIR}")"
+if [[ "\${source_real}" == \${dataset_bin_dir_real}/rank*.bin ]]; then
+  echo "[ERROR] SOURCE_DATASET_BIN points to a managed rank copy: \${SOURCE_DATASET_BIN}" >&2
+  exit 1
 fi
 
-missing_required=0
+need_refresh_all=0
+if [[ "\${existing_stamp}" != "\${source_stamp}" ]]; then
+  need_refresh_all=1
+fi
+
+copy_required=0
 for ((r = 0; r < RANK; ++r)); do
-  if [[ ! -f "\${DATASET_BIN_DIR}/rank\${r}.bin" ]]; then
-    missing_required=\$((missing_required + 1))
+  dst="\${DATASET_BIN_DIR}/rank\${r}.bin"
+  if (( need_refresh_all != 0 )) || [[ ! -f "\${dst}" ]]; then
+    copy_required=\$((copy_required + 1))
   fi
 done
 
-if (( missing_required > 0 )); then
-  echo "[INFO] generate rank bins: need=\${missing_required} rank=\${RANK}"
-  export SOURCE_DATASET_BIN DATASET_BIN_DIR RANK NTASKS_PER_NODE
+if (( copy_required > 0 )); then
+  if (( need_refresh_all != 0 )); then
+    echo "[INFO] source changed, refresh required rank bins without deleting existing files: need=\${copy_required} rank=\${RANK}"
+  else
+    echo "[INFO] generate missing rank bins: need=\${copy_required} rank=\${RANK}"
+  fi
+  export SOURCE_DATASET_BIN DATASET_BIN_DIR RANK NTASKS_PER_NODE NEED_REFRESH_ALL
   srun --nodes="\${SLURM_NODES_COUNT}" \
        --ntasks="\${SLURM_NODES_COUNT}" \
        --ntasks-per-node=1 \
@@ -299,7 +311,7 @@ start=\$((node_id * NTASKS_PER_NODE))
 end=\$((start + NTASKS_PER_NODE))
 for ((r = start; r < end && r < RANK; ++r)); do
   dst="\${DATASET_BIN_DIR}/rank\${r}.bin"
-  if [[ ! -f "\${dst}" ]]; then
+  if (( NEED_REFRESH_ALL != 0 )) || [[ ! -f "\${dst}" ]]; then
     cp -f --reflink=auto "\${SOURCE_DATASET_BIN}" "\${dst}"
   fi
 done

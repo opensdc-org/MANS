@@ -496,6 +496,50 @@ inline void compress_uint16(
         block_elems = sx * sy * sz;
     };
 
+    // Cache per-block geometry for dims != 1 to avoid recomputing block_shape()
+    // for every lane/thread in Stage B.
+    std::vector<int> block_x0;
+    std::vector<int> block_y0;
+    std::vector<int> block_z0;
+    std::vector<int> block_sx;
+    std::vector<int> block_sy;
+    std::vector<int> block_sz;
+    std::vector<int> block_elems_cached;
+    if (dims != 1) {
+        block_x0.resize(gsize);
+        block_y0.resize(gsize);
+        block_z0.resize(gsize);
+        block_sx.resize(gsize);
+        block_sy.resize(gsize);
+        block_sz.resize(gsize);
+        block_elems_cached.resize(gsize);
+
+        #pragma omp parallel for num_threads(params.adm_center_calc_threads) schedule(static)
+        for (int b = 0; b < gsize; ++b) {
+            int bx, by, bz;
+            block_to_coords(b, bx, by, bz);
+
+            const int x0 = bx * blk_x;
+            const int x1 = std::min(x0 + blk_x, nx);
+            const int y0 = by * blk_y;
+            const int y1 = std::min(y0 + blk_y, ny_eff);
+            const int z0 = bz * blk_z;
+            const int z1 = std::min(z0 + blk_z, nz_eff);
+
+            const int sx = x1 - x0;
+            const int sy = y1 - y0;
+            const int sz = z1 - z0;
+
+            block_x0[b] = x0;
+            block_y0[b] = y0;
+            block_z0[b] = z0;
+            block_sx[b] = sx;
+            block_sy[b] = sy;
+            block_sz[b] = sz;
+            block_elems_cached[b] = sx * sy * sz;
+        }
+    }
+
     // =========================================================
     // Stage A: center_calc + min/max + flags
     // =========================================================
@@ -520,8 +564,15 @@ inline void compress_uint16(
                 }
                 cnt = (uint64_t)(end - base);
             } else {
-                int x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems;
-                block_shape(b, x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems);
+                const int x0 = block_x0[b];
+                const int y0 = block_y0[b];
+                const int z0 = block_z0[b];
+                const int sx = block_sx[b];
+                const int sy = block_sy[b];
+                const int sz = block_sz[b];
+                const int x1 = x0 + sx;
+                const int y1 = y0 + sy;
+                const int z1 = z0 + sz;
 
                 for (int z = z0; z < z1; ++z) {
                     for (int y = y0; y < y1; ++y) {
@@ -596,8 +647,7 @@ inline void compress_uint16(
                 continue;
             }
 
-            int x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems;
-            block_shape(b, x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems);
+            const int block_elems = block_elems_cached[b];
             if (block_elems <= 0) { bit_offsets[thread_idx] = 0; continue; }
 
             const int per_lane = (block_elems + warp_threads - 1) / warp_threads; // ceil
@@ -605,29 +655,74 @@ inline void compress_uint16(
             const int k1 = std::min(k0 + per_lane, block_elems);
             if (k0 >= k1) { bit_offsets[thread_idx] = 0; continue; }
 
-            const int plane = sx * sy;
-            for (int k = k0; k < k1; ++k) {
-                const int lz = (dims == 3) ? (k / plane) : 0;
-                const int rem = (dims == 3) ? (k - lz * plane) : k;
-                const int ly = rem / sx;
-                const int lx = rem - ly * sx;
+            const int x0 = block_x0[b];
+            const int y0 = block_y0[b];
+            const int z0 = block_z0[b];
+            const int sx = block_sx[b];
+            const int sy = block_sy[b];
+            if (dims == 2) {
+                int ly = k0 / sx;
+                int lx = k0 - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0);
+                const size_t step_y = static_cast<size_t>(nx - sx);
 
-                const int x = x0 + lx;
-                const int y = y0 + ly;
-                const int z = z0 + lz;
+                for (int k = k0; k < k1; ++k) {
+                    if (idx < safe_elements) {
+                        uint16_t val = input_data[idx];
+                        int diff = val > center ? val - center : center - val;
+                        int output_len = (val == center) ? 1 : (diff + 125) / 126;
+                        uint8_t res = (val == center) ? 1 : ((diff + 126 - output_len * 126) * 2 + (val > center ? -1 : 0) + 1);
 
-                const size_t idx = idx3(x, y, z);
-                if (idx >= safe_elements) continue;
+                        codes[idx] = res;
 
-                uint16_t val = input_data[idx];
-                int diff = val > center ? val - center : center - val;
-                int output_len = (val == center) ? 1 : (diff + 125) / 126;
-                uint8_t res = (val == center) ? 1 : ((diff + 126 - output_len * 126) * 2 + (val > center ? -1 : 0) + 1);
+                        bit_out[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+                        bit_offset += output_len;
+                    }
 
-                codes[idx] = res;
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                    }
+                }
+            } else { // dims == 3
+                const int plane = sx * sy;
+                int lz = k0 / plane;
+                int rem = k0 - lz * plane;
+                int ly = rem / sx;
+                int lx = rem - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0 + lz);
+                const size_t step_y = static_cast<size_t>(nx - sx);
+                const size_t step_z = static_cast<size_t>(nx) * static_cast<size_t>(ny_eff - sy);
 
-                bit_out[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
-                bit_offset += output_len;
+                for (int k = k0; k < k1; ++k) {
+                    if (idx < safe_elements) {
+                        uint16_t val = input_data[idx];
+                        int diff = val > center ? val - center : center - val;
+                        int output_len = (val == center) ? 1 : (diff + 125) / 126;
+                        uint8_t res = (val == center) ? 1 : ((diff + 126 - output_len * 126) * 2 + (val > center ? -1 : 0) + 1);
+
+                        codes[idx] = res;
+
+                        bit_out[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+                        bit_offset += output_len;
+                    }
+
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                        if (ly == sy) {
+                            ly = 0;
+                            ++lz;
+                            idx += step_z;
+                        }
+                    }
+                }
             }
 
             bit_offsets[thread_idx] = bit_offset;
@@ -655,14 +750,12 @@ inline void compress_uint16(
                 }
                 signal_length[warp] = max_len_bytes;
             } else {
-                int x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems;
-                block_shape(warp, x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems);
-
                 int per_lane = 0;
                 if (dims == 1) {
                     // keep 1D mapping identical to encode: fixed chunk_1d per lane
                     per_lane = chunk_1d;
                 } else {
+                    const int block_elems = block_elems_cached[warp];
                     per_lane = (block_elems > 0) ? (block_elems + warp_threads - 1) / warp_threads : 0;
                 }
                 signal_length[warp] = per_lane * 2; // bytes per lane
@@ -748,8 +841,12 @@ inline void compress_uint16(
                     continue;
                 }
 
-                int x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems;
-                block_shape(warp, x0, x1, y0, y1, z0, z1, sx, sy, sz, block_elems);
+                const int x0 = block_x0[warp];
+                const int y0 = block_y0[warp];
+                const int z0 = block_z0[warp];
+                const int sx = block_sx[warp];
+                const int sy = block_sy[warp];
+                const int block_elems = block_elems_cached[warp];
                 if (block_elems <= 0) continue;
 
                 const int per_lane = (block_elems + warp_threads - 1) / warp_threads;
@@ -1151,6 +1248,49 @@ inline void decompress_uint16(
         bz = t / grid_y;
     };
 
+    // Cache per-block geometry for dims != 1 so all decode stages can reuse it.
+    std::vector<int> block_x0;
+    std::vector<int> block_y0;
+    std::vector<int> block_z0;
+    std::vector<int> block_sx;
+    std::vector<int> block_sy;
+    std::vector<int> block_sz;
+    std::vector<int> block_elems_cached;
+    if (dims != 1) {
+        block_x0.resize(gsize);
+        block_y0.resize(gsize);
+        block_z0.resize(gsize);
+        block_sx.resize(gsize);
+        block_sy.resize(gsize);
+        block_sz.resize(gsize);
+        block_elems_cached.resize(gsize);
+
+        #pragma omp parallel for num_threads(params.adm_restore_signals_threads) schedule(static)
+        for (int b = 0; b < (int)gsize; ++b) {
+            int bx = 0, by = 0, bz = 0;
+            block_to_coords(b, bx, by, bz);
+
+            const int x0 = bx * blk_x;
+            const int x1 = std::min(x0 + blk_x, nx);
+            const int y0 = by * blk_y;
+            const int y1 = std::min(y0 + blk_y, ny_eff);
+            const int z0 = bz * blk_z;
+            const int z1 = std::min(z0 + blk_z, nz_eff);
+
+            const int sx = x1 - x0;
+            const int sy = y1 - y0;
+            const int sz = z1 - z0;
+
+            block_x0[b] = x0;
+            block_y0[b] = y0;
+            block_z0[b] = z0;
+            block_sx[b] = sx;
+            block_sy[b] = sy;
+            block_sz[b] = sz;
+            block_elems_cached[b] = sx * sy * sz;
+        }
+    }
+
     const int total_threads = (int)gsize * warp_threads;
 
     // =========================================================
@@ -1247,14 +1387,14 @@ inline void decompress_uint16(
                 continue;
             }
 
-            // dims=2/3 mapping (original)
-            block_to_coords(b, bx_i, by_i, bz_i);
-            x0 = bx_i * blk_x; x1 = std::min(x0 + blk_x, nx);
-            y0 = by_i * blk_y; y1 = std::min(y0 + blk_y, ny_eff);
-            z0 = bz_i * blk_z; z1 = std::min(z0 + blk_z, nz_eff);
-
-            sx = x1 - x0; sy = y1 - y0; sz = z1 - z0;
-            block_elems = sx * sy * sz;
+            // dims=2/3 mapping from cached block geometry
+            x0 = block_x0[b];
+            y0 = block_y0[b];
+            z0 = block_z0[b];
+            sx = block_sx[b];
+            sy = block_sy[b];
+            sz = block_sz[b];
+            block_elems = block_elems_cached[b];
             if (block_elems <= 0) continue;
 
             per_lane = (block_elems + warp_threads - 1) / warp_threads;
@@ -1263,9 +1403,9 @@ inline void decompress_uint16(
             if (k0 >= k1) continue;
 
             lane_elems = k1 - k0;
-            plane = sx * sy;
-
-            uint8_t local_signal[128] = {0};
+            if (lane_elems <= 0) continue;
+            constexpr int kMaxLaneElems = (cmp_block_x * cmp_block_y * cmp_block_z + cmp_tblock_size - 1) / cmp_tblock_size;
+            uint8_t local_signal[kMaxLaneElems] = {0};
 
             int signal_idx = -1;
             for (int offset_byte = 0; offset_byte < length && signal_idx < lane_elems; ++offset_byte) {
@@ -1277,20 +1417,49 @@ inline void decompress_uint16(
                 }
             }
 
-            for (int j = 0; j < lane_elems; ++j) {
-                const int k = k0 + j;
+            if (dims == 2) {
+                int ly = k0 / sx;
+                int lx = k0 - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0);
+                const size_t step_y = static_cast<size_t>(nx - sx);
 
-                const int lz = (dims == 3) ? (k / plane) : 0;
-                const int rem = (dims == 3) ? (k - lz * plane) : k;
-                const int ly = rem / sx;
-                const int lx = rem - ly * sx;
+                for (int j = 0; j < lane_elems; ++j) {
+                    if (idx < safe_elements) signals[idx] = local_signal[j];
 
-                const int x = x0 + lx;
-                const int y = y0 + ly;
-                const int z = z0 + lz;
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                    }
+                }
+            } else { // dims == 3
+                const int plane = sx * sy;
+                int lz = k0 / plane;
+                int rem = k0 - lz * plane;
+                int ly = rem / sx;
+                int lx = rem - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0 + lz);
+                const size_t step_y = static_cast<size_t>(nx - sx);
+                const size_t step_z = static_cast<size_t>(nx) * static_cast<size_t>(ny_eff - sy);
 
-                const size_t idx = idx3(x, y, z);
-                if (idx < safe_elements) signals[idx] = local_signal[j];
+                for (int j = 0; j < lane_elems; ++j) {
+                    if (idx < safe_elements) signals[idx] = local_signal[j];
+
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                        if (ly == sy) {
+                            ly = 0;
+                            ++lz;
+                            idx += step_z;
+                        }
+                    }
+                }
             }
         }
     }
@@ -1353,20 +1522,12 @@ inline void decompress_uint16(
                 // }
 
                 // dims=2/3 RAW mapping: same as compress tile slice
-                int bx_i, by_i, bz_i;
-                block_to_coords(b, bx_i, by_i, bz_i);
-
-                const int x0 = bx_i * blk_x;
-                const int x1 = std::min(x0 + blk_x, nx);
-                const int y0 = by_i * blk_y;
-                const int y1 = std::min(y0 + blk_y, ny_eff);
-                const int z0 = bz_i * blk_z;
-                const int z1 = std::min(z0 + blk_z, nz_eff);
-
-                const int sx = x1 - x0;
-                const int sy = y1 - y0;
-                const int sz = z1 - z0;
-                const int block_elems = sx * sy * sz;
+                const int x0 = block_x0[b];
+                const int y0 = block_y0[b];
+                const int z0 = block_z0[b];
+                const int sx = block_sx[b];
+                const int sy = block_sy[b];
+                const int block_elems = block_elems_cached[b];
                 if (block_elems <= 0) continue;
 
                 const int per_lane = (block_elems + warp_threads - 1) / warp_threads;
@@ -1374,27 +1535,58 @@ inline void decompress_uint16(
                 const int k1 = std::min(k0 + per_lane, block_elems);
                 if (k0 >= k1) continue;
 
-                const int plane = sx * sy;
+                const int lane_elems = std::min(k1 - k0, length / 2);
+                if (lane_elems <= 0) continue;
 
-                for (int k = k0; k < k1; ++k) {
-                    const int out_pos = k - k0;
-                    const int off = out_pos * 2;
-                    if (off + 1 >= length) break;
+                if (dims == 2) {
+                    int ly = k0 / sx;
+                    int lx = k0 - ly * sx;
+                    size_t idx = idx3(x0 + lx, y0 + ly, z0);
+                    const size_t step_y = static_cast<size_t>(nx - sx);
 
-                    uint16_t v = (uint16_t)bit_signals[src_start_idx + off]
-                               | (uint16_t)((uint16_t)bit_signals[src_start_idx + off + 1] << 8);
+                    for (int out_pos = 0; out_pos < lane_elems; ++out_pos) {
+                        const int off = out_pos * 2;
+                        uint16_t v = (uint16_t)bit_signals[src_start_idx + off]
+                                   | (uint16_t)((uint16_t)bit_signals[src_start_idx + off + 1] << 8);
+                        if (idx < safe_elements) output_data[idx] = v;
 
-                    const int lz = (dims == 3) ? (k / plane) : 0;
-                    const int rem = (dims == 3) ? (k - lz * plane) : k;
-                    const int ly = rem / sx;
-                    const int lx = rem - ly * sx;
+                        ++lx;
+                        ++idx;
+                        if (lx == sx) {
+                            lx = 0;
+                            ++ly;
+                            idx += step_y;
+                        }
+                    }
+                } else { // dims == 3
+                    const int plane = sx * sy;
+                    int lz = k0 / plane;
+                    int rem = k0 - lz * plane;
+                    int ly = rem / sx;
+                    int lx = rem - ly * sx;
+                    size_t idx = idx3(x0 + lx, y0 + ly, z0 + lz);
+                    const size_t step_y = static_cast<size_t>(nx - sx);
+                    const size_t step_z = static_cast<size_t>(nx) * static_cast<size_t>(ny_eff - sy);
 
-                    const int x = x0 + lx;
-                    const int y = y0 + ly;
-                    const int z = z0 + lz;
+                    for (int out_pos = 0; out_pos < lane_elems; ++out_pos) {
+                        const int off = out_pos * 2;
+                        uint16_t v = (uint16_t)bit_signals[src_start_idx + off]
+                                   | (uint16_t)((uint16_t)bit_signals[src_start_idx + off + 1] << 8);
+                        if (idx < safe_elements) output_data[idx] = v;
 
-                    const size_t idx = idx3(x, y, z);
-                    if (idx < safe_elements) output_data[idx] = v;
+                        ++lx;
+                        ++idx;
+                        if (lx == sx) {
+                            lx = 0;
+                            ++ly;
+                            idx += step_y;
+                            if (ly == sy) {
+                                ly = 0;
+                                ++lz;
+                                idx += step_z;
+                            }
+                        }
+                    }
                 }
                 continue;
             }
@@ -1423,20 +1615,12 @@ inline void decompress_uint16(
 
             // dims=2/3 ADM: unchanged
             const uint16_t center = centers[b];
-            int bx_i, by_i, bz_i;
-            block_to_coords(b, bx_i, by_i, bz_i);
-
-            const int x0 = bx_i * blk_x;
-            const int x1 = std::min(x0 + blk_x, nx);
-            const int y0 = by_i * blk_y;
-            const int y1 = std::min(y0 + blk_y, ny_eff);
-            const int z0 = bz_i * blk_z;
-            const int z1 = std::min(z0 + blk_z, nz_eff);
-
-            const int sx = x1 - x0;
-            const int sy = y1 - y0;
-            const int sz = z1 - z0;
-            const int block_elems = sx * sy * sz;
+            const int x0 = block_x0[b];
+            const int y0 = block_y0[b];
+            const int z0 = block_z0[b];
+            const int sx = block_sx[b];
+            const int sy = block_sy[b];
+            const int block_elems = block_elems_cached[b];
             if (block_elems <= 0) continue;
 
             const int per_lane = (block_elems + warp_threads - 1) / warp_threads;
@@ -1444,29 +1628,63 @@ inline void decompress_uint16(
             const int k1 = std::min(k0 + per_lane, block_elems);
             if (k0 >= k1) continue;
 
-            const int plane = sx * sy;
+            if (dims == 2) {
+                int ly = k0 / sx;
+                int lx = k0 - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0);
+                const size_t step_y = static_cast<size_t>(nx - sx);
 
-            for (int k = k0; k < k1; ++k) {
-                const int lz = (dims == 3) ? (k / plane) : 0;
-                const int rem = (dims == 3) ? (k - lz * plane) : k;
-                const int ly = rem / sx;
-                const int lx = rem - ly * sx;
+                for (int k = k0; k < k1; ++k) {
+                    if (idx < safe_elements) {
+                        const uint8_t code = codes[idx];
+                        const uint8_t signal = signals[idx];
+                        int diff = (code & 1) ? ((code - 1) >> 1) : (code >> 1);
+                        diff += (int)signal * 126;
+                        const uint16_t val = (code & 1) ? (uint16_t)(center - diff) : (uint16_t)(center + diff);
+                        output_data[idx] = val;
+                    }
 
-                const int x = x0 + lx;
-                const int y = y0 + ly;
-                const int z = z0 + lz;
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                    }
+                }
+            } else { // dims == 3
+                const int plane = sx * sy;
+                int lz = k0 / plane;
+                int rem = k0 - lz * plane;
+                int ly = rem / sx;
+                int lx = rem - ly * sx;
+                size_t idx = idx3(x0 + lx, y0 + ly, z0 + lz);
+                const size_t step_y = static_cast<size_t>(nx - sx);
+                const size_t step_z = static_cast<size_t>(nx) * static_cast<size_t>(ny_eff - sy);
 
-                const size_t idx = idx3(x, y, z);
-                if (idx >= safe_elements) continue;
+                for (int k = k0; k < k1; ++k) {
+                    if (idx < safe_elements) {
+                        const uint8_t code = codes[idx];
+                        const uint8_t signal = signals[idx];
+                        int diff = (code & 1) ? ((code - 1) >> 1) : (code >> 1);
+                        diff += (int)signal * 126;
+                        const uint16_t val = (code & 1) ? (uint16_t)(center - diff) : (uint16_t)(center + diff);
+                        output_data[idx] = val;
+                    }
 
-                const uint8_t code = codes[idx];
-                const uint8_t signal = signals[idx];
-
-                int diff = (code & 1) ? ((code - 1) >> 1) : (code >> 1);
-                diff += (int)signal * 126;
-
-                const uint16_t val = (code & 1) ? (uint16_t)(center - diff) : (uint16_t)(center + diff);
-                output_data[idx] = val;
+                    ++lx;
+                    ++idx;
+                    if (lx == sx) {
+                        lx = 0;
+                        ++ly;
+                        idx += step_y;
+                        if (ly == sy) {
+                            ly = 0;
+                            ++lz;
+                            idx += step_z;
+                        }
+                    }
+                }
             }
         }
     }
@@ -1698,6 +1916,8 @@ inline void decompress_uint32(
 
         if (base_idx >= num_elements) continue;
 
+        // compress_uint32 stores exactly one center per warp(block): centers[warp]
+        // decode must use the same center index for all lanes in that warp.
         uint32_t center = centers[bid];
 
         // Use local variables to minimize memory access and reduce branch conditions
