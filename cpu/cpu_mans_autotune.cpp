@@ -127,116 +127,6 @@ void append_csv_row(std::ofstream& out,
     out.flush();
 }
 
-std::size_t block_elements_for_dims(std::uint32_t dims) {
-    if (dims == 1) {
-        return 512;
-    }
-    if (dims == 2) {
-        return 256;
-    }
-    if (dims == 3) {
-        return 4096;
-    }
-    return 512;
-}
-
-bool decide_use_adm(const std::uint16_t* data,
-                    std::size_t size,
-                    std::uint32_t threshold,
-                    std::uint32_t threads,
-                    const mans::MansParams& params) {
-    if (!data || size == 0) {
-        return false;
-    }
-
-    const std::uint32_t dims = params.dims;
-    const int num_threads = threads == 0 ? 16 : static_cast<int>(threads);
-    std::uint64_t max_block_diff = 0;
-
-    if (dims <= 1) {
-        const std::size_t block_size = block_elements_for_dims(1);
-        const std::size_t blocks = (size + block_size - 1) / block_size;
-        #pragma omp parallel for num_threads(num_threads) reduction(max:max_block_diff)
-        for (long long b = 0; b < static_cast<long long>(blocks); ++b) {
-            const std::size_t start = static_cast<std::size_t>(b) * block_size;
-            const std::size_t end = std::min(start + block_size, size);
-            std::uint16_t bmin = std::numeric_limits<std::uint16_t>::max();
-            std::uint16_t bmax = std::numeric_limits<std::uint16_t>::min();
-            for (std::size_t i = start; i < end; ++i) {
-                const std::uint16_t v = data[i];
-                if (v < bmin) bmin = v;
-                if (v > bmax) bmax = v;
-            }
-            const std::uint64_t diff = static_cast<std::uint64_t>(bmax) - static_cast<std::uint64_t>(bmin);
-            if (diff > max_block_diff) {
-                max_block_diff = diff;
-            }
-        }
-        return max_block_diff <= threshold;
-    }
-
-    const std::size_t nx = static_cast<std::size_t>(params.nx);
-    const std::size_t ny = (dims >= 2) ? static_cast<std::size_t>(params.ny) : 1;
-    const std::size_t nz = (dims == 3) ? static_cast<std::size_t>(params.nz) : 1;
-    if (nx == 0 || ny == 0 || nz == 0) {
-        return false;
-    }
-
-    constexpr std::size_t blk_x = 16;
-    constexpr std::size_t blk_y = 16;
-    constexpr std::size_t blk_z = 16;
-
-    const std::size_t grid_x = (nx + blk_x - 1) / blk_x;
-    const std::size_t grid_y = (ny + blk_y - 1) / blk_y;
-    const std::size_t grid_z = (dims == 3) ? ((nz + blk_z - 1) / blk_z) : 1;
-    const std::size_t gsize = grid_x * grid_y * grid_z;
-
-    #pragma omp parallel for num_threads(num_threads) reduction(max:max_block_diff)
-    for (long long b = 0; b < static_cast<long long>(gsize); ++b) {
-        const std::size_t bid = static_cast<std::size_t>(b);
-        const std::size_t bx = bid % grid_x;
-        const std::size_t t = bid / grid_x;
-        const std::size_t by = t % grid_y;
-        const std::size_t bz = t / grid_y;
-
-        const std::size_t x0 = bx * blk_x;
-        const std::size_t x1 = std::min(x0 + blk_x, nx);
-        const std::size_t y0 = by * blk_y;
-        const std::size_t y1 = std::min(y0 + blk_y, ny);
-        const std::size_t z0 = (dims == 3) ? (bz * blk_z) : 0;
-        const std::size_t z1 = (dims == 3) ? std::min(z0 + blk_z, nz) : 1;
-
-        bool has_any = false;
-        std::uint16_t bmin = std::numeric_limits<std::uint16_t>::max();
-        std::uint16_t bmax = std::numeric_limits<std::uint16_t>::min();
-
-        for (std::size_t z = z0; z < z1; ++z) {
-            for (std::size_t y = y0; y < y1; ++y) {
-                const std::size_t base = x0 + y * nx + z * nx * ny;
-                for (std::size_t x = x0; x < x1; ++x) {
-                    const std::size_t idx = base + (x - x0);
-                    if (idx >= size) {
-                        continue;
-                    }
-                    const std::uint16_t v = data[idx];
-                    if (v < bmin) bmin = v;
-                    if (v > bmax) bmax = v;
-                    has_any = true;
-                }
-            }
-        }
-
-        if (has_any) {
-            const std::uint64_t diff = static_cast<std::uint64_t>(bmax) - static_cast<std::uint64_t>(bmin);
-            if (diff > max_block_diff) {
-                max_block_diff = diff;
-            }
-        }
-    }
-
-    return max_block_diff <= threshold;
-}
-
 template <typename T>
 std::size_t max_mans_input_compressed_size(std::size_t num_elements, std::uint32_t mode) {
     mans::MansParams bound_params{};
@@ -261,7 +151,7 @@ mans::MansParams default_params(const mans::data_gen::GeneratedDims& shape) {
     params.dtype = mans::DataType::U16;
     params.mode = mans::Mode::P;
     params.adm_threshold = kAdmThreshold;
-    params.adm_decide_threads = 32;
+    params.adm_decide_threads = 0;
     params.adm_center_calc_threads = 32;
     params.adm_encode_threads = 32;
     params.adm_warp_reduce_threads = 32;
@@ -279,7 +169,8 @@ mans::MansParams default_params(const mans::data_gen::GeneratedDims& shape) {
 
 ThroughputResult run_compress_decompress(const std::uint16_t* data,
                                          std::size_t total_elements,
-                                         const mans::MansParams& params) {
+                                         const mans::MansParams& params,
+                                         std::uint32_t iter) {
     ThroughputResult result;
     if (total_elements == 0) {
         result.ok = false;
@@ -287,6 +178,7 @@ ThroughputResult run_compress_decompress(const std::uint16_t* data,
         return result;
     }
 
+    const std::size_t rounds = std::max<std::size_t>(1, static_cast<std::size_t>(iter));
     const std::size_t max_chunk_bytes = total_elements * sizeof(std::uint16_t);
     const std::size_t max_out_bytes =
         max_mans_input_compressed_size<std::uint16_t>(total_elements, params.mode);
@@ -298,126 +190,63 @@ ThroughputResult run_compress_decompress(const std::uint16_t* data,
     std::vector<std::uint8_t> comp_buf(max_out_bytes);
     std::vector<std::uint8_t> decomp_buf(max_chunk_bytes);
 
-    std::size_t out_size = comp_buf.size();
-    const auto comp_start = std::chrono::high_resolution_clock::now();
-    mans::cpu::compress_internal(
-        data,
-        total_elements,
-        params,
-        comp_buf.data(),
-        out_size,
-        false,
-        ""
-    );
-    const auto comp_end = std::chrono::high_resolution_clock::now();
-    const double comp_ms =
-        std::chrono::duration<double, std::milli>(comp_end - comp_start).count();
-
-    if (out_size == 0) {
-        result.ok = false;
-        result.error = "Compression failed (out_size=0).";
-        return result;
-    }
-
-    std::size_t out_bytes = max_chunk_bytes;
-    const auto decomp_start = std::chrono::high_resolution_clock::now();
-    mans::cpu::decompress_internal(
-        comp_buf.data(),
-        out_size,
-        params,
-        decomp_buf.data(),
-        out_bytes,
-        false,
-        ""
-    );
-    const auto decomp_end = std::chrono::high_resolution_clock::now();
-    const double decomp_ms =
-        std::chrono::duration<double, std::milli>(decomp_end - decomp_start).count();
-
     const std::size_t expected_bytes = total_elements * sizeof(std::uint16_t);
-    if (out_bytes != expected_bytes) {
-        result.ok = false;
-        result.error = "Decompressed size mismatch.";
-        return result;
-    }
-    if (std::memcmp(decomp_buf.data(), data, expected_bytes) != 0) {
-        result.ok = false;
-        result.error = "Decompressed data mismatch.";
-        return result;
+    const double total_bytes = static_cast<double>(expected_bytes);
+    for (std::size_t round = 0; round < rounds; ++round) {
+        std::size_t out_size = comp_buf.size();
+        const auto comp_start = std::chrono::high_resolution_clock::now();
+        mans::cpu::compress_internal(
+            data,
+            total_elements,
+            params,
+            comp_buf.data(),
+            out_size,
+            false,
+            ""
+        );
+        const auto comp_end = std::chrono::high_resolution_clock::now();
+        const double comp_ms =
+            std::chrono::duration<double, std::milli>(comp_end - comp_start).count();
+
+        if (out_size == 0) {
+            result.ok = false;
+            result.error = "Compression failed (out_size=0).";
+            return result;
+        }
+
+        std::size_t out_bytes = max_chunk_bytes;
+        const auto decomp_start = std::chrono::high_resolution_clock::now();
+        mans::cpu::decompress_internal(
+            comp_buf.data(),
+            out_size,
+            params,
+            decomp_buf.data(),
+            out_bytes,
+            false,
+            ""
+        );
+        const auto decomp_end = std::chrono::high_resolution_clock::now();
+        const double decomp_ms =
+            std::chrono::duration<double, std::milli>(decomp_end - decomp_start).count();
+
+        if (out_bytes != expected_bytes) {
+            result.ok = false;
+            result.error = "Decompressed size mismatch.";
+            return result;
+        }
+        if (std::memcmp(decomp_buf.data(), data, expected_bytes) != 0) {
+            result.ok = false;
+            result.error = "Decompressed data mismatch.";
+            return result;
+        }
+
+        const double comp_mbps = comp_ms > 0.0 ? (total_bytes / 1e6) / (comp_ms / 1e3) : 0.0;
+        const double decomp_mbps = decomp_ms > 0.0 ? (total_bytes / 1e6) / (decomp_ms / 1e3) : 0.0;
+        result.comp_mbps = std::max(result.comp_mbps, comp_mbps);
+        result.decomp_mbps = std::max(result.decomp_mbps, decomp_mbps);
     }
 
-    const double total_bytes = static_cast<double>(total_elements * sizeof(std::uint16_t));
-    result.comp_mbps = comp_ms > 0.0 ? (total_bytes / 1e6) / (comp_ms / 1e3) : 0.0;
-    result.decomp_mbps = decomp_ms > 0.0 ? (total_bytes / 1e6) / (decomp_ms / 1e3) : 0.0;
     return result;
-}
-
-double run_decide_throughput(const std::uint16_t* data,
-                             std::size_t total_elements,
-                             int threads,
-                             const mans::MansParams& params) {
-    if (!data || total_elements == 0) {
-        return 0.0;
-    }
-
-    auto start = std::chrono::high_resolution_clock::now();
-    (void)decide_use_adm(
-        data,
-        total_elements,
-        kAdmThreshold,
-        static_cast<std::uint32_t>(threads),
-        params
-    );
-    auto end = std::chrono::high_resolution_clock::now();
-
-    const double ms = std::chrono::duration<double, std::milli>(end - start).count();
-    const double total_bytes = static_cast<double>(total_elements * sizeof(std::uint16_t));
-    return ms > 0.0 ? (total_bytes / 1e6) / (ms / 1e3) : 0.0;
-}
-
-int sweep_decide_threads(const std::uint16_t* data,
-                         std::size_t total_elements,
-                         std::size_t chunk_elements,
-                         int dims,
-                         const mans::MansParams& params,
-                         int threads_min,
-                         int threads_max,
-                         int stride,
-                         std::ofstream* csv) {
-    std::vector<int> thread_list = build_thread_list(threads_min, threads_max, stride);
-    if (thread_list.empty()) {
-        std::cerr << "[decide] Invalid thread list.\n";
-        return threads_min;
-    }
-
-    int best_threads = thread_list.front();
-    double best_thr = -1.0;
-
-    for (int threads : thread_list) {
-        {
-            std::ostringstream line;
-            line << "  [adm_decide][d" << dims << "] threads=" << threads << " ... running";
-            print_progress_line(line.str(), false);
-        }
-        double throughput = run_decide_throughput(data, total_elements, threads, params);
-        std::ostringstream line;
-        line << "  [adm_decide][d" << dims << "] threads=" << threads << " ... "
-             << std::fixed << std::setprecision(2) << throughput << " MB/s";
-        print_progress_line(line.str(), true);
-
-        if (csv && *csv) {
-            append_csv_row(*csv, chunk_elements, "adm_decide", threads, throughput, dims);
-        }
-        if (throughput > best_thr) {
-            best_thr = throughput;
-            best_threads = threads;
-        }
-    }
-
-    std::cout << "\n  [adm_decide][d" << dims << "] best threads=" << best_threads
-              << " throughput=" << std::fixed << std::setprecision(2) << best_thr
-              << " MB/s\n";
-    return best_threads;
 }
 
 void sweep_codec_threads(const std::uint16_t* data,
@@ -425,11 +254,11 @@ void sweep_codec_threads(const std::uint16_t* data,
                          std::size_t chunk_elements,
                          int dims,
                          const mans::MansParams& base_params,
-                         int decide_threads,
                          int threads_min,
                          int threads_max,
                          int stride,
-                         std::ofstream* csv) {
+                         std::ofstream* csv,
+                         std::uint32_t iter) {
     std::vector<int> thread_list = build_thread_list(threads_min, threads_max, stride);
     if (thread_list.empty()) {
         std::cerr << "[codec] Invalid thread list.\n";
@@ -438,7 +267,7 @@ void sweep_codec_threads(const std::uint16_t* data,
 
     for (int threads : thread_list) {
         mans::MansParams params = base_params;
-        params.adm_decide_threads = static_cast<std::uint32_t>(decide_threads);
+        params.adm_decide_threads = 0;
         params.adm_center_calc_threads = static_cast<std::uint32_t>(threads);
         params.adm_encode_threads = static_cast<std::uint32_t>(threads);
         params.adm_warp_reduce_threads = static_cast<std::uint32_t>(threads);
@@ -453,7 +282,7 @@ void sweep_codec_threads(const std::uint16_t* data,
             print_progress_line(line.str(), false);
         }
 
-        ThroughputResult result = run_compress_decompress(data, total_elements, params);
+        ThroughputResult result = run_compress_decompress(data, total_elements, params, iter);
         if (!result.ok) {
             std::cerr << "\n  [codec][d" << dims << "] failed: " << result.error << "\n";
             continue;
@@ -553,11 +382,6 @@ bool write_best_threads_csv(const std::string& input_csv,
         int decide_threads = 0;
         int compress_threads = 0;
         int decompress_threads = 0;
-
-        auto it_decide = modes.find("adm_decide");
-        if (it_decide != modes.end()) {
-            decide_threads = it_decide->second.threads;
-        }
         auto it_comp = modes.find("compress");
         if (it_comp != modes.end()) {
             compress_threads = it_comp->second.threads;
@@ -593,7 +417,8 @@ int run_autotune_for_dims(std::uint32_t dims,
                           int threads_min,
                           int threads_max,
                           int stride,
-                          std::ofstream* csv) {
+                          std::ofstream* csv,
+                          std::uint32_t iter) {
     for (double data_size_mb : data_size_mb_list) {
         std::size_t data_size_bytes = static_cast<std::size_t>(data_size_mb * 1024.0 * 1024.0);
         if (data_size_bytes < sizeof(std::uint16_t)) {
@@ -641,28 +466,17 @@ int run_autotune_for_dims(std::uint32_t dims,
 
         const mans::MansParams params_for_size = default_params(tune_shape);
 
-        int best_decide_threads = sweep_decide_threads(
-            data.data(),
-            total_elements,
-            total_elements,
-            static_cast<int>(dims),
-            params_for_size,
-            threads_min,
-            threads_max,
-            stride,
-            csv);
-
         sweep_codec_threads(
             data.data(),
             total_elements,
             total_elements,
             static_cast<int>(dims),
             params_for_size,
-            best_decide_threads,
             threads_min,
             threads_max,
             stride,
-            csv);
+            csv,
+            iter);
 
         std::cout << "\n";
     }
@@ -675,7 +489,7 @@ void print_usage(const char* argv0) {
               << " [--data-size-mb-list 0.00390625,0.0078125,1,4]"
               << " [--threads-min 1] [--threads-max NPROC] [--stride 8]"
               << " [--ratio-smooth 1] [--ratio-spike 0] [--ratio-constant 0] [--ratio-random 0]"
-              << " [--noise-range 20] [--seed 42]"
+              << " [--iter 10] [--noise-range 20] [--seed 42]"
               << " [--csv thread_sweep.csv] [--out best_threads.csv]\n";
 }
 
@@ -699,6 +513,7 @@ int main(int argc, char** argv) {
     int threads_min = 1;
     int threads_max = default_max_threads();
     int stride = 16;
+    std::uint32_t iter = 10;
     std::string csv_path = "thread_sweep.csv";
     std::string out_path = "best_threads.csv";
 
@@ -734,6 +549,10 @@ int main(int argc, char** argv) {
         }
         if (arg == "--stride" && i + 1 < argc) {
             stride = std::stoi(argv[++i]);
+            continue;
+        }
+        if (arg == "--iter" && i + 1 < argc) {
+            iter = static_cast<std::uint32_t>(std::stoul(argv[++i]));
             continue;
         }
         if (arg == "--ratio-smooth" && i + 1 < argc) {
@@ -786,6 +605,10 @@ int main(int argc, char** argv) {
         std::cerr << "Invalid stride.\n";
         return 1;
     }
+    if (iter == 0) {
+        std::cerr << "Invalid iter: must be > 0.\n";
+        return 1;
+    }
 
     const double ratio_sum =
         std::max(0.0, synth_cfg.ratio_smooth) +
@@ -807,7 +630,8 @@ int main(int argc, char** argv) {
     }
     std::cout << "\n";
     std::cout << "Threads: " << threads_min << " -> " << threads_max
-              << " stride=" << stride << "\n";
+              << " stride=" << stride
+              << " iter=" << iter << "\n";
     std::cout << "Ratios: smooth=" << synth_cfg.ratio_smooth
               << " spike=" << synth_cfg.ratio_spike
               << " constant=" << synth_cfg.ratio_constant
@@ -829,7 +653,8 @@ int main(int argc, char** argv) {
             threads_min,
             threads_max,
             stride,
-            &csv);
+            &csv,
+            iter);
         if (rc != 0) {
             return rc;
         }

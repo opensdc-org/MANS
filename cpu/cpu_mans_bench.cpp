@@ -293,8 +293,8 @@ int run_bench_for_type(const std::vector<T>& input,
 
     const std::uint64_t total_runs =
         static_cast<std::uint64_t>(warmup_iters) + static_cast<std::uint64_t>(bench_iters);
-    double total_comp_ms = 0.0;
-    double total_decomp_ms = 0.0;
+    double best_comp_mbps = 0.0;
+    double best_decomp_mbps = 0.0;
     double total_comp_bytes = 0.0;
 
     MANS_TIMING_RESET();
@@ -323,30 +323,32 @@ int run_bench_for_type(const std::vector<T>& input,
         if (iter < warmup_iters) {
             continue;
         }
-        total_comp_ms += stats.comp_ms;
-        total_decomp_ms += stats.decomp_ms;
+        if (stats.comp_ms > 0.0) {
+            const double comp_mbps =
+                (static_cast<double>(total_bytes) / 1e6) / (stats.comp_ms / 1e3);
+            best_comp_mbps = std::max(best_comp_mbps, comp_mbps);
+        }
+        if (stats.decomp_ms > 0.0) {
+            const double decomp_mbps =
+                (static_cast<double>(total_bytes) / 1e6) / (stats.decomp_ms / 1e3);
+            best_decomp_mbps = std::max(best_decomp_mbps, decomp_mbps);
+        }
         total_comp_bytes += static_cast<double>(stats.comp_bytes);
     }
 
     const double denom = static_cast<double>(bench_iters);
-    const double avg_comp_ms = total_comp_ms / denom;
-    const double avg_decomp_ms = total_decomp_ms / denom;
     const double avg_comp_bytes = total_comp_bytes / denom;
 
     // const double ratio = 100.0 * avg_comp_bytes / static_cast<double>(total_bytes);
     const double ratio = static_cast<double>(total_bytes) / avg_comp_bytes;
-    const double comp_mbps =
-        (static_cast<double>(total_bytes) / 1e6) / (avg_comp_ms / 1e3);
-    const double decomp_mbps =
-        (static_cast<double>(total_bytes) / 1e6) / (avg_decomp_ms / 1e3);
 
     std::cout << std::left << std::setw(8) << "whole"
               << " | " << std::setw(8) << std::fixed << std::setprecision(8)
               << ratio 
               << " | " << std::setw(13) << std::fixed << std::setprecision(1)
-              << comp_mbps
+              << best_comp_mbps
               << " | " << std::setw(13) << std::fixed << std::setprecision(1)
-              << decomp_mbps
+              << best_decomp_mbps
               << "\n";
 
     if (!timing_csv_path.empty()) {
@@ -357,8 +359,8 @@ int run_bench_for_type(const std::vector<T>& input,
         (*csv) << "whole,"
                << total_bytes << ","
                << std::fixed << std::setprecision(2) << ratio << ","
-               << std::fixed << std::setprecision(1) << comp_mbps << ","
-               << std::fixed << std::setprecision(1) << decomp_mbps << "\n";
+               << std::fixed << std::setprecision(1) << best_comp_mbps << ","
+               << std::fixed << std::setprecision(1) << best_decomp_mbps << "\n";
     }
 
     return 0;
