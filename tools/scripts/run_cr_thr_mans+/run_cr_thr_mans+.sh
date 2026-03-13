@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # --------------------------
 U2_DATASET_ROOT="${U2_DATASET_ROOT:-/hwj/data/testdata/u2}"
 U4_DATASET_ROOT="${U4_DATASET_ROOT:-/hwj/data/testdata/u4}"
+FORCE_1D_DATASET_ROOT="${FORCE_1D_DATASET_ROOT:-/public/share/acnnprvuzd/MANS/datasets/1d_test}"
 WORKDIR="${WORKDIR:-/hwj/project/MANSplus/build}"
 MODE="${MODE:-r}"
 # --------------------------
@@ -32,6 +33,7 @@ printf 'dataset_folder,dataset_name,file_size_bytes,algo,input_type,ratio,comp_m
 
 dataset_files=()
 dataset_types=()
+dataset_force_1d=()
 
 read_dims_from_meta() {
     local meta_file="$1"
@@ -68,6 +70,7 @@ resolve_dims_args() {
     local dataset_file="$1"
     local input_type="$2"
     local file_size_bytes="$3"
+    local force_1d="${4:-0}"
 
     local bytes_per_elem=0
     case "${input_type}" in
@@ -104,7 +107,11 @@ resolve_dims_args() {
                 prod=$((prod * tokens[idx]))
             done
             if (( prod == elem_count )); then
-                echo "${dims_line}"
+                if [[ "${force_1d}" == "1" && "${tokens[0]}" == "3" ]]; then
+                    printf '1 %s\n' "${elem_count}"
+                else
+                    echo "${dims_line}"
+                fi
                 return 0
             fi
             echo "[warn] metadata dims product mismatch, fallback to 1D: ${dataset_file}" | tee -a "${LOG_FILE}"
@@ -119,6 +126,7 @@ resolve_dims_args() {
 add_dataset_files() {
     local root="$1"
     local input_type="$2"
+    local force_1d="${3:-0}"
 
     if [[ ! -d "${root}" ]]; then
         echo "[warn] dataset root not found, skip: ${root}" | tee -a "${LOG_FILE}"
@@ -143,10 +151,12 @@ add_dataset_files() {
     for file in "${files[@]}"; do
         dataset_files+=("${file}")
         dataset_types+=("${input_type}")
+        dataset_force_1d+=("${force_1d}")
     done
 }
 
 add_dataset_files "${U2_DATASET_ROOT}" "-u2"
+add_dataset_files "${FORCE_1D_DATASET_ROOT}" "-u2" "1"
 add_dataset_files "${U4_DATASET_ROOT}" "-u4"
 
 if [[ ${#dataset_files[@]} -eq 0 ]]; then
@@ -161,6 +171,7 @@ fi
 
 echo "[info] datasets: ${#dataset_files[@]}" | tee -a "${LOG_FILE}"
 echo "[info] u2_root: ${U2_DATASET_ROOT}" | tee -a "${LOG_FILE}"
+echo "[info] FORCE_1D_DATASET_ROOT: ${FORCE_1D_DATASET_ROOT}" | tee -a "${LOG_FILE}"
 echo "[info] u4_root: ${U4_DATASET_ROOT}" | tee -a "${LOG_FILE}"
 echo "[info] csv: ${CSV_FILE}" | tee -a "${LOG_FILE}"
 echo "[info] log: ${LOG_FILE}" | tee -a "${LOG_FILE}"
@@ -170,10 +181,14 @@ echo "[info] iter: ${ITER}" | tee -a "${LOG_FILE}"
 for i in "${!dataset_files[@]}"; do
     dataset_file="${dataset_files[$i]}"
     input_type="${dataset_types[$i]}"
+    force_1d="${dataset_force_1d[$i]}"
     dataset_folder="$(basename -- "$(dirname -- "${dataset_file}")")"
+    if [[ "${force_1d}" == "1" ]]; then
+        dataset_folder="1d-${dataset_folder}"
+    fi
     dataset_name="$(basename -- "${dataset_file}")"
     file_size_bytes="$(stat -c%s "${dataset_file}")"
-    dims_args="$(resolve_dims_args "${dataset_file}" "${input_type}" "${file_size_bytes}")"
+    dims_args="$(resolve_dims_args "${dataset_file}" "${input_type}" "${file_size_bytes}" "${force_1d}")"
     if [[ -z "${dims_args}" ]]; then
         err="resolve_dims_failed"
         printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
