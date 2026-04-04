@@ -234,7 +234,7 @@ inline uint32_t getMaxBlockSizeCoalesced(uint32_t uncompressedBlockBytes) {//计
   return getRawCompBlockMaxSize(uncompressedBlockBytes);
 }
 
-uint32_t getMaxCompressedSize(uint32_t uncompressedBytes) {
+inline uint32_t getMaxCompressedSize(uint32_t uncompressedBytes) {
   uint32_t blocks = divUp(uncompressedBytes, kDefaultBlockSize);
 
   size_t rawSize = ANSCoalescedHeader::getCompressedOverhead(kDefaultBlockSize);

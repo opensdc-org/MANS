@@ -47,7 +47,6 @@ DTYPE_LIST          = ["u2", "u4"]
 TOTAL_ELEMENTS_LIST = [512, 1024000]
 THRESHOLD_LIST      = [3800, 5000]
 
-SAVE_ADM       = "1"   # "1" = dump adm intermediates, "0" = no adm dump
 REPEAT_TIMES   = 3     # number of compress/decompress rounds per config
 
 
@@ -110,12 +109,12 @@ def compare_files(f1: Path, f2: Path, desc: str):
     return same
 
 
-def one_round(round_id: int, dtype: str, input_file: Path, save_adm: str):
+def one_round(round_id: int, dtype: str, input_file: Path, total_elems: int):
     """
     Run one compress + decompress round:
       input_file --(compress)--> mans_roundX.bin --(decompress)--> decomp_roundX.u2/u4
     Return:
-      mans_out, decomp_out, adm_compress, adm_decompress
+      mans_out, decomp_out
     """
     banner(f"ROUND {round_id}", "-")
 
@@ -123,16 +122,15 @@ def one_round(round_id: int, dtype: str, input_file: Path, save_adm: str):
     mans_out       = DATA_DIR / f"mans_round{round_id}.bin"
     decomp_suffix  = ".u2" if dtype == "u2" else ".u4"
     decomp_out     = DATA_DIR / f"decomp_round{round_id}{decomp_suffix}"
-    adm_compress   = mans_out.with_suffix(mans_out.suffix + ".adm")
-    adm_decompress = decomp_out.with_suffix(decomp_out.suffix + ".adm")
-
     # 1) compress
     cmd_comp = [
         str(COMPRESS_BIN),
         dtype,
         str(input_file),
         str(mans_out),
-        save_adm,
+        "--dims",
+        "1",
+        str(total_elems),
     ]
     run_cmd(cmd_comp, cwd=PROJECT_ROOT)
 
@@ -142,11 +140,10 @@ def one_round(round_id: int, dtype: str, input_file: Path, save_adm: str):
         dtype,
         str(mans_out),
         str(decomp_out),
-        save_adm,
     ]
     run_cmd(cmd_decomp, cwd=PROJECT_ROOT)
 
-    return mans_out, decomp_out, adm_compress, adm_decompress
+    return mans_out, decomp_out
 
 
 def main():
@@ -155,7 +152,6 @@ def main():
     log.info(f"[CONFIG] DTYPE_LIST   = {DTYPE_LIST}")
     log.info(f"[CONFIG] TOTAL_LIST   = {TOTAL_ELEMENTS_LIST}")
     log.info(f"[CONFIG] THRESH_LIST  = {THRESHOLD_LIST}")
-    log.info(f"[CONFIG] SAVE_ADM     = {SAVE_ADM}")
     log.info(f"[CONFIG] REPEAT_TIMES = {REPEAT_TIMES}")
 
     # Clean data dir once at startup
@@ -180,21 +176,13 @@ def main():
 
                 mans_files       = []
                 decomp_files     = []
-                adm_comp_files   = []
-                adm_decomp_files = []
-
                 data_ok = True
-                adm_ok  = True  # only meaningful when SAVE_ADM == "1"
 
                 # Run multiple rounds for this config
                 for i in range(REPEAT_TIMES):
-                    mans_out, decomp_out, adm_comp, adm_decomp = one_round(
-                        i, dtype, input_raw, SAVE_ADM
-                    )
+                    mans_out, decomp_out = one_round(i, dtype, input_raw, total_elems)
                     mans_files.append(mans_out)
                     decomp_files.append(decomp_out)
-                    adm_comp_files.append(adm_comp)
-                    adm_decomp_files.append(adm_decomp)
 
                     same = compare_files(
                         input_raw,
@@ -204,39 +192,13 @@ def main():
                     if not same:
                         data_ok = False
 
-                # Intra-config ADM consistency
-                if SAVE_ADM == "1":
-                    banner("ADM INTERMEDIATE CONSISTENCY (PER CASE)")
-
-                    base_adm_comp = adm_comp_files[0]
-                    for i in range(1, REPEAT_TIMES):
-                        same = compare_files(
-                            base_adm_comp,
-                            adm_comp_files[i],
-                            f"[dtype={dtype},N={total_elems},thr={threshold}] adm_compress_round0 vs round{i}",
-                        )
-                        if not same:
-                            adm_ok = False
-
-                    base_adm_decomp = adm_decomp_files[0]
-                    for i in range(1, REPEAT_TIMES):
-                        same = compare_files(
-                            base_adm_decomp,
-                            adm_decomp_files[i],
-                            f"[dtype={dtype},N={total_elems},thr={threshold}] adm_decompress_round0 vs round{i}",
-                        )
-                        if not same:
-                            adm_ok = False
-                else:
-                    adm_ok = None
-
                 results.append(
                     {
                         "dtype": dtype,
                         "N": total_elems,
                         "thr": threshold,
                         "data_ok": data_ok,
-                        "adm_ok": adm_ok,
+                        "adm_ok": None,
                     }
                 )
 
@@ -246,8 +208,6 @@ def main():
                 for p in DATA_DIR.glob("decomp_round*.u2"):
                     p.unlink(missing_ok=True)
                 for p in DATA_DIR.glob("decomp_round*.u4"):
-                    p.unlink(missing_ok=True)
-                for p in DATA_DIR.glob("*.adm"):
                     p.unlink(missing_ok=True)
 
     # ===== FINAL SUMMARY TABLE =====

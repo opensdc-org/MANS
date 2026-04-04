@@ -61,8 +61,8 @@ run() {
 
                     # Step 4: MANS -r
                     adm_output_path="$file_path.adm"
-                    $ADM32_cpu "$file_path" "$adm_output_path"
-                    adm_output=$(nice -n 20 $ADM32_cpu "$file_path" "$adm_output_path")
+                    $ADM32_cpu -u4 "$file_path" "$adm_output_path" --dims 1 "$num_ele"
+                    adm_output=$(nice -n 20 $ADM32_cpu -u4 "$file_path" "$adm_output_path" --dims 1 "$num_ele")
                     adm_cmp_time=$(echo "$adm_output" | grep "compress cost" | awk 'NR==1 {print $3}')
                     adm_decmp_time=$(echo "$adm_output" | grep "decompress cost" | awk '{print $3}')
                     $FSE -f "$adm_output_path"

@@ -50,8 +50,9 @@ run() {
                     
                     # Step 4: ADM
                     adm_output_path="$file_path.adm"
-                    $ADM16_nv "$file_path" "$adm_output_path"
-                    adm_output=$($ADM16_nv "$file_path" "$adm_output_path")
+                    num_ele=$(echo "$file_size / 2" | bc)
+                    $ADM16_nv -u2 "$file_path" "$adm_output_path" --dims 1 "$num_ele"
+                    adm_output=$($ADM16_nv -u2 "$file_path" "$adm_output_path" --dims 1 "$num_ele")
                     adm_cmp_time=$(echo "$adm_output" | grep "Total Cmp Time: " | awk 'NR==1 {print $4}')
                     adm_decmp_time=$(echo "$adm_output" | grep "Total Decmp Time:" | awk '{print $4}')
                     ans_output=$($ANS_cmp_nv "$adm_output_path" "$adm_output_path.tmp")
@@ -82,4 +83,3 @@ run() {
 
 # 运行测试
 run
-

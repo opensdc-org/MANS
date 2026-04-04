@@ -8,19 +8,10 @@ namespace mans {
 struct MansParams {
     uint32_t backend = 0;       // 0: CPU, 1: GPU
     uint32_t dtype = 0;         // 0: U16, 1: U32
-    uint32_t adm_threshold = 4000; // (block max diff > adm_threshold) -> skip adm mode
-    uint32_t adm_decide_threads = 16; // ADM decision (decide_use_adm)
 
-    // --- ADM Compression Threads Config ---
-    uint32_t adm_center_calc_threads = 32;    // Center calculation
-    uint32_t adm_encode_threads = 32;         // Encoding
-    uint32_t adm_warp_reduce_threads = 32;    // Warp reduction
-    uint32_t adm_fill_tail_threads = 32;      // Fill tail bits
-    uint32_t adm_write_back_threads = 32;     // Write back bit signals
-
-    // --- ADM Decompression Threads Config ---
-    uint32_t adm_restore_signals_threads = 32; // Restore signals
-    uint32_t adm_decode_values_threads = 32;   // Decode values
+    // --- ADM Thread Config ---
+    uint32_t adm_compress_thread = 32;    // Shared thread count for all ADM compress stages
+    uint32_t adm_decompress_thread = 32;  // Shared thread count for all ADM decompress stages
 
     // --- Pipeline mode ---
     // 0: p-mode (ADM -> PANS)

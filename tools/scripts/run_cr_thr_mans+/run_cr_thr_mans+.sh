@@ -208,7 +208,7 @@ for i in "${!dataset_files[@]}"; do
     tmp_log="$(mktemp /tmp/cpu_mans_bench_uall.XXXXXX.log)"
 
     echo "[run] (${input_type}) ${dataset_file} --warmup ${WARMUP} --runs ${ITER} --dims ${dims_args}" | tee -a "${LOG_FILE}"
-    if (cd "${WORKDIR}" && "${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --threshold "${THRESHOLD}" --warmup "${WARMUP}" --runs "${ITER}" --dims "${dims_tokens[@]}" --csv "${tmp_csv}") > "${tmp_log}" 2>&1; then
+    if (cd "${WORKDIR}" && "${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --warmup "${WARMUP}" --runs "${ITER}" --dims "${dims_tokens[@]}" --csv "${tmp_csv}") > "${tmp_log}" 2>&1; then
         cat "${tmp_log}" >> "${LOG_FILE}"
         wrote_rows=0
         while IFS=, read -r chunk_label chunk_bytes ratio comp_mbps decomp_mbps; do

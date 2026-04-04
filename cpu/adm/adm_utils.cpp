@@ -8,6 +8,51 @@
 #include <stdexcept>
 #include <cstdio> 
 
+namespace {
+
+template <typename T>
+void compute_adm_layout(std::size_t num_elements,
+                        const mans::MansParams& params,
+                        std::size_t& gsize,
+                        std::size_t& len1,
+                        std::size_t& len2,
+                        std::size_t& len3,
+                        std::size_t& len4) {
+    const int dims = static_cast<int>(params.dims);
+    const int nx = static_cast<int>(params.nx);
+    const int ny = static_cast<int>(params.ny);
+    const int nz = static_cast<int>(params.nz);
+    const int ny_eff = (dims >= 2) ? ny : 1;
+    const int nz_eff = (dims == 3) ? nz : 1;
+
+    if (dims <= 1) {
+        const std::size_t block =
+            static_cast<std::size_t>(adm::cmp_tblock_size) * adm::cmp_chunk;
+        gsize = (num_elements + block - 1) / block;
+    } else if (dims == 2) {
+        const std::size_t grid_x =
+            (static_cast<std::size_t>(nx) + adm::cmp_block_x - 1) / adm::cmp_block_x;
+        const std::size_t grid_y =
+            (static_cast<std::size_t>(ny_eff) + adm::cmp_block_y - 1) / adm::cmp_block_y;
+        gsize = grid_x * grid_y;
+    } else {
+        const std::size_t grid_x =
+            (static_cast<std::size_t>(nx) + adm::cmp_block_x - 1) / adm::cmp_block_x;
+        const std::size_t grid_y =
+            (static_cast<std::size_t>(ny_eff) + adm::cmp_block_y - 1) / adm::cmp_block_y;
+        const std::size_t grid_z =
+            (static_cast<std::size_t>(nz_eff) + adm::cmp_block_z - 1) / adm::cmp_block_z;
+        gsize = grid_x * grid_y * grid_z;
+    }
+
+    len1 = (gsize + 1) * sizeof(int);
+    len2 = gsize * sizeof(T);
+    len3 = (gsize + 7) / 8;
+    len4 = num_elements * sizeof(std::uint8_t);
+}
+
+} // namespace
+
 bool bytes_equal(
     const std::uint8_t* a, std::size_t a_size,
     const std::uint8_t* b, std::size_t b_size)
@@ -80,7 +125,6 @@ void adm_compress(
         // block_elems_max = blk_x * blk_y * blk_z; // 4096
     }
 
-    const std::size_t len_header = sizeof(adm::FileHeader);
     const std::size_t len1 = (gsize + 1) * sizeof(int);
     const std::size_t len2 = gsize * sizeof(T);
     const std::size_t len3 = (gsize + 7) / 8;
@@ -92,7 +136,7 @@ void adm_compress(
         return;
     }
 
-    std::size_t offset = len_header;
+    std::size_t offset = 0;
     int* output_lengths_ptr = reinterpret_cast<int*>(output + offset);
     offset += len1;
     T* centers_ptr = reinterpret_cast<T*>(output + offset);
@@ -112,7 +156,7 @@ void adm_compress(
         MANS_TIMING_STOP("mans/adm_encode_core");
     } else if constexpr (std::is_same_v<T, std::uint32_t>) {
         MANS_TIMING_START("mans/adm_encode_core");
-        adm::compress_uint32(input_data, input_len, output_lengths_ptr, centers_ptr, codes_ptr,
+        adm::compress_uint32(input_data, input_len, output_lengths_ptr, centers_ptr, flags_ptr, codes_ptr,
                              bit_signals_ptr, bit_signals_len, params);
         MANS_TIMING_STOP("mans/adm_encode_core");
     } else {
@@ -120,16 +164,7 @@ void adm_compress(
                       "adm_compress only supports uint16_t and uint32_t");
     }
 
-    adm::FileHeader header;
-    header.num_elements = static_cast<std::uint64_t>(num_elements);
-    header.gsize        = gsize;
-    header.len1 = len1;
-    header.len2 = len2;
-    header.len3 = len3;
-    header.len4 = len4;
-
-    std::memcpy(output, &header, len_header);
-    output_size = len_header + len1 + len2 + len3 + len4 + bit_signals_len;
+    output_size = len1 + len2 + len3 + len4 + bit_signals_len;
 }
 
 template<typename T>
@@ -137,35 +172,18 @@ void adm_decompress(
     const std::uint8_t* merged,    
     std::size_t merged_size,       
     T* recovered,
-    std::size_t& num_elements,
+    std::size_t num_elements,
     const mans::MansParams& params
 )
 {
-    if (merged_size < sizeof(adm::FileHeader)) {
-        throw std::runtime_error("File too small or invalid format.");
-    }
+    std::size_t gsize = 0;
+    std::size_t len1 = 0;
+    std::size_t len2 = 0;
+    std::size_t len3 = 0;
+    std::size_t len4 = 0;
+    compute_adm_layout<T>(num_elements, params, gsize, len1, len2, len3, len4);
 
-    adm::FileHeader header;
-    std::memcpy(&header, merged, sizeof(header));
-    
-    std::size_t offset = sizeof(header);
-
-
-    num_elements = static_cast<std::size_t>(header.num_elements);
-    std::size_t len1 = static_cast<std::size_t>(header.len1); // output_lengths (bytes)
-    std::size_t len2 = static_cast<std::size_t>(header.len2); // centers (bytes)
-    std::size_t len3 = static_cast<std::size_t>(header.len3); // flags (bytes)
-    std::size_t len4 = static_cast<std::size_t>(header.len4); // codes (bytes)
-    const std::size_t expected_len1 = (static_cast<std::size_t>(header.gsize) + 1) * sizeof(int);
-    const std::size_t expected_len2 = static_cast<std::size_t>(header.gsize) * sizeof(T);
-    const std::size_t expected_len3 = (static_cast<std::size_t>(header.gsize) + 7) / 8;
-    const std::size_t expected_len4 = num_elements * sizeof(std::uint8_t);
-
-    if (len1 != expected_len1 || len2 != expected_len2 ||
-        len3 != expected_len3 || len4 != expected_len4) {
-        throw std::runtime_error("Corrupted file: fixed ADM segment lengths mismatch.");
-    }
-
+    std::size_t offset = 0;
     if (merged_size < offset + len1 + len2 + len3 + len4) {
         throw std::runtime_error("Corrupted file: not enough data.");
     }
@@ -196,7 +214,7 @@ void adm_decompress(
         MANS_TIMING_START("mans/adm_decode_core");
         adm::decompress_uint16(
             output_lengths, 
-            header.gsize, // gsize
+            gsize,
             centers, 
             codes, 
             flags,
@@ -210,9 +228,10 @@ void adm_decompress(
         MANS_TIMING_START("mans/adm_decode_core");
         adm::decompress_uint32(
             output_lengths, 
-            header.gsize, // gsize
+            gsize,
             centers, 
             codes, 
+            flags,
             num_elements, 
             bit_signals, 
             recovered,
@@ -239,7 +258,7 @@ void adm_compress_and_benchmark(
         return;
     }
 
-    const std::size_t max_compressed_size = adm_max_compressed_size<T>(input_len);
+    const std::size_t max_compressed_size = adm_max_compressed_size<T>(input_len, params);
     std::vector<std::uint8_t> tmp_buf(max_compressed_size);
     std::vector<std::uint8_t> last_tmp_buf(max_compressed_size);
 
@@ -312,10 +331,9 @@ void adm_decompress_and_benchmark(
     const std::uint8_t* merged,      
     std::size_t merged_size,         
     T* recovered,
-    std::size_t &num_elements,
+    std::size_t num_elements,
     const mans::MansParams& params)
 {
-    num_elements = 0;
     if constexpr (std::is_same_v<T, std::uint16_t>) {
         std::cout << "\033[0;36m=======> Start ADM Decompress (uint16, benchmark) <=======\033[0m\n";
     } else {
@@ -349,13 +367,13 @@ template void adm_compress<uint32_t>(const uint32_t*, std::size_t, std::uint8_t*
                                      const mans::MansParams& params);
 
 
-template void adm_decompress<uint16_t>(const std::uint8_t*, std::size_t, uint16_t*, std::size_t&,
+template void adm_decompress<uint16_t>(const std::uint8_t*, std::size_t, uint16_t*, std::size_t,
                                        const mans::MansParams& params);
-template void adm_decompress<uint32_t>(const std::uint8_t*, std::size_t, uint32_t*, std::size_t&,
+template void adm_decompress<uint32_t>(const std::uint8_t*, std::size_t, uint32_t*, std::size_t,
                                        const mans::MansParams& params);
 
 template void adm_compress_and_benchmark<uint16_t>(const uint16_t*, std::size_t, std::uint8_t*, std::size_t&,const mans::MansParams& params);
 template void adm_compress_and_benchmark<uint32_t>(const uint32_t*, std::size_t, std::uint8_t*, std::size_t&,const mans::MansParams& params);
 
-template void adm_decompress_and_benchmark<uint16_t>(const std::uint8_t*, std::size_t, uint16_t*, std::size_t&,const mans::MansParams& params);
-template void adm_decompress_and_benchmark<uint32_t>(const std::uint8_t*, std::size_t, uint32_t*, std::size_t&,const mans::MansParams& params);
+template void adm_decompress_and_benchmark<uint16_t>(const std::uint8_t*, std::size_t, uint16_t*, std::size_t,const mans::MansParams& params);
+template void adm_decompress_and_benchmark<uint32_t>(const std::uint8_t*, std::size_t, uint32_t*, std::size_t,const mans::MansParams& params);

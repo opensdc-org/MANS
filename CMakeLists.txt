@@ -136,6 +136,24 @@ if(BUILD_CPU)
   target_compile_options(cpu_mans_autotune PRIVATE $<$<CONFIG:Release>:-O3>)
   target_link_libraries(cpu_mans_autotune PRIVATE mans_common mans_cpu_core OpenMP::OpenMP_CXX)
 
+  add_executable(cpu_mans_compress
+    cpu/cpu_mans_compress.cpp
+  )
+  set_target_properties(cpu_mans_compress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
+  )
+  target_compile_options(cpu_mans_compress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(cpu_mans_compress PRIVATE mans_common mans_cpu_core OpenMP::OpenMP_CXX)
+
+  add_executable(cpu_mans_decompress
+    cpu/cpu_mans_decompress.cpp
+  )
+  set_target_properties(cpu_mans_decompress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${cpu_root_binary_dir}
+  )
+  target_compile_options(cpu_mans_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(cpu_mans_decompress PRIVATE mans_common mans_cpu_core OpenMP::OpenMP_CXX)
+
   
   # ========== CPU / pans submodule ==========
   set(cpu_pans_binary_dir ${cpu_root_binary_dir}/pans)
@@ -149,8 +167,29 @@ endif()
 # -------------------------------
 if(BUILD_NV)
   enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
   add_compile_definitions(MANS_ENABLE_NV)
-  # detect gpu architecture
+
+  add_library(mans_nv_core STATIC
+    nv/mans_nv.cpp
+    nv/adm/mapping_uint16.cu
+    nv/adm/mapping_uint32.cu
+    nv/ans/mans_nv_ans.cu
+    nv/ans/src/GpuANS.cu
+  )
+  set_property(TARGET mans_nv_core PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(mans_nv_core PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+      CUDA_SEPARABLE_COMPILATION ON
+      CUDA_RESOLVE_DEVICE_SYMBOLS ON
+  )
+  target_include_directories(mans_nv_core PUBLIC
+      ${CUDAToolkit_INCLUDE_DIRS}
+      ${CMAKE_CURRENT_SOURCE_DIR}/nv/ans/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/nv/ans/src
+  )
+  target_link_libraries(mans_nv_core PUBLIC CUDA::cudart)
+  target_link_libraries(mans_common PRIVATE mans_nv_core)
   include(FindCUDA/select_compute_arch)
   CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS)
   string(STRIP "${INSTALLED_GPU_CCS}" INSTALLED_GPU_CCS_STRIPPED)
@@ -160,34 +199,43 @@ if(BUILD_NV)
   string(REPLACE "+ptx" "" DETECTED_CUDA_ARCH_LIST "${DETECTED_CUDA_ARCH_LIST}")
   message(STATUS "Auto-detected CUDA architectures: ${DETECTED_CUDA_ARCH_LIST}")
 
-  set(nv_adm_binary_dir ${CMAKE_BINARY_DIR}/nv/adm)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/nv)
 
-  add_executable(nv_mapping_uint16 nv/adm/mapping_uint16.cu)
-  set_target_properties(nv_mapping_uint16 PROPERTIES
+  add_executable(nv_mans_compress nv/nv_mans_compress.cpp)
+  set_target_properties(nv_mans_compress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-      ARCHIVE_OUTPUT_DIRECTORY ${nv_adm_binary_dir}
-      LIBRARY_OUTPUT_DIRECTORY ${nv_adm_binary_dir}
-      CUDA_SEPARABLE_COMPILATION ON
-      CUDA_ARCHITECTURES "${DETECTED_CUDA_ARCH_LIST}"
   )
-  target_compile_options(nv_mapping_uint16 PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_compile_options(nv_mans_compress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(nv_mans_compress PRIVATE mans_common)
 
-  add_executable(nv_mapping_uint32 nv/adm/mapping_uint32.cu)
-  set_target_properties(nv_mapping_uint32 PROPERTIES
+  add_executable(nv_mans_decompress nv/nv_mans_decompress.cpp)
+  set_target_properties(nv_mans_decompress PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-      ARCHIVE_OUTPUT_DIRECTORY ${nv_adm_binary_dir}
-      LIBRARY_OUTPUT_DIRECTORY ${nv_adm_binary_dir}
-      CUDA_SEPARABLE_COMPILATION ON
-      CUDA_ARCHITECTURES "${DETECTED_CUDA_ARCH_LIST}"
   )
-  target_compile_options(nv_mapping_uint32 PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_compile_options(nv_mans_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(nv_mans_decompress PRIVATE mans_common)
+
+  add_executable(nvadm_compress nv/adm/nvadm_compress.cpp)
+  set_target_properties(nvadm_compress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  )
+  target_compile_options(nvadm_compress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(nvadm_compress PRIVATE mans_nv_core)
+
+  add_executable(nvadm_decompress nv/adm/nvadm_decompress.cpp)
+  set_target_properties(nvadm_decompress PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+
+  )
+  target_compile_options(nvadm_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
+  target_link_libraries(nvadm_decompress PRIVATE mans_nv_core)
 
   # nv/ans submodule
   set(nv_ans_binary_dir ${CMAKE_BINARY_DIR}/nv/ans)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${nv_ans_binary_dir})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${nv_ans_binary_dir})
   add_subdirectory(nv/ans)
+  target_link_libraries(mans_nv_core PUBLIC gpu_ans)
 
 endif()
 

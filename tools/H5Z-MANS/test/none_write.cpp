@@ -6,8 +6,8 @@
 
 #include <hdf5.h>
 #include <mpi.h>
+#include "H5Z-MANS_filter_ids.h"
 
-#define FILTER_ID_NONE 32002
 #define CHECK_H5(x) do { if ((x) < 0) { std::fprintf(stderr, "HDF5 failed: %s\n", #x); std::exit(1); } } while (0)
 
 int main(int argc, char** argv) {
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     hid_t space = H5Screate_simple(1, dims, nullptr);
     hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
     CHECK_H5(H5Pset_chunk(dcpl, 1, chunk));
-    CHECK_H5(H5Pset_filter(dcpl, FILTER_ID_NONE, 0, 0, nullptr));
+    CHECK_H5(H5Pset_filter(dcpl, H5Z_FILTER_NONE_ID, 0, 0, nullptr));
     hid_t dset = H5Dcreate2(file, "data", H5T_NATIVE_USHORT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     H5Pclose(dcpl);
 

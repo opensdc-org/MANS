@@ -9,8 +9,8 @@
 #include <hdf5.h>
 #include <mpi.h>
 #include "mans_defs.h"
+#include "H5Z-MANS_filter_ids.h"
 
-#define FILTER_ID_MANS 32001
 #define CHECK_H5(x) do { if ((x) < 0) { std::fprintf(stderr, "HDF5 failed: %s\n", #x); std::exit(1); } } while (0)
 
 static bool parse_positive_hsize(const char* text, hsize_t& out) {
@@ -39,46 +39,6 @@ static bool product_with_overflow(const std::vector<hsize_t>& dims, hsize_t& out
         }
         out *= d;
     }
-    return true;
-}
-
-static bool set_chunk_shape_to_mans_params(const std::vector<hsize_t>& chunk_dims, mans::MansParams& p) {
-    const auto u32_max = static_cast<hsize_t>(std::numeric_limits<std::uint32_t>::max());
-    p.dims = 1;
-    p.nx = 0;
-    p.ny = 0;
-    p.nz = 0;
-    if (chunk_dims.empty()) return false;
-
-    if (chunk_dims.size() == 1) {
-        if (chunk_dims[0] == 0 || chunk_dims[0] > u32_max) return false;
-        p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
-        return true;
-    }
-
-    if (chunk_dims[0] == 0 || chunk_dims[0] > u32_max ||
-        chunk_dims[1] == 0 || chunk_dims[1] > u32_max) {
-        return false;
-    }
-
-    if (chunk_dims.size() == 2) {
-        p.dims = 2;
-        p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
-        p.ny = static_cast<std::uint32_t>(chunk_dims[1]);
-        return true;
-    }
-
-    hsize_t merged_z = 1;
-    for (size_t i = 2; i < chunk_dims.size(); ++i) {
-        if (chunk_dims[i] == 0 || merged_z > (u32_max / chunk_dims[i])) {
-            return false;
-        }
-        merged_z *= chunk_dims[i];
-    }
-    p.dims = 3;
-    p.nx = static_cast<std::uint32_t>(chunk_dims[0]);
-    p.ny = static_cast<std::uint32_t>(chunk_dims[1]);
-    p.nz = static_cast<std::uint32_t>(merged_z);
     return true;
 }
 
@@ -207,19 +167,7 @@ int main(int argc, char** argv) {
     if (rank == 0) std::printf("[mans_write] chunk-size-mb=%.6g\n", chunk_size_mb);
 
     stage("building HDF5 dataset");
-    mans::MansParams p{};
-    p.backend = mans::Backend::CPU; p.dtype = mans::DataType::U16; p.adm_threshold = 4000;
-    p.mode=mans::Mode::R;
-    p.adm_decide_threads = 1; p.adm_center_calc_threads = 1; p.adm_encode_threads = 1;
-    p.adm_warp_reduce_threads = 1; p.adm_fill_tail_threads = 1; p.adm_write_back_threads = 1;
-    p.adm_restore_signals_threads = 1; p.adm_decode_values_threads = 1;
-    if (!set_chunk_shape_to_mans_params(chunk, p)) {
-        std::fprintf(stderr, "rank %d invalid chunk dims for MansParams\n", rank);
-        MPI_Finalize();
-        return 1;
-    }
-    std::vector<unsigned int> cd(sizeof(p) / sizeof(unsigned int), 0);
-    std::memcpy(cd.data(), &p, sizeof(p));
+    const unsigned int cd[1] = {mans::Mode::R};
 
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
     hid_t file = H5Fcreate(out, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
@@ -229,7 +177,7 @@ int main(int argc, char** argv) {
     hid_t space = H5Screate_simple(ndims, dims.data(), nullptr);
     hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
     CHECK_H5(H5Pset_chunk(dcpl, ndims, chunk.data()));
-    CHECK_H5(H5Pset_filter(dcpl, FILTER_ID_MANS, 0, cd.size(), cd.data()));
+    CHECK_H5(H5Pset_filter(dcpl, H5Z_FILTER_MANS_ID, 0, 1, cd));
     hid_t dset = H5Dcreate2(file, "data", H5T_NATIVE_USHORT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     H5Pclose(dcpl);
 

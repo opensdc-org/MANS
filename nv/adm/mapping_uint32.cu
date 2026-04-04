@@ -3,14 +3,14 @@
 // nvcc -O3 ./mappingV15_fused_uint32.cu -o ./mappingV15_uint32
 // ./mappingV15_uint32 ../../../data/kron/kron-g500-logn19_43562265.u4 ../../../data/kron/test.bin
 
-#include <iostream>
-#include <fstream>
-#include <stdint.h>
+#include <cstdint>
+#include <cstring>
+#include <stdexcept>
+#include <vector>
+
+#include "mapping_uint32.h"
 #include <cuda_runtime.h>
 #include <thrust/scan.h>
-#include <thrust/device_vector.h>
-#include <thrust/sort.h>
-#include <thrust/copy.h>
 #include <thrust/device_ptr.h>
 
 
@@ -122,8 +122,18 @@ __global__ void decompress(uint32_t* decmp_data, uint32_t* centers, uint8_t* cod
 }
 
 
-__global__ void map_values_kernel_thrust(const uint32_t* data, uint8_t* code, uint8_t* bit_signal, uint32_t* centers, int* signal_length ,int data_size, int shift) 
+__global__ void map_values_kernel_thrust(const uint32_t* data,
+                                         uint8_t* code,
+                                         uint8_t* bit_signal,
+                                         uint32_t* centers,
+                                         int* signal_length,
+                                         std::uint32_t* block_flags,
+                                         mans::MansParams params,
+                                         int data_size,
+                                         int shift) 
 {
+    (void)block_flags;
+    (void)params;
     const int tid = threadIdx.x;
     const int bid = blockIdx.x;
     const int idx = bid * blockDim.x + tid;
@@ -305,7 +315,7 @@ __global__ void map_values_kernel_thrust(const uint32_t* data, uint8_t* code, ui
     }
 }
 
-__global__ void concat(
+static __global__ void concat(
     const uint8_t* d_bit_signals,  // 原始 bitstream 数据
     const int* d_signal_length,   // 每个 warp 的 bitstream 长度
     const int* d_output_lengths,  // 前缀和数组，存放目标偏移
@@ -335,13 +345,17 @@ __global__ void map_values_kernel_decoupled(
     uint8_t* code, 
     uint8_t* bit_signal, 
     uint32_t* centers, 
-    int* signal_length ,
+    int* signal_length,
+    std::uint32_t* block_flags,
     volatile int* const __restrict__ locOffset, 
     volatile int* const __restrict__ cmpOffset, 
-    volatile int* const __restrict__ flag, 
+    volatile int* const __restrict__ prefix_state, 
+    mans::MansParams params,
     int data_size, 
     int shift) 
 {
+    (void)block_flags;
+    (void)params;
     __shared__ unsigned int excl_sum;
 
     const int tid = threadIdx.x;
@@ -517,14 +531,14 @@ __global__ void map_values_kernel_decoupled(
         __threadfence();
         if(warp==0)
         {
-            flag[0] = 2;
+            prefix_state[0] = 2;
             __threadfence();
-            flag[1] = 1;
+            prefix_state[1] = 1;
             __threadfence();
         }
         else
         {
-            flag[warp+1] = 1;
+            prefix_state[warp+1] = 1;
             __threadfence();    
         }
     }
@@ -543,7 +557,7 @@ __global__ void map_values_kernel_decoupled(
                 int status;
                 // Local sum not end.
                 do{
-                    status = flag[lookback];
+                    status = prefix_state[lookback];
                     __threadfence();
                 } while (status==0);
                 // Lookback end.
@@ -568,7 +582,7 @@ __global__ void map_values_kernel_decoupled(
         // Update global flag.
         if(!lane) cmpOffset[warp] = excl_sum;
         __threadfence();
-        if(!lane) flag[warp] = 2;
+        if(!lane) prefix_state[warp] = 2;
         __threadfence();  
     }
     __syncthreads();
@@ -594,356 +608,263 @@ __global__ void map_values_kernel_decoupled(
     }
 }
 
-// Template helper function to load binary file into memory based on data type
-uint32_t* load_file(const char* filename, size_t& size) {
-    std::ifstream file(filename, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return nullptr;
-    }
 
-    size = file.tellg();
-    file.seekg(0, std::ios::beg);
+namespace mans {
+namespace nv {
+namespace adm {
 
-    size_t num_elements = size / sizeof(uint32_t);
-    uint32_t* data = new uint32_t[num_elements];
-    file.read(reinterpret_cast<char*>(data), size);
-    file.close();
-    
-    return data;
+namespace {
+
+constexpr int kDecoupledPrefixMaxGsize = 1024;
+
+std::size_t get_flags_size(int gsize) {
+    return static_cast<std::size_t>(gsize + 7) / 8;
 }
 
-// Helper function to save result to binary file
-void save_file(const char* filename, const uint8_t* data, size_t size) {
-    std::ofstream file(filename, std::ios::binary);
-    file.write(reinterpret_cast<const char*>(data), size);
-    file.close();
+bool use_decoupled_prefix_sum(int gsize) {
+    return gsize <= kDecoupledPrefixMaxGsize;
 }
 
-int main(int argc, char** argv) {
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <input file> <output file>" << std::endl;
-        return 1;
+void check_cuda(cudaError_t status, const char* what) {
+    if (status != cudaSuccess) {
+        throw std::runtime_error(std::string(what) + ": " + cudaGetErrorString(status));
+    }
+}
+
+} // namespace
+
+void compress_u32_device(const std::uint32_t* d_input,
+                         std::size_t num_elements,
+                         const mans::MansParams& params,
+                         std::uint8_t* d_output,
+                         std::size_t& output_size,
+                         cudaStream_t stream) {
+    (void)params;
+    if (!d_input && num_elements != 0) {
+        throw std::runtime_error("compress_u32_device: d_input is null");
+    }
+    if (!d_output && num_elements != 0) {
+        throw std::runtime_error("compress_u32_device: d_output is null");
+    }
+    if (num_elements == 0) {
+        output_size = 0;
+        return;
     }
 
-    const char* input_file = argv[1];
-    const char* output_file = argv[2];
-    // std::string data_type = argv[3]; // 从命令行获取数据类型
+    const int shift = 1;
+    const int bsize = cmp_tblock_size;
+    const int gsize = static_cast<int>((num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk));
 
-    int shift = 1;
+    const bool use_decoupled = use_decoupled_prefix_sum(gsize);
 
-    std::cout << "Input file: " << input_file << std::endl;
+    int* d_signal_length = nullptr;
+    int* d_output_lengths = nullptr;
+    std::uint32_t* d_centers = nullptr;
+    std::uint8_t* d_codes = nullptr;
+    std::uint8_t* d_bit_signals = nullptr;
+    std::uint8_t* d_concatenated_signals = nullptr;
+    std::uint32_t* d_block_flags = nullptr;
+    int* d_locOffset = nullptr;
+    int* d_prefix_state = nullptr;
 
-    // Load input file into host memory based on data type
-    size_t data_size = 0;
-    uint32_t* h_data = nullptr;
-    int num_elements = 0;
+    cudaMalloc(reinterpret_cast<void**>(&d_signal_length), static_cast<std::size_t>(gsize) * sizeof(int));
+    cudaMemset(d_signal_length, 0, static_cast<std::size_t>(gsize) * sizeof(int));
+    cudaMalloc(reinterpret_cast<void**>(&d_codes), static_cast<std::size_t>(bsize) * gsize * cmp_chunk * sizeof(std::uint8_t));
+    cudaMalloc(reinterpret_cast<void**>(&d_output_lengths), static_cast<std::size_t>(gsize + 1) * sizeof(int));
+    cudaMemset(d_output_lengths, 0, static_cast<std::size_t>(gsize + 1) * sizeof(int));
+    cudaMalloc(reinterpret_cast<void**>(&d_centers), static_cast<std::size_t>(gsize) * sizeof(std::uint32_t));
+    const std::size_t flags_words =
+        (get_flags_size(gsize) + sizeof(std::uint32_t) - 1) / sizeof(std::uint32_t);
+    cudaMalloc(reinterpret_cast<void**>(&d_block_flags), flags_words * sizeof(std::uint32_t));
+    cudaMemset(d_block_flags, 0xFF, flags_words * sizeof(std::uint32_t));
+    cudaMalloc(reinterpret_cast<void**>(&d_concatenated_signals), static_cast<std::size_t>(bsize) * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(std::uint8_t));
+    cudaMemset(d_concatenated_signals, 255, static_cast<std::size_t>(bsize) * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(std::uint8_t));
 
-    h_data = load_file(input_file, data_size);
-    num_elements = data_size / sizeof(uint32_t);
+    if (use_decoupled) {
+        cudaMalloc(reinterpret_cast<void**>(&d_locOffset), static_cast<std::size_t>(gsize + 1) * sizeof(int));
+        cudaMemset(d_locOffset, 0, static_cast<std::size_t>(gsize + 1) * sizeof(int));
+        cudaMalloc(reinterpret_cast<void**>(&d_prefix_state), static_cast<std::size_t>(gsize + 1) * sizeof(int));
+        cudaMemset(d_prefix_state, 0, static_cast<std::size_t>(gsize + 1) * sizeof(int));
 
-    if (!h_data) {
-        std::cerr << "Error: Failed to load data from file: " << input_file << std::endl;
-        return 1;
+        map_values_kernel_decoupled<<<gsize, bsize, sizeof(unsigned int) * 2, stream>>>(
+            d_input,
+            d_codes,
+            d_concatenated_signals,
+            d_centers,
+            d_signal_length,
+            d_block_flags,
+            d_locOffset,
+            d_output_lengths,
+            d_prefix_state,
+            params,
+            static_cast<int>(num_elements),
+            shift);
+        check_cuda(cudaGetLastError(), "map_values_kernel_decoupled launch");
+        check_cuda(cudaStreamSynchronize(stream), "map_values_kernel_decoupled sync");
+    } else {
+        cudaMalloc(reinterpret_cast<void**>(&d_bit_signals), static_cast<std::size_t>(bsize) * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(std::uint8_t));
+        cudaMemset(d_bit_signals, 0, static_cast<std::size_t>(bsize) * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(std::uint8_t));
+
+        thrust::device_ptr<int> dev_output_lengths(d_output_lengths);
+        thrust::device_ptr<int> dev_signal_length(d_signal_length);
+
+        map_values_kernel_thrust<<<gsize, bsize, 0, stream>>>(
+
+                d_input,
+                d_codes,
+                d_bit_signals,
+                d_centers,
+                d_signal_length,
+                d_block_flags,
+                params,
+                static_cast<int>(num_elements),
+                shift);
+        check_cuda(cudaGetLastError(), "map_values_kernel_thrust launch");
+        check_cuda(cudaStreamSynchronize(stream), "map_values_kernel_thrust sync");
+        thrust::exclusive_scan(thrust::cuda::par.on(stream), dev_signal_length, dev_signal_length + gsize, dev_output_lengths);
+        check_cuda(cudaGetLastError(), "exclusive_scan launch");
+        check_cuda(cudaStreamSynchronize(stream), "exclusive_scan sync");
+        concat<<<gsize, bsize, 0, stream>>>(
+                d_bit_signals,
+                d_signal_length,
+                d_output_lengths,
+                d_concatenated_signals,
+                gsize,
+                static_cast<int>(num_elements));
+        check_cuda(cudaGetLastError(), "concat launch");
+        check_cuda(cudaStreamSynchronize(stream), "concat sync");
     }
 
-    std::cout << "elements num: " << num_elements << std::endl;
+    std::vector<int> signal_lengths(gsize);
+    std::vector<int> output_lengths(gsize, 0);
+    check_cuda(cudaMemcpyAsync(signal_lengths.data(), d_signal_length, static_cast<std::size_t>(gsize) * sizeof(int), cudaMemcpyDeviceToHost, stream), "cudaMemcpyAsync signal_lengths D2H");
+    check_cuda(cudaMemcpyAsync(output_lengths.data(), d_output_lengths, static_cast<std::size_t>(gsize) * sizeof(int), cudaMemcpyDeviceToHost, stream), "cudaMemcpyAsync output_lengths D2H");
+    check_cuda(cudaStreamSynchronize(stream), "signal/output lengths D2H sync");
 
-    // 配置CUDA内核
-    int bsize = cmp_tblock_size;
-    int gsize = (num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk);
+    const std::size_t bit_signals_size =
+        static_cast<std::size_t>(signal_lengths.back() + output_lengths.back()) * cmp_tblock_size;
+    const std::size_t output_lengths_size = static_cast<std::size_t>(gsize) * sizeof(int);
+    const std::size_t centers_size = static_cast<std::size_t>(gsize) * sizeof(std::uint32_t);
+    const std::size_t flags_size = get_flags_size(gsize);
+    const std::size_t codes_size = num_elements * sizeof(std::uint8_t);
+    output_size = output_lengths_size + centers_size + flags_size + codes_size + bit_signals_size;
 
-    // define 
-    uint32_t* d_data;
-    uint32_t* d_decmpdata;
-    void* d_cmpdata;
+    check_cuda(cudaMemcpyAsync(d_output, d_output_lengths, output_lengths_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync packed offsets D2D");
+    check_cuda(cudaMemcpyAsync(d_output + output_lengths_size, d_centers, centers_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync packed centers D2D");
+    check_cuda(cudaMemcpyAsync(d_output + output_lengths_size + centers_size, d_block_flags, flags_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync packed flags D2D");
+    check_cuda(cudaMemcpyAsync(d_output + output_lengths_size + centers_size + flags_size, d_codes, codes_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync packed codes D2D");
+    check_cuda(cudaMemcpyAsync(d_output + output_lengths_size + centers_size + flags_size + codes_size, d_concatenated_signals, bit_signals_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync packed bits D2D");
+    check_cuda(cudaStreamSynchronize(stream), "pack payload sync");
 
-    // compressed struct: header(signal_length & center) & code & bit_signal
-    // int* d_offsets
-    int* d_signal_length;
-    int* d_output_lengths;
-    uint32_t* d_centers;
-    uint8_t* d_codes;
-    uint8_t* d_bit_signals; 
-    uint8_t* d_concatenated_signals;
-    int* d_locOffset;
-    int* d_flag;
-
-    // memory allocation
-    cudaMalloc((void**)&d_data, data_size);
-    cudaMalloc((void**)&d_signal_length, gsize * sizeof(int));
-    cudaMemset(d_signal_length, 0, gsize * sizeof(int));
-    cudaMalloc((void**)&d_codes, bsize * gsize * cmp_chunk * sizeof(uint8_t));
-    cudaMalloc((void**)&d_locOffset, (gsize + 1) * sizeof(int));
-    cudaMalloc((void**)&d_flag, (gsize + 1) * sizeof(int));
-    cudaMalloc(&d_output_lengths, (gsize + 1) * sizeof(int));
-
-    cudaMalloc(&d_decmpdata, bsize * gsize * cmp_chunk * sizeof(uint32_t));
-
-    cudaMalloc(&d_centers, gsize * sizeof(uint32_t));  
-    cudaMalloc(&d_bit_signals, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(uint8_t));
-    cudaMemset(d_bit_signals, 0, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(uint8_t));
-    cudaMalloc(&d_concatenated_signals, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(uint8_t));
-    cudaMemset(d_concatenated_signals, 255, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_32b * sizeof(uint8_t));
-
-
-    // mem copy
-    cudaMemcpy(d_data, h_data, data_size, cudaMemcpyHostToDevice);
-
-    //prefix-sum initialize
-    thrust::device_ptr<int> dev_output_lengths(d_output_lengths);
-    thrust::device_ptr<int> dev_signal_length(d_signal_length);
-
-    // warmup
-    for(int i = 0; i < 0; i++)
-    { 
-        map_values_kernel_decoupled<<<gsize, bsize>>>(
-            d_data, d_codes, d_bit_signals, d_centers, d_signal_length, d_locOffset, d_output_lengths, d_flag, num_elements, shift);
-            cudaMemset(d_flag, 0, (gsize + 1) * sizeof(int));
-        
-    }
-
-    // 设置CUDA事件用于测量时间
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-
-    //CMP
-
-    if(gsize <= 1024)
-    {
-        printf("\033[0;36m=======>Use Decoupled Prefix-sum<=======\033[1m\n") ;
-        cudaEventRecord(start);
-        map_values_kernel_decoupled<<<gsize, bsize, sizeof(unsigned int)*2, stream>>>(
-            d_data, d_codes, d_concatenated_signals, d_centers, d_signal_length, d_locOffset, d_output_lengths, d_flag, num_elements, shift);
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
-        float adm_milliseconds = 0;
-        cudaEventElapsedTime(&adm_milliseconds, start, stop);
-
-        printf("\033[0;34m-------Cmp Throughput-------\033[0m\n") ;
-        float adm_throughput = (data_size / 1024.0 / 1024 / 1024) / (adm_milliseconds / 1000.0f);  // 单位：字节每秒
-        printf("ADM Kernel throughput: %.2f GB/s\n", adm_throughput);
-    
-        printf("\033[0;34m-------Cmp Time-------\033[0m\n") ;
-        printf("Total Cmp Time: %.2f ms\n",adm_milliseconds);
-    }
-    else
-    {
-        printf("\033[0;36m=======>Use Thrust Prefix-sum<=======\033[1m\n") ;
-        //adm
-        cudaEventRecord(start);
-        map_values_kernel_thrust<<<gsize, bsize>>>(
-            d_data, d_codes, d_bit_signals, d_centers, d_signal_length, num_elements, shift);
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
-        float adm_milliseconds = 0;
-        cudaEventElapsedTime(&adm_milliseconds, start, stop);
-
-        // prefix-sum time
-        cudaEventRecord(start);
-
-        thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize, dev_output_lengths);  
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
-        float prefixsum_milliseconds = 0;
-        cudaEventElapsedTime(&prefixsum_milliseconds, start, stop);
-
-        //concat time
-        cudaEventRecord(start);
-        concat<<<gsize, bsize>>>(
-            d_bit_signals, d_signal_length, d_output_lengths, d_concatenated_signals, gsize, num_elements);
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
-        float concat_milliseconds = 0;
-        cudaEventElapsedTime(&concat_milliseconds, start, stop);
-
-        printf("\033[0;34m-------Cmp Throughput-------\033[0m\n") ;
-        float adm_throughput = (data_size / 1024.0 / 1024 / 1024) / (adm_milliseconds / 1000.0f);  // 单位：字节每秒
-        float prefixsum_throughput = (data_size / 1024.0 / 1024 / 1024) / (prefixsum_milliseconds / 1000.0f); 
-        float concat_throughput = (data_size / 1024.0 / 1024 / 1024) / (concat_milliseconds / 1000.0f); 
-        float total_cmp_throughput = (data_size / 1024.0 / 1024 / 1024) / ((adm_milliseconds + prefixsum_milliseconds + concat_milliseconds) / 1000.0f); 
-        printf("Total Cmp throughput: %.2f GB/s\n", total_cmp_throughput);
-        printf("ADM Kernel throughput: %.2f GB/s\n", adm_throughput);
-        printf("Prefix-sum Kernel throughput: %.2f GB/s\n", prefixsum_throughput);
-        printf("Concat Kernel throughput: %.2f GB/s\n", concat_throughput);
-    
-        printf("\033[0;34m-------Cmp Time-------\033[0m\n") ;
-        printf("Total Cmp Time: %.2f ms\n", (adm_milliseconds + prefixsum_milliseconds + concat_milliseconds));
-        printf("ADM cost %.2f ms\n",adm_milliseconds);
-        printf("Prefix-sum cost %.2f ms\n",prefixsum_milliseconds);
-        printf("Concat cost %.2f ms\n",concat_milliseconds);
-    }
-    
-
-    // 复制局部长度和sum长度到主机
-    int* h_signal_length = new int[gsize];
-    int* h_output_lengths = new int[gsize];
-    cudaMemcpy(h_signal_length, d_signal_length, gsize * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_output_lengths, d_output_lengths, gsize * sizeof(int), cudaMemcpyDeviceToHost);
-
-
-    // 计算总的输出大小
-    size_t bit_signals_size = (h_signal_length[gsize - 1] + h_output_lengths[gsize - 1]) * cmp_tblock_size * sizeof(uint8_t);
-
-    //merger into d_cmpdata
-    size_t output_lengths_size = gsize * sizeof(int);  // d_output_lengths
-    size_t centers_size = 0;
-    centers_size = gsize * sizeof(uint32_t);
-    size_t codes_size = num_elements * sizeof(uint8_t);           // d_codes
-
-    // 计算总大小
-    size_t total_size = output_lengths_size + centers_size + codes_size + bit_signals_size;
-
-    // 在设备上分配统一数组
-    cudaMalloc(&d_cmpdata, total_size);
-
-    // 计算子数组的指针位置
-    int* d_signal_length_ptr = reinterpret_cast<int*>(d_cmpdata);
-    void* d_centers_ptr = reinterpret_cast<uint8_t*>(d_cmpdata) + output_lengths_size;
-    uint8_t* d_codes_ptr = reinterpret_cast<uint8_t*>(reinterpret_cast<uint8_t*>(d_cmpdata) + output_lengths_size + centers_size);
-    uint8_t* d_bit_signals_ptr = reinterpret_cast<uint8_t*>(reinterpret_cast<uint8_t*>(d_cmpdata) + output_lengths_size + centers_size + codes_size);
-
-    // **将已有数据拷贝到 d_cmpdata**
-    cudaMemcpy(d_signal_length_ptr, d_output_lengths, output_lengths_size, cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_centers_ptr, d_centers, centers_size, cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_codes_ptr, d_codes, codes_size, cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_bit_signals_ptr, d_concatenated_signals, bit_signals_size, cudaMemcpyDeviceToDevice);
-
-    uint8_t* h_cmpdata = new uint8_t[total_size];
-
-    cudaMemcpy(static_cast<uint8_t*>(h_cmpdata), d_cmpdata, total_size * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-
-    // save
-    save_file(output_file, h_cmpdata, total_size);
-
-    
-    // ----------------Decmp------------------
-    // decmp kernel
-    int decmp_gsize = (num_elements + bsize * decmp_chunk - 1) / (bsize * decmp_chunk);
-    uint8_t* d_signals;
-    cudaMalloc(&d_signals, bsize * gsize * cmp_chunk * sizeof(uint8_t));
-    cudaEventRecord(start);
-    decompress<<<decmp_gsize, bsize>>>(d_decmpdata, d_centers, d_codes, d_output_lengths, d_concatenated_signals, d_signals, num_elements, h_signal_length[gsize - 1], gsize, shift);
-    cudaDeviceSynchronize();
-
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    float decmp_adm_milliseconds = 0;
-    cudaEventElapsedTime(&decmp_adm_milliseconds, start, stop);
-
-    printf("\033[0;34m-------Decmp Throughput-------\033[0m\n") ;
-    float decmp_throughput = (data_size / 1024.0 / 1024 / 1024) / (decmp_adm_milliseconds / 1000.0f); 
-    printf("Decmp throughput: %.2f GB/s\n", decmp_throughput);
-
-    printf("\033[0;34m-------Decmp Time-------\033[0m\n") ;
-    printf("Total Decmp Time: %.2f ms\n",(decmp_adm_milliseconds));
-
-    printf("\033[0;34m-------Data Size-------\033[0m\n");
-    printf("Original size: %d Bytes\n",data_size);
-    printf("Output size: %d Bytes\n",total_size);
-    printf("CR : %.2f x\n",data_size * 1.0 / total_size);
-    printf("Output Length size: %d Bytes\n",output_lengths_size);
-    printf("Centers size: %d Bytes\n",centers_size);
-    printf("Codes size: %d Bytes\n",codes_size);
-    printf("Bit-signal size: %d Bytes\n",bit_signals_size);
-
-    //verify lossless
-    uint32_t* decompressed_data = nullptr;
-
-    decompressed_data = new uint32_t[num_elements];
-    cudaMemcpy(decompressed_data, d_decmpdata, num_elements * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-    bool test = true;
-    uint32_t* original_data = h_data;         
-    for (int i = 0; i < num_elements; i++) {
-        if (decompressed_data[i] != original_data[i]) {
-            printf("\033[0;31mFail error check!\033[0m\n");
-            printf("\033[0;31mError: Data mismatch at index %d, original = %d, decompressed = %d\033[0m\n", 
-                    i, original_data[i], decompressed_data[i]);
-            test = false;
-            break;
-        }
-    }
-
-    if(test) printf("\033[0;32mPass error check!\033[0m\n");
-
-    // // 设定打印范围
-    // int debug_start_idx = 1723;   // 可以修改为任意起始索引
-    // int debug_end_idx = 1728;     // 需要检查的数据长度
-
-    // // 申请 host 端数组
-    // uint32_t* h_centers = new uint32_t[gsize];
-    // uint8_t* h_codes = new uint8_t[num_elements];
-    // uint8_t* h_signals = new uint8_t[num_elements];
-
-    // // 将数据从 GPU 复制到 CPU
-    // cudaMemcpy(h_centers, d_centers, gsize * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-    // cudaMemcpy(h_codes, d_codes, num_elements * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-    // cudaMemcpy(h_signals, d_signals, num_elements * sizeof(uint8_t), cudaMemcpyDeviceToHost);
-
-
-    // // 打印 Centers
-    // uint32_t* original_data = static_cast<uint32_t*>(h_data);
-
-    // printf("%d\n", h_centers[3]);
-    // // printf("%d\n", h_centers[1]);
-    // printf("==== datas (部分数据) ====\n");
-    // for (int i = debug_start_idx; i < debug_end_idx; i++) {  // 仅打印最多16个中心值
-    //     printf("[%d]: %d\n", i, original_data[i]);
-    // }
-    // printf("\n");
-
-    // // 打印 Codes
-    // printf("==== d_codes (部分数据) ====\n");
-    // for (int i = debug_start_idx; i < debug_end_idx; i++) {
-    //     printf("[%d]: %u\n", i, h_codes[i]);
-    // }
-    // printf("\n");
-
-    // // 打印 Signals
-    // printf("==== d_signals (部分数据) ====\n");
-    // for (int i = debug_start_idx; i < debug_end_idx; i++) {
-    //     printf("[%d]: %u\n", i, h_signals[i]);
-    // }
-    // printf("\n");
-
-    // // 释放 CPU 端内存
-    // delete[] h_centers;
-    // delete[] h_codes;
-    // delete[] h_signals;
-
-    // 清理内存
-    cudaFree(d_data);
-    cudaFree(d_decmpdata);
-    cudaFree(d_cmpdata);
     cudaFree(d_signal_length);
+    cudaFree(d_output_lengths);
     cudaFree(d_centers);
     cudaFree(d_codes);
-    cudaFree(d_bit_signals);
+    cudaFree(d_block_flags);
+    if (d_bit_signals) cudaFree(d_bit_signals);
     cudaFree(d_concatenated_signals);
-    cudaFree(d_output_lengths);
-
-    delete[] static_cast<uint8_t*>(h_cmpdata);
-    delete[] static_cast<uint32_t*>(h_data);
-    delete[] h_signal_length;
-    delete[] h_output_lengths;
-
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-    cudaStreamDestroy(stream);
-
-    printf("Memory has been successfully freed.\n");
-
-    return 0;
+    if (d_locOffset) cudaFree(d_locOffset);
+    if (d_prefix_state) cudaFree(d_prefix_state);
 }
+
+void decompress_u32_device(const std::uint8_t* d_input,
+                           std::size_t input_size,
+                           std::uint32_t* d_output,
+                           std::size_t num_elements,
+                           const mans::MansParams& params,
+                           cudaStream_t stream) {
+    (void)params;
+    if (!d_input && input_size != 0) {
+        throw std::runtime_error("decompress_u32_device: d_input is null");
+    }
+    if (!d_output && num_elements != 0) {
+        throw std::runtime_error("decompress_u32_device: d_output is null");
+    }
+    if (num_elements == 0) {
+        return;
+    }
+
+    const int shift = 1;
+    const int bsize = cmp_tblock_size;
+    const int gsize = static_cast<int>((num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk));
+    const std::size_t output_lengths_size = static_cast<std::size_t>(gsize) * sizeof(int);
+    const std::size_t centers_size = static_cast<std::size_t>(gsize) * sizeof(std::uint32_t);
+    const std::size_t flags_size = get_flags_size(gsize);
+    const std::size_t codes_size = num_elements * sizeof(std::uint8_t);
+    const std::size_t fixed_size = output_lengths_size + centers_size + flags_size + codes_size;
+    if (input_size < fixed_size) {
+        throw std::runtime_error("decompress_u32_device: truncated ADM payload");
+    }
+
+    std::vector<int> output_lengths(gsize);
+    check_cuda(cudaMemcpyAsync(output_lengths.data(), d_input, output_lengths_size, cudaMemcpyDeviceToHost, stream), "cudaMemcpyAsync payload offsets D2H");
+    check_cuda(cudaStreamSynchronize(stream), "payload offsets D2H sync");
+    const std::size_t bit_signals_size = input_size - fixed_size;
+    if (bit_signals_size % cmp_tblock_size != 0) {
+        throw std::runtime_error("decompress_u32_device: invalid bit-signal payload size");
+    }
+    const int last_length = static_cast<int>(bit_signals_size / cmp_tblock_size) - output_lengths.back();
+    if (last_length < 0) {
+        throw std::runtime_error("decompress_u32_device: invalid last signal length");
+    }
+
+    const std::uint8_t* centers_ptr = d_input + output_lengths_size;
+    const std::uint8_t* flags_ptr = centers_ptr + centers_size;
+    const std::uint8_t* codes_ptr = flags_ptr + flags_size;
+    const std::uint8_t* bit_signals_ptr = codes_ptr + codes_size;
+
+    int* d_output_lengths = nullptr;
+    std::uint32_t* d_centers = nullptr;
+    std::uint8_t* d_codes = nullptr;
+    std::uint8_t* d_concatenated_signals = nullptr;
+    std::uint32_t* d_decmpdata = nullptr;
+
+    cudaMalloc(reinterpret_cast<void**>(&d_output_lengths), output_lengths_size);
+    cudaMalloc(reinterpret_cast<void**>(&d_centers), centers_size);
+    cudaMalloc(reinterpret_cast<void**>(&d_codes), codes_size);
+    cudaMalloc(reinterpret_cast<void**>(&d_concatenated_signals), bit_signals_size);
+    cudaMalloc(reinterpret_cast<void**>(&d_decmpdata), num_elements * sizeof(std::uint32_t));
+
+    check_cuda(cudaMemcpyAsync(d_output_lengths, d_input, output_lengths_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync output_lengths D2D");
+    check_cuda(cudaMemcpyAsync(d_centers, centers_ptr, centers_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync centers D2D");
+    check_cuda(cudaMemcpyAsync(d_codes, codes_ptr, codes_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync codes D2D");
+    check_cuda(cudaMemcpyAsync(d_concatenated_signals, bit_signals_ptr, bit_signals_size, cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync bit_signals D2D");
+
+    const int decmp_gsize = static_cast<int>((num_elements + bsize * decmp_chunk - 1) / (bsize * decmp_chunk));
+    decompress<<<decmp_gsize, bsize, 0, stream>>>(
+        d_decmpdata,
+        d_centers,
+        d_codes,
+        d_output_lengths,
+        d_concatenated_signals,
+        nullptr,
+        static_cast<int>(num_elements),
+        last_length,
+        gsize,
+        shift);
+    check_cuda(cudaGetLastError(), "decompress launch");
+    check_cuda(cudaStreamSynchronize(stream), "decompress sync");
+    check_cuda(cudaMemcpyAsync(d_output, d_decmpdata, num_elements * sizeof(std::uint32_t), cudaMemcpyDeviceToDevice, stream), "cudaMemcpyAsync output D2D");
+    check_cuda(cudaStreamSynchronize(stream), "output D2D sync");
+
+    cudaFree(d_output_lengths);
+    cudaFree(d_centers);
+    cudaFree(d_codes);
+    cudaFree(d_concatenated_signals);
+    cudaFree(d_decmpdata);
+}
+
+std::size_t get_max_u32_payload_bytes(std::size_t num_elements,
+                                      const mans::MansParams& params) {
+    (void)params;
+    const std::size_t gsize = (num_elements + cmp_tblock_size * cmp_chunk - 1) / (cmp_tblock_size * cmp_chunk);
+    return gsize * sizeof(int) +
+           gsize * sizeof(std::uint32_t) +
+           get_flags_size(static_cast<int>(gsize)) +
+           num_elements * sizeof(std::uint8_t) +
+           num_elements * max_bytes_signal_per_ele_32b * sizeof(std::uint8_t);
+}
+
+} // namespace adm
+} // namespace nv
+} // namespace mans

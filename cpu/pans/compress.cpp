@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "pans_utils.h"
-#include "../file_utils.h" 
+#include "../../mans_utils.h" 
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
     
     std::vector<std::uint8_t> inputData;
-    if(!load_u8_file(inputFilePath, inputData)) {
+    if(!mans::load_u8_file(inputFilePath, inputData)) {
         std::cerr << "Failed to load input file: " << inputFilePath << std::endl;
         return 1;
     }
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     
     outputData.resize(actualCompressedSize);
 
-    if(!save_u8_file(outputFilePath, outputData)) {
+    if(!mans::save_u8_file(outputFilePath, outputData)) {
         std::cerr << "Failed to save output file: " << outputFilePath << std::endl;
         return 1;
     }

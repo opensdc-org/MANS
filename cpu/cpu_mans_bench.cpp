@@ -1,5 +1,5 @@
 #include "mans_cpu.h"
-#include "file_utils.h"
+#include "../mans_utils.h"
 #include "../mans_api.hpp"
 #include "../mans_defs.h"
 #include "../mans_timing.h"
@@ -24,7 +24,6 @@ namespace {
 struct RunStats {
     double comp_ms = 0.0;
     double decomp_ms = 0.0;
-    double comp_should_use_adm_ms = 0.0;
     double comp_adm_core_ms = 0.0;
     double comp_entropy_core_ms = 0.0;
     double decomp_entropy_core_ms = 0.0;
@@ -165,25 +164,13 @@ void apply_dims_override(mans::MansParams& params, const std::vector<std::uint32
 }
 
 void apply_thread_overrides(mans::MansParams& params, const std::vector<int>& threads) {
-    params.adm_decide_threads = threads[0];
-    params.adm_center_calc_threads = threads[1];
-    params.adm_encode_threads = threads[2];
-    params.adm_warp_reduce_threads = threads[3];
-    params.adm_fill_tail_threads = threads[4];
-    params.adm_write_back_threads = threads[5];
-    params.adm_restore_signals_threads = threads[6];
-    params.adm_decode_values_threads = threads[7];
+    params.adm_compress_thread = static_cast<std::uint32_t>(threads[0]);
+    params.adm_decompress_thread = static_cast<std::uint32_t>(threads[1]);
 }
 
 void apply_auto_thread_config(mans::MansParams& params, const mans::cpu::CsvThreadConfig& cfg) {
-    params.adm_decide_threads = cfg.adm_decide_threads;
-    params.adm_center_calc_threads = cfg.compress_threads;
-    params.adm_encode_threads = cfg.compress_threads;
-    params.adm_warp_reduce_threads = cfg.compress_threads;
-    params.adm_fill_tail_threads = cfg.compress_threads;
-    params.adm_write_back_threads = cfg.compress_threads;
-    params.adm_restore_signals_threads = cfg.decompress_threads;
-    params.adm_decode_values_threads = cfg.decompress_threads;
+    params.adm_compress_thread = cfg.compress_thread;
+    params.adm_decompress_thread = cfg.decompress_thread;
 }
 
 template <typename T>
@@ -309,13 +296,11 @@ int run_bench_for_type(const std::vector<T>& input,
             return 1;
         }
 
-        stats.comp_should_use_adm_ms = last_run_sum_ms({"mans/should_use_adm"});
         stats.comp_adm_core_ms = last_run_sum_ms({"mans/adm_encode_core"});
         stats.comp_entropy_core_ms = last_run_sum_ms({"mans/entropy_encode_core"});
         stats.decomp_entropy_core_ms = last_run_sum_ms({"mans/entropy_decode_core"});
         stats.decomp_adm_core_ms = last_run_sum_ms({"mans/adm_decode_core"});
-        stats.comp_ms = stats.comp_should_use_adm_ms +
-                        stats.comp_adm_core_ms +
+        stats.comp_ms = stats.comp_adm_core_ms +
                         stats.comp_entropy_core_ms;
         stats.decomp_ms = stats.decomp_entropy_core_ms +
                           stats.decomp_adm_core_ms;
@@ -373,7 +358,7 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: " << argv[0]
                   << " <-u2|-u4> <input.bin>"
                   << " [--mode p|r]"
-                  << " [--threshold 4000] [--threads 16,32,32,32,32,32,16,16]"
+                  << " [--threads 32,16]"
                   << " [--warmup 5] [--runs 10]"
                   << " --dims D d1 [d2] [d3]"
                   << " [--csv out.csv]"
@@ -388,7 +373,6 @@ int main(int argc, char** argv) {
     std::vector<std::uint32_t> dims_override;
     bool has_threads = false;
     std::uint32_t mode = mans::Mode::P;
-    uint32_t threshold = 4000;
     std::uint32_t warmup_iters = 5;
     std::uint32_t bench_iters = 10;
 
@@ -412,8 +396,6 @@ int main(int argc, char** argv) {
             has_threads = true;
         } else if (arg == "--csv" && i + 1 < argc) {
             csv_path = argv[++i];
-        } else if (arg == "--threshold" && i + 1 < argc) {
-            threshold = static_cast<uint32_t>(std::stoul(argv[++i]));
         } else if (arg == "--warmup" && i + 1 < argc) {
             std::string error;
             if (!parse_positive_u32(argv[++i], warmup_iters, error)) {
@@ -446,7 +428,6 @@ int main(int argc, char** argv) {
     std::cout << "  Input type: " << input_type << "\n";
     std::cout << "  Input file: " << input_path << "\n";
     std::cout << "  Mode: " << (mode == mans::Mode::R ? "r" : "p") << "\n";
-    std::cout << "  Threshold: " << threshold << "\n";
     std::cout << "  Warmup iterations: " << warmup_iters << "\n";
     std::cout << "  Benchmark iterations: " << bench_iters << "\n";
     std::cout << "  Dims: " << dims_override.size();
@@ -479,8 +460,8 @@ int main(int argc, char** argv) {
             std::cerr << error << "\n";
             return 1;
         }
-        if (thread_list.size() != 8) {
-            std::cerr << "--threads expects 8 values: decide,center,encode,warp_reduce,"
+        if (thread_list.size() != 2) {
+            std::cerr << "--threads expects 2 values: compress,decompress"
                       << "fill_tail,write_back,restore_signals,decode_values\n";
             return 1;
         }
@@ -507,7 +488,7 @@ int main(int argc, char** argv) {
 
     if (is_u2) {
         std::vector<std::uint16_t> input;
-        if (!load_u16_file(input_path, input)) {
+        if (!mans::load_u16_file(input_path, input)) {
             std::cerr << "Failed to load input file: " << input_path << "\n";
             return 1;
         }
@@ -521,7 +502,6 @@ int main(int argc, char** argv) {
         params.backend = mans::Backend::CPU;
         params.dtype = mans::DataType::U16;
         params.mode = mode;
-        params.adm_threshold = threshold;
         if (has_threads) {
             apply_thread_overrides(params, thread_list);
         }
@@ -547,7 +527,7 @@ int main(int argc, char** argv) {
                                                  bench_iters);
     } else {
         std::vector<std::uint32_t> input;
-        if (!load_u32_file(input_path, input)) {
+        if (!mans::load_u32_file(input_path, input)) {
             std::cerr << "Failed to load input file: " << input_path << "\n";
             return 1;
         }
@@ -561,7 +541,6 @@ int main(int argc, char** argv) {
         params.backend = mans::Backend::CPU;
         params.dtype = mans::DataType::U32;
         params.mode = mode;
-        params.adm_threshold = threshold;
         if (has_threads) {
             apply_thread_overrides(params, thread_list);
         }

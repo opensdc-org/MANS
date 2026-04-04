@@ -7,8 +7,8 @@
 #include <hdf5.h>
 #include <mpi.h>
 #include "mans_defs.h"
+#include "H5Z-MANS_filter_ids.h"
 
-#define FILTER_ID_MANS_ORIGINAL 32003
 #define CHECK_H5(x) do { if ((x) < 0) { std::fprintf(stderr, "HDF5 failed: %s\n", #x); std::exit(1); } } while (0)
 
 int main(int argc, char** argv) {
@@ -83,10 +83,8 @@ int main(int argc, char** argv) {
     stage("building HDF5 dataset");
     mans::MansParams p{};
     p.mode=mans::Mode::R;
-    p.backend = mans::Backend::CPU; p.dtype = mans::DataType::U16; p.adm_threshold = 4000;
-    p.adm_decide_threads = 16; p.adm_center_calc_threads = 32; p.adm_encode_threads = 32;
-    p.adm_warp_reduce_threads = 32; p.adm_fill_tail_threads = 16; p.adm_write_back_threads = 16;
-    p.adm_restore_signals_threads = 32; p.adm_decode_values_threads = 16;
+    p.backend = mans::Backend::CPU; p.dtype = mans::DataType::U16;
+    p.adm_compress_thread = 32; p.adm_decompress_thread = 16;
     std::vector<unsigned int> cd(sizeof(p) / sizeof(unsigned int), 0);
     std::memcpy(cd.data(), &p, sizeof(p));
 
@@ -104,7 +102,7 @@ int main(int argc, char** argv) {
     hid_t space = H5Screate_simple(1, dims, nullptr);
     hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
     CHECK_H5(H5Pset_chunk(dcpl, 1, chunk));
-    CHECK_H5(H5Pset_filter(dcpl, FILTER_ID_MANS_ORIGINAL, 0, cd.size(), cd.data()));
+    CHECK_H5(H5Pset_filter(dcpl, H5Z_FILTER_MANS_ORIGINAL_ID, 0, cd.size(), cd.data()));
     hid_t dset = H5Dcreate2(file, "data", H5T_NATIVE_USHORT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     H5Pclose(dcpl);
 

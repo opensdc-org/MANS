@@ -1,90 +1,167 @@
 // compiler: g++ -std=c++17 -mavx512f -fopenmp -march=native -O3 decompress.cpp -o decompress
-// exec   : OMP_NUM_THREADS=4 ./decompress u2 input.bin output.u2
-//          OMP_NUM_THREADS=4 ./decompress u4 input.bin output.u4
+// exec: OMP_NUM_THREADS=4 ./decompress -u2 input.bin output.u2 --dims 32768
+//       OMP_NUM_THREADS=4 ./decompress -u4 input.bin output.u4 --dims 256 256
 
-// cpuadm_decompress.cpp
-#include <iostream>
-#include <vector>
+#include <cerrno>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <limits>
 #include <string>
-#include <cstring> 
-#include "adm.h" 
-#include "adm_utils.h" 
-#include "../file_utils.h"
+#include <vector>
+
+#include "adm.h"
+#include "adm_utils.h"
+#include "../../mans_utils.h"
+
+namespace {
+
+void print_usage(const char* argv0) {
+    std::cerr << "Usage: " << argv0
+              << " <-u2|-u4> <input_bin_file> <output_file> --dims x [y z]\n";
+}
+
+bool parse_positive_u32(const char* text, std::uint32_t& out) {
+    if (!text || *text == '\0') {
+        return false;
+    }
+    char* end = nullptr;
+    errno = 0;
+    unsigned long long value = std::strtoull(text, &end, 10);
+    if (errno != 0 || end == nullptr || *end != '\0' || value == 0 ||
+        value > static_cast<unsigned long long>(std::numeric_limits<std::uint32_t>::max())) {
+        return false;
+    }
+    out = static_cast<std::uint32_t>(value);
+    return true;
+}
+
+bool dims_product(const std::vector<std::uint32_t>& dims, std::size_t& out) {
+    out = 1;
+    for (std::uint32_t dim : dims) {
+        if (dim == 0) {
+            return false;
+        }
+        if (out > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dim)) {
+            return false;
+        }
+        out *= static_cast<std::size_t>(dim);
+    }
+    return true;
+}
+
+template <typename T>
+bool run_decompress(const std::vector<std::uint8_t>& merged,
+                    const std::string& output_file,
+                    const std::vector<std::uint32_t>& dims,
+                    mans::MansParams params,
+                    std::size_t num_elements) {
+    std::size_t total_elements = 0;
+    if (!dims_product(dims, total_elements)) {
+        std::cerr << "Invalid --dims values.\n";
+        return false;
+    }
+    if (total_elements != num_elements) {
+        std::cerr << "--dims element count mismatch: dims_elems=" << total_elements
+                  << " file_elems=" << num_elements << "\n";
+        return false;
+    }
+
+    params.dims = static_cast<std::uint32_t>(dims.size());
+    params.nx = dims[0];
+    params.ny = dims.size() >= 2 ? dims[1] : 0;
+    params.nz = dims.size() >= 3 ? dims[2] : 0;
+
+    std::vector<T> recovered(num_elements);
+    adm_decompress_and_benchmark<T>(
+        merged.data(),
+        merged.size(),
+        recovered.data(),
+        num_elements,
+        params
+    );
+
+    if constexpr (std::is_same_v<T, std::uint16_t>) {
+        if (!mans::save_u16_file(output_file, recovered)) {
+            std::cerr << "Failed to write output file: " << output_file << "\n";
+            return false;
+        }
+    } else {
+        if (!mans::save_u32_file(output_file, recovered)) {
+            std::cerr << "Failed to write output file: " << output_file << "\n";
+            return false;
+        }
+    }
+
+    std::cout << "Decompress finished! Write to " << output_file << "\n";
+    return true;
+}
+
+} // namespace
 
 int main(int argc, char** argv) {
-    if (argc < 4) {
-        std::cerr << "Use: " << argv[0]
-                  << " <-u2|-u4> <input_bin_file> <output_u2/u4_file>\n";
+    if (argc < 6) {
+        print_usage(argv[0]);
         return 1;
     }
 
-    std::string input_type  = argv[1];
-    std::string input_file  = argv[2];
-    std::string output_file = argv[3];
-
-    bool is_u2 = (input_type == "-u2" || input_type == "u2");
-    bool is_u4 = (input_type == "-u4" || input_type == "u4");
-
+    const std::string dtype_flag = argv[1];
+    const bool is_u2 = (dtype_flag == "-u2" || dtype_flag == "u2");
+    const bool is_u4 = (dtype_flag == "-u4" || dtype_flag == "u4");
     if (!is_u2 && !is_u4) {
-        std::cerr << "Unknown data type flag: " << input_type
-                  << "\nUse: -u2 or -u4\n";
+        print_usage(argv[0]);
+        return 1;
+    }
+
+    const std::string input_file = argv[2];
+    const std::string output_file = argv[3];
+
+    std::vector<std::uint32_t> dims;
+    for (int i = 4; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--dims") == 0) {
+            int consumed = 0;
+            while (i + 1 < argc && std::strncmp(argv[i + 1], "--", 2) != 0) {
+                std::uint32_t dim = 0;
+                if (!parse_positive_u32(argv[i + 1], dim)) {
+                    std::cerr << "Invalid dim value: " << argv[i + 1] << "\n";
+                    return 1;
+                }
+                dims.push_back(dim);
+                ++i;
+                ++consumed;
+            }
+            if (consumed == 0 || dims.size() > 3) {
+                std::cerr << "Use --dims x [y z].\n";
+                return 1;
+            }
+        } else {
+            std::cerr << "Unknown argument: " << argv[i] << "\n";
+            print_usage(argv[0]);
+            return 1;
+        }
+    }
+
+    if (dims.empty()) {
+        std::cerr << "--dims is required.\n";
         return 1;
     }
 
     std::vector<std::uint8_t> merged;
-    if (!load_u8_file(input_file, merged)) {
+    if (!mans::load_u8_file(input_file, merged)) {
         std::cerr << "Failed to load input file: " << input_file << "\n";
         return 1;
     }
-
-    if (merged.size() < sizeof(adm::FileHeader)) {
-        std::cerr << "Error: File too small or invalid format.\n";
+    std::size_t num_elements = 0;
+    if (!dims_product(dims, num_elements)) {
+        std::cerr << "Invalid --dims values.\n";
         return 1;
     }
+
     mans::MansParams params{};
-    adm::FileHeader header;
-    std::memcpy(&header, merged.data(), sizeof(header));
-    std::size_t num_elements = static_cast<std::size_t>(header.num_elements);
-    try {
-        if (is_u2) {
-            std::vector<std::uint16_t> recovered(num_elements);
-            
-            
-            adm_decompress_and_benchmark<std::uint16_t>(
-                merged.data(), 
-                merged.size(), 
-                recovered.data(),
-                num_elements,
-                params
-            );
-            
-            if (!save_u16_file(output_file, recovered)) {
-                std::cerr << "Failed to write output file: " << output_file << "\n";
-                return 1;
-            }
-        } else {
-            std::vector<std::uint32_t> recovered(num_elements);
-            adm_decompress_and_benchmark<std::uint32_t>(
-                merged.data(), 
-                merged.size(), 
-                recovered.data(),
-                num_elements,
-                params
-            );
-            
-            if (!save_u32_file(output_file, recovered)) {
-                std::cerr << "Failed to write output file: " << output_file << "\n";
-                return 1;
-            }
-        }
 
-        std::cout << "Decompress finished! Write to " << output_file << "\n";
-
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
-        return 1;
+    if (is_u2) {
+        return run_decompress<std::uint16_t>(merged, output_file, dims, params, num_elements) ? 0 : 1;
     }
-
-    return 0;
+    return run_decompress<std::uint32_t>(merged, output_file, dims, params, num_elements) ? 0 : 1;
 }

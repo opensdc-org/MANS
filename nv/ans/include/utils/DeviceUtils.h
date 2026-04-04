@@ -172,7 +172,7 @@ class CudaStream {
 
 /// Call for a collection of streams to wait on
 template <typename L1, typename L2>
-void streamWaitBase(const L1& listWaiting, const L2& listWaitOn) {
+inline void streamWaitBase(const L1& listWaiting, const L2& listWaitOn) {
   // For all the streams we are waiting on, create an event
   std::vector<cudaEvent_t> events;
   for (auto& stream : listWaitOn) {
@@ -197,12 +197,12 @@ void streamWaitBase(const L1& listWaiting, const L2& listWaitOn) {
 /// These versions allow usage of initializer_list as arguments, since
 /// otherwise {...} doesn't have a type
 template <typename L1>
-void streamWait(const L1& a, const std::initializer_list<cudaStream_t>& b) {
+inline void streamWait(const L1& a, const std::initializer_list<cudaStream_t>& b) {
   streamWaitBase(a, b);
 }
 
 template <typename L2>
-void streamWait(const std::initializer_list<cudaStream_t>& a, const L2& b) {
+inline void streamWait(const std::initializer_list<cudaStream_t>& a, const L2& b) {
   streamWaitBase(a, b);
 }
 
@@ -212,26 +212,26 @@ inline void streamWait(
   streamWaitBase(a, b);
 }
 
-std::string errorToString(cudaError_t err) {
+inline std::string errorToString(cudaError_t err) {
   return std::string(cudaGetErrorString(err));
 }
 
-std::string errorToName(cudaError_t err) {
+inline std::string errorToName(cudaError_t err) {
   return std::string(cudaGetErrorName(err));
 }
 
-int getCurrentDevice() {
+inline int getCurrentDevice() {
   int dev = -1;
   CUDA_VERIFY(cudaGetDevice(&dev));
 
   return dev;
 }
 
-void setCurrentDevice(int device) {
+inline void setCurrentDevice(int device) {
   CUDA_VERIFY(cudaSetDevice(device));
 }
 
-int getNumDevices() {
+inline int getNumDevices() {
   int numDev = -1;
   cudaError_t err = cudaGetDeviceCount(&numDev);
   if (cudaErrorNoDevice == err) {
@@ -243,15 +243,15 @@ int getNumDevices() {
   return numDev;
 }
 
-void profilerStart() {
+inline void profilerStart() {
   CUDA_VERIFY(cudaProfilerStart());
 }
 
-void profilerStop() {
+inline void profilerStop() {
   CUDA_VERIFY(cudaProfilerStop());
 }
 
-void synchronizeAllDevices() {
+inline void synchronizeAllDevices() {
   for (int i = 0; i < getNumDevices(); ++i) {
     DeviceScope scope(i);
 
@@ -259,7 +259,7 @@ void synchronizeAllDevices() {
   }
 }
 
-const cudaDeviceProp& getDeviceProperties(int device) {
+inline const cudaDeviceProp& getDeviceProperties(int device) {
   static std::mutex mutex;
   static std::unordered_map<int, cudaDeviceProp> properties;
 
@@ -277,27 +277,27 @@ const cudaDeviceProp& getDeviceProperties(int device) {
   return it->second;
 }
 
-const cudaDeviceProp& getCurrentDeviceProperties() {
+inline const cudaDeviceProp& getCurrentDeviceProperties() {
   return getDeviceProperties(getCurrentDevice());
 }
 
-int getMaxThreads(int device) {
+inline int getMaxThreads(int device) {
   return getDeviceProperties(device).maxThreadsPerBlock;
 }
 
-int getMaxThreadsCurrentDevice() {
+inline int getMaxThreadsCurrentDevice() {
   return getMaxThreads(getCurrentDevice());
 }
 
-size_t getMaxSharedMemPerBlock(int device) {
+inline size_t getMaxSharedMemPerBlock(int device) {
   return getDeviceProperties(device).sharedMemPerBlock;
 }
 
-size_t getMaxSharedMemPerBlockCurrentDevice() {
+inline size_t getMaxSharedMemPerBlockCurrentDevice() {
   return getMaxSharedMemPerBlock(getCurrentDevice());
 }
 
-int getDeviceForAddress(const void* p) {
+inline int getDeviceForAddress(const void* p) {
   if (!p) {
     return -1;
   }
@@ -329,16 +329,16 @@ int getDeviceForAddress(const void* p) {
 #endif
 }
 
-bool getFullUnifiedMemSupport(int device) {
+inline bool getFullUnifiedMemSupport(int device) {
   const auto& prop = getDeviceProperties(device);
   return (prop.major >= 6);
 }
 
-bool getFullUnifiedMemSupportCurrentDevice() {
+inline bool getFullUnifiedMemSupportCurrentDevice() {
   return getFullUnifiedMemSupport(getCurrentDevice());
 }
 
-DeviceScope::DeviceScope(int device) {
+inline DeviceScope::DeviceScope(int device) {
   if (device >= 0) {
     int curDevice = getCurrentDevice();
 
@@ -353,45 +353,45 @@ DeviceScope::DeviceScope(int device) {
   prevDevice_ = -1;
 }
 
-DeviceScope::~DeviceScope() {
+inline DeviceScope::~DeviceScope() {
   if (prevDevice_ != -1) {
     setCurrentDevice(prevDevice_);
   }
 }
 
-CudaEvent::CudaEvent(cudaStream_t stream, bool timer) : event_(nullptr) {
+inline CudaEvent::CudaEvent(cudaStream_t stream, bool timer) : event_(nullptr) {
   CUDA_VERIFY(cudaEventCreateWithFlags(
       &event_, timer ? cudaEventDefault : cudaEventDisableTiming));
   CUDA_VERIFY(cudaEventRecord(event_, stream));
 }
 
-CudaEvent::CudaEvent(CudaEvent&& event) noexcept
+inline CudaEvent::CudaEvent(CudaEvent&& event) noexcept
     : event_(std::move(event.event_)) {
   event.event_ = nullptr;
 }
 
-CudaEvent::~CudaEvent() {
+inline CudaEvent::~CudaEvent() {
   if (event_) {
     CUDA_VERIFY(cudaEventDestroy(event_));
   }
 }
 
-CudaEvent& CudaEvent::operator=(CudaEvent&& event) noexcept {
+inline CudaEvent& CudaEvent::operator=(CudaEvent&& event) noexcept {
   event_ = std::move(event.event_);
   event.event_ = nullptr;
 
   return *this;
 }
 
-void CudaEvent::streamWaitOnEvent(cudaStream_t stream) {
+inline void CudaEvent::streamWaitOnEvent(cudaStream_t stream) {
   CUDA_VERIFY(cudaStreamWaitEvent(stream, event_, 0));
 }
 
-void CudaEvent::cpuWaitOnEvent() {
+inline void CudaEvent::cpuWaitOnEvent() {
   CUDA_VERIFY(cudaEventSynchronize(event_));
 }
 
-float CudaEvent::timeFrom(CudaEvent& from) {
+inline float CudaEvent::timeFrom(CudaEvent& from) {
   cpuWaitOnEvent();
   float ms = 0;
   CUDA_VERIFY(cudaEventElapsedTime(&ms, from.event_, event_));
@@ -399,33 +399,33 @@ float CudaEvent::timeFrom(CudaEvent& from) {
   return ms;
 }
 
-CudaStream::CudaStream(int flags) : stream_(nullptr) {
+inline CudaStream::CudaStream(int flags) : stream_(nullptr) {
   CUDA_VERIFY(cudaStreamCreateWithFlags(&stream_, flags));
 }
 
-CudaStream::CudaStream(CudaStream&& stream) noexcept
+inline CudaStream::CudaStream(CudaStream&& stream) noexcept
     : stream_(std::move(stream.stream_)) {
   stream.stream_ = nullptr;
 }
 
-CudaStream::~CudaStream() {
+inline CudaStream::~CudaStream() {
   if (stream_) {
     CUDA_VERIFY(cudaStreamDestroy(stream_));
   }
 }
 
-CudaStream& CudaStream::operator=(CudaStream&& stream) noexcept {
+inline CudaStream& CudaStream::operator=(CudaStream&& stream) noexcept {
   stream_ = std::move(stream.stream_);
   stream.stream_ = nullptr;
 
   return *this;
 }
 
-CudaStream CudaStream::make() {
+inline CudaStream CudaStream::make() {
   return CudaStream();
 }
 
-CudaStream CudaStream::makeNonBlocking() {
+inline CudaStream CudaStream::makeNonBlocking() {
   return CudaStream(cudaStreamNonBlocking);
 }
 

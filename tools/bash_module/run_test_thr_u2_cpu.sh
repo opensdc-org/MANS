@@ -19,13 +19,13 @@ run() {
 
                     file_path="$TEST_DIR_u2/$dir/$file"
                     file_size=$(stat -c%s "$file_path")
+                    num_ele=$(echo "$file_size / 2" | bc)
                     file_KB=$(echo "$file_size / 1024" | bc)
                     echo "SIZE: $file_KB KB" >> $output_file
 
                     # Step 1: 16bit huffman 压缩
                     # Skip SZ-Huffman throughput test for files in "exafel" directory
                     if [[ "$dir" != "exafel" ]]; then
-                        num_ele=$(echo "$file_size / 2" | bc)
                         python3 -c "
 import numpy as np
 input_file = '$file_path'
@@ -75,8 +75,8 @@ data.tofile(output_file)
 
                     # Step 4: MANS -r 处理
                     adm_output_path="$file_path.adm"
-                    $ADM16_cpu "$file_path" "$adm_output_path"
-                    adm_output=$(nice -n 20 $ADM16_cpu "$file_path" "$adm_output_path")
+                    $ADM16_cpu -u2 "$file_path" "$adm_output_path" --dims 1 "$num_ele"
+                    adm_output=$(nice -n 20 $ADM16_cpu -u2 "$file_path" "$adm_output_path" --dims 1 "$num_ele")
                     adm_cmp_time=$(echo "$adm_output" | grep "compress cost" | awk 'NR==1 {print $3}')
                     adm_decmp_time=$(echo "$adm_output" | grep "decompress cost" | awk '{print $3}')
                     $FSE -f "$adm_output_path"

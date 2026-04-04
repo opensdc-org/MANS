@@ -75,7 +75,7 @@ normalize_threads_spec() {
 }
 
 NPROC_THREADS="${NPROC_THREADS:-$(get_cpu_threads)}"
-THREAD_STAGE_COUNT="${THREAD_STAGE_COUNT:-8}"
+THREAD_STAGE_COUNT="${THREAD_STAGE_COUNT:-2}"
 MANUAL_THREADS_SPEC="${MANUAL_THREADS_SPEC:-$(build_threads_spec "${NPROC_THREADS}" "${THREAD_STAGE_COUNT}")}"
 MANUAL_THREADS_SPEC="$(normalize_threads_spec "${MANUAL_THREADS_SPEC}" "${THREAD_STAGE_COUNT}")"
 MANUAL_RUN_TAG="manual_threads_nproc${NPROC_THREADS}"
@@ -138,7 +138,7 @@ run_bench_case() {
     tmp_log="$(mktemp /tmp/cpu_mans_bench_uall.XXXXXX.log)"
     algo_tag="${ALGO}_${run_tag}"
 
-    local -a cmd=("${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --chunks "${CHUNKS_MB}" --threshold "${THRESHOLD}" --csv "${tmp_csv}")
+    local -a cmd=("${BENCH_BIN}" "${input_type}" "${dataset_file}" --mode "${MODE}" --chunks "${CHUNKS_MB}" --csv "${tmp_csv}")
     if [[ -n "${threads_spec}" ]]; then
         cmd+=(--threads "${threads_spec}")
     fi

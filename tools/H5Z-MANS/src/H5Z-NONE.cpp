@@ -1,15 +1,14 @@
 #include <H5PLextern.h>
 #include <hdf5.h>
 
+#include "H5Z-MANS_filter_ids.h"
+
 #include <cstdlib>
 #include <cstring>
 
 // =========================================================
 // H5Z-NONE: pass-through filter (no compression/decompression)
 // =========================================================
-
-// Define a unique Filter ID
-#define H5Z_FILTER_NONE_ID 32002
 
 static htri_t H5Z_can_apply_none(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {

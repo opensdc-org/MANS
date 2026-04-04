@@ -16,9 +16,8 @@ namespace cpu {
 // =========================================================
 struct CsvThreadConfig {
     std::size_t chunk_elements = 0;
-    uint32_t adm_decide_threads = 0;
-    uint32_t compress_threads = 0;
-    uint32_t decompress_threads = 0;
+    uint32_t compress_thread = 0;
+    uint32_t decompress_thread = 0;
     uint32_t dims = 1;
 };
 
@@ -45,32 +44,23 @@ inline bool load_thread_csv(const std::string& path,
             }
         }
         std::stringstream ss(line);
-        std::string chunk_str;
-        std::string decide_str;
-        std::string comp_str;
-        std::string decomp_str;
-        std::string dims_str;
-        if (!std::getline(ss, chunk_str, ',')) {
+        std::vector<std::string> cols;
+        std::string col;
+        while (std::getline(ss, col, ',')) {
+            cols.push_back(col);
+        }
+        if (cols.size() != 4 && cols.size() != 5) {
             continue;
         }
-        if (!std::getline(ss, decide_str, ',')) {
-            continue;
-        }
-        if (!std::getline(ss, comp_str, ',')) {
-            continue;
-        }
-        if (!std::getline(ss, decomp_str, ',')) {
-            continue;
-        }
-        if (!std::getline(ss, dims_str, ',')) {
-            continue;
-        }
+        const std::string& chunk_str = cols[0];
+        const std::string& comp_str = (cols.size() == 4) ? cols[1] : cols[2];
+        const std::string& decomp_str = (cols.size() == 4) ? cols[2] : cols[3];
+        const std::string& dims_str = (cols.size() == 4) ? cols[3] : cols[4];
         CsvThreadConfig cfg{};
         try {
             cfg.chunk_elements = static_cast<std::size_t>(std::stoull(chunk_str));
-            cfg.adm_decide_threads = static_cast<uint32_t>(std::stoul(decide_str));
-            cfg.compress_threads = static_cast<uint32_t>(std::stoul(comp_str));
-            cfg.decompress_threads = static_cast<uint32_t>(std::stoul(decomp_str));
+            cfg.compress_thread = static_cast<uint32_t>(std::stoul(comp_str));
+            cfg.decompress_thread = static_cast<uint32_t>(std::stoul(decomp_str));
             cfg.dims = static_cast<uint32_t>(std::stoul(dims_str));
         } catch (...) {
             continue;
@@ -135,6 +125,17 @@ void decompress_internal(
     std::size_t& out_size,
     bool save_adm,
     const std::string& dump_path
+);
+
+std::size_t get_max_compress_bytes(
+    std::size_t num_elements,
+    const MansParams& params
+);
+
+std::size_t get_exact_decompress_bytes(
+    const void* compressed_data,
+    std::size_t compressed_len,
+    const MansParams& params
 );
 
 }

@@ -51,8 +51,9 @@ run() {
                     
                     # Step 4: ADM
                     adm_output_path="$file_path.adm"
-                    $ADM32_nv "$file_path" "$adm_output_path"
-                    adm_output=$($ADM32_nv "$file_path" "$adm_output_path")
+                    num_ele=$(echo "$file_size / 4" | bc)
+                    $ADM32_nv -u4 "$file_path" "$adm_output_path" --dims 1 "$num_ele"
+                    adm_output=$($ADM32_nv -u4 "$file_path" "$adm_output_path" --dims 1 "$num_ele")
                     adm_cmp_time=$(echo "$adm_output" | grep "Total Cmp Time: " | awk 'NR==1 {print $4}')
                     adm_decmp_time=$(echo "$adm_output" | grep "Total Decmp Time:" | awk '{print $4}')
                     ans_output=$($PANS_CMP_nv "$adm_output_path" "$adm_output_path.tmp")

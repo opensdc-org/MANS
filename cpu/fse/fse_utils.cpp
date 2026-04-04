@@ -1,6 +1,7 @@
 #include "fse_utils.h"
 
 #include "../buffer_cache.h"
+#include "../../mans_utils.h"
 #include "../../mans_timing.h"
 
 #include <chrono>
@@ -19,18 +20,6 @@ namespace {
 constexpr std::size_t kFrameHeaderSize = 20;  // magic(4) + blockSize(4) + rawSize(8) + blockCount(4)
 constexpr std::size_t kBlockHeaderSize = 9;   // mode(1) + rawSize(4) + storedSize(4)
 constexpr std::uint32_t kFrameBlockSize = 32U * 1024U;
-
-inline std::uint32_t read_le32(const std::uint8_t* p) {
-    return static_cast<std::uint32_t>(p[0]) |
-           (static_cast<std::uint32_t>(p[1]) << 8) |
-           (static_cast<std::uint32_t>(p[2]) << 16) |
-           (static_cast<std::uint32_t>(p[3]) << 24);
-}
-
-inline std::uint64_t read_le64(const std::uint8_t* p) {
-    return static_cast<std::uint64_t>(read_le32(p)) |
-           (static_cast<std::uint64_t>(read_le32(p + 4)) << 32);
-}
 
 bool parse_fse_frame(const std::uint8_t* compressed_data,
                      std::size_t compressed_len,
@@ -60,19 +49,19 @@ bool parse_fse_frame(const std::uint8_t* compressed_data,
         return false;
     }
 
-    const std::uint32_t block_size = read_le32(compressed_data + 4);
+    const std::uint32_t block_size = mans::read_le32(compressed_data + 4);
     if (block_size != kFrameBlockSize) {
         set_error("unexpected FSE block size");
         return false;
     }
 
-    const std::uint64_t raw_size_u64 = read_le64(compressed_data + 8);
+    const std::uint64_t raw_size_u64 = mans::read_le64(compressed_data + 8);
     if (raw_size_u64 > static_cast<std::uint64_t>(std::numeric_limits<std::size_t>::max())) {
         set_error("raw size overflows size_t");
         return false;
     }
     const std::size_t raw_size = static_cast<std::size_t>(raw_size_u64);
-    const std::uint32_t block_count = read_le32(compressed_data + 16);
+    const std::uint32_t block_count = mans::read_le32(compressed_data + 16);
 
     std::size_t offset = kFrameHeaderSize;
     std::size_t raw_acc = 0;
@@ -83,8 +72,8 @@ bool parse_fse_frame(const std::uint8_t* compressed_data,
         }
 
         const std::uint8_t mode = compressed_data[offset];
-        const std::uint32_t block_raw = read_le32(compressed_data + offset + 1);
-        const std::uint32_t block_stored = read_le32(compressed_data + offset + 5);
+        const std::uint32_t block_raw = mans::read_le32(compressed_data + offset + 1);
+        const std::uint32_t block_stored = mans::read_le32(compressed_data + offset + 5);
         offset += kBlockHeaderSize;
 
         if (mode > 2) {

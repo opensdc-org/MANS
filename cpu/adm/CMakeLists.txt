@@ -34,19 +34,3 @@ target_compile_options(adm_decompress PRIVATE
 )
 target_link_libraries(adm_decompress PRIVATE OpenMP::OpenMP_CXX)
 
-add_executable(adm_bench_chunked
-  bench_chunked.cpp
-  adm_utils.cpp
-)
-set_target_properties(adm_bench_chunked PROPERTIES
-  OUTPUT_NAME adm_bench_chunked
-  RUNTIME_OUTPUT_DIRECTORY ${CPU_ADM_BINARY_DIR}
-)
-target_compile_definitions(adm_bench_chunked PRIVATE
-  $<$<BOOL:${ADM_TIMING}>:ADM_TIMING>
-)
-target_compile_options(adm_bench_chunked PRIVATE
-  -mavx512f -march=native
-  $<$<CONFIG:Release>:-O3>
-)
-target_link_libraries(adm_bench_chunked PRIVATE OpenMP::OpenMP_CXX)

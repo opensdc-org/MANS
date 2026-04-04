@@ -23,7 +23,6 @@ struct GenOptions {
 
     std::optional<double> size_per_rank_mb_override;
     std::optional<double> ratio_constant_override;
-    std::optional<std::uint32_t> adm_threshold_override;
     std::optional<std::uint32_t> dtype_override;
     std::optional<std::size_t> ranks_override;
     std::optional<std::size_t> jobs_override;
@@ -35,7 +34,7 @@ static void print_usage(const char* prog) {
         << "Usage:\n  " << prog
         << " [--config gen.cfg] [--output-name name.bin] [--output-dir DIR] [--output-prefix NAME]\n"
            "         [--synth-config synth.cfg] [--size-per-rank-mb MB] [--ranks N] [--jobs N]\n"
-           "         [--ratio-constant R] [--dtype u16|u32] [--adm-threshold N]\n";
+           "         [--ratio-constant R] [--dtype u16|u32]\n";
 }
 
 static std::uint32_t parse_dtype(std::string_view s) {
@@ -98,11 +97,6 @@ static std::optional<GenOptions> parse_args(int argc, char** argv) {
         }
         if (arg == "--dtype") {
             opts.dtype_override = parse_dtype(need_value("--dtype"));
-            continue;
-        }
-        if (arg == "--adm-threshold") {
-            opts.adm_threshold_override = static_cast<std::uint32_t>(
-                std::stoul(need_value("--adm-threshold")));
             continue;
         }
         if (arg == "--help" || arg == "-h") {
@@ -247,12 +241,9 @@ int main(int argc, char** argv) {
     if (opts.dtype_override.has_value()) {
         dtype = *opts.dtype_override;
     }
-    if (opts.adm_threshold_override.has_value()) {
-        adm_threshold = *opts.adm_threshold_override;
-    }
 
     if (use_builtin_defaults) {
-        // Keep default synthetic output ADM-friendly for decide_use_adm().
+        // Keep default synthetic output ADM-friendly for the built-in ADM threshold.
         gen_cfg.synth.ratio_smooth = 1.0;
         gen_cfg.synth.ratio_spike = 0.0;
         gen_cfg.synth.ratio_constant = 0.0;

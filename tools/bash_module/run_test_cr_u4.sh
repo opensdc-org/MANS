@@ -58,7 +58,7 @@ run() {
 
                     # Step 5: MANS -R 
                     adm_output_path="$file_path.adm"
-                    $ADM32_cpu "$file_path" "$adm_output_path"
+                    $ADM32_cpu -u4 "$file_path" "$adm_output_path" --dims 1 "$num_ele"
                     $FSE -f "$adm_output_path"
                     adm_fse_size=$(stat -c%s "$adm_output_path.fse")
                     adm_fse_cr=$(echo "scale=3; $file_size / $adm_fse_size" | bc)
