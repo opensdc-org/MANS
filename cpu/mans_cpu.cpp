@@ -135,15 +135,14 @@ void do_compress_t(
             return;
         }
 
-        MansHeader header{};
-        header.codec = codec_code;
-        header.mode = static_cast<std::uint8_t>(mode);
-        header.dims = static_cast<std::uint8_t>(params.dims);
-        mans::write_le64(header.raw_bytes_le, static_cast<std::uint64_t>(raw_bytes));
-        header.nx = static_cast<std::uint64_t>(params.nx);
-        header.ny = static_cast<std::uint64_t>(params.ny);
-        header.nz = static_cast<std::uint64_t>(params.nz);
-        std::memcpy(final_out, &header, sizeof(header));
+        mans::write_mans_header(final_out,
+                                 raw_bytes,
+                                 codec_code,
+                                 static_cast<std::uint8_t>(mode),
+                                 static_cast<std::uint8_t>(params.dims),
+                                 static_cast<std::uint64_t>(params.nx),
+                                 static_cast<std::uint64_t>(params.ny),
+                                 static_cast<std::uint64_t>(params.nz));
         final_out_size = kMansHeaderBytes + stage2_out_len;
     }
     catch (const std::bad_alloc&) {
@@ -180,8 +179,9 @@ void do_decompress_t(
         std::cerr << "[Error] payload is empty.\n";
         return;
     }
-    if (raw_bytes == 0 || (raw_bytes % sizeof(T)) != 0) {
-        std::cerr << "[Error] Invalid raw size in mans header.\n";
+    std::string geometry_error;
+    if (!mans::validate_mans_geometry(header, params.dtype, raw_bytes, &geometry_error)) {
+        std::cerr << "[Error] " << geometry_error << ".\n";
         return;
     }
 

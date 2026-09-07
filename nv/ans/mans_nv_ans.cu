@@ -171,7 +171,20 @@ void decompress_stage_device(const std::uint8_t* d_input,
     multibyte_ans::ANSCoalescedHeader header{};
     check_cuda(cudaMemcpy(&header, d_input, sizeof(header), cudaMemcpyDeviceToHost),
                "cudaMemcpy ans header D2H");
+    if ((header.magicAndVersion >> 16) != multibyte_ans::kANSMagic ||
+        (header.magicAndVersion & 0xffffu) != multibyte_ans::kANSVersion ||
+        header.getProbBits() != multibyte_ans::kANSDefaultProbBits ||
+        header.getNumBlocks() == 0 ||
+        header.getTotalUncompressedWords() == 0) {
+        throw std::runtime_error("mans::nv::ans: invalid coalesced header");
+    }
     const std::size_t exact_size = static_cast<std::size_t>(header.getTotalUncompressedWords());
+    const std::size_t overhead = header.getCompressedOverhead();
+    const std::size_t encoded_size = static_cast<std::size_t>(header.getTotalCompressedWords()) * sizeof(std::uint16_t);
+    if (overhead > compressed_size || encoded_size > compressed_size - overhead ||
+        overhead + encoded_size != compressed_size) {
+        throw std::runtime_error("mans::nv::ans: coalesced payload length mismatch");
+    }
     if (exact_size > max_output_size) {
         throw std::runtime_error("mans::nv::ans::decompress_stage_device: output buffer too small.");
     }

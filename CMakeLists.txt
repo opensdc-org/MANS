@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(MANS_ROOT LANGUAGES CXX C)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -214,6 +216,15 @@ if(BUILD_NV)
   )
   target_compile_options(nv_mans_decompress PRIVATE $<$<CONFIG:Release>:-O3>)
   target_link_libraries(nv_mans_decompress PRIVATE mans_common)
+
+  if(BUILD_TESTING AND BUILD_CPU)
+    add_executable(mans_cross_backend_test tests/mans_cross_backend_test.cpp)
+    set_target_properties(mans_cross_backend_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+    )
+    target_link_libraries(mans_cross_backend_test PRIVATE mans_common CUDA::cudart)
+    add_test(NAME mans_cross_backend_test COMMAND mans_cross_backend_test)
+  endif()
 
   add_executable(nvadm_compress nv/adm/nvadm_compress.cpp)
   set_target_properties(nvadm_compress PROPERTIES

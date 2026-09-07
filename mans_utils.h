@@ -8,6 +8,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -226,6 +227,28 @@ inline void write_le64(std::uint8_t* p, std::uint64_t v) {
     p[7] = static_cast<std::uint8_t>((v >> 56) & 0xFFu);
 }
 
+inline void write_mans_header(std::uint8_t* out,
+                              std::size_t raw_bytes,
+                              std::uint8_t codec,
+                              std::uint8_t mode,
+                              std::uint8_t dims,
+                              std::uint64_t nx,
+                              std::uint64_t ny,
+                              std::uint64_t nz) {
+    if (!out) {
+        throw std::invalid_argument("write_mans_header: null output");
+    }
+    std::memset(out, 0, kMansHeaderBytes);
+    out[0] = codec;
+    out[1] = mode;
+    out[2] = dims;
+    write_le64(out + 3, static_cast<std::uint64_t>(raw_bytes));
+    // Keep the existing ABI-compatible padding before the 64-bit geometry fields.
+    write_le64(out + 16, nx);
+    write_le64(out + 24, ny);
+    write_le64(out + 32, nz);
+}
+
 inline bool get_dtype_size(std::uint32_t dtype, std::size_t& elem_size) {
     switch (dtype) {
         case DataType::U16:
@@ -238,6 +261,50 @@ inline bool get_dtype_size(std::uint32_t dtype, std::size_t& elem_size) {
             elem_size = 0;
             return false;
     }
+}
+
+inline bool validate_mans_geometry(const MansHeader& header,
+                                   std::uint32_t dtype,
+                                   std::size_t raw_bytes,
+                                   std::string* error = nullptr) {
+    auto set_error = [&](const char* msg) {
+        if (error) {
+            *error = msg;
+        }
+    };
+
+    std::size_t elem_size = 0;
+    if (!get_dtype_size(dtype, elem_size)) {
+        set_error("unsupported dtype");
+        return false;
+    }
+    if (raw_bytes == 0 || raw_bytes % elem_size != 0) {
+        set_error("raw size is not aligned to dtype");
+        return false;
+    }
+
+    std::size_t expected_elements = static_cast<std::size_t>(header.nx);
+    if (header.dims >= 2) {
+        if (expected_elements > std::numeric_limits<std::size_t>::max() /
+                                  static_cast<std::size_t>(header.ny)) {
+            set_error("header geometry overflows size_t");
+            return false;
+        }
+        expected_elements *= static_cast<std::size_t>(header.ny);
+    }
+    if (header.dims == 3) {
+        if (expected_elements > std::numeric_limits<std::size_t>::max() /
+                                  static_cast<std::size_t>(header.nz)) {
+            set_error("header geometry overflows size_t");
+            return false;
+        }
+        expected_elements *= static_cast<std::size_t>(header.nz);
+    }
+    if (expected_elements != raw_bytes / elem_size) {
+        set_error("header geometry does not match raw size");
+        return false;
+    }
+    return true;
 }
 
 inline bool parse_mans_header(const void* data,
@@ -261,7 +328,15 @@ inline bool parse_mans_header(const void* data,
         return false;
     }
 
-    std::memcpy(&header, data, sizeof(header));
+    const auto* bytes = static_cast<const std::uint8_t*>(data);
+    header = MansHeader{};
+    header.codec = bytes[0];
+    header.mode = bytes[1];
+    header.dims = bytes[2];
+    std::memcpy(header.raw_bytes_le, bytes + 3, sizeof(header.raw_bytes_le));
+    header.nx = read_le64(bytes + 16);
+    header.ny = read_le64(bytes + 24);
+    header.nz = read_le64(bytes + 32);
     if (header.codec != 1 && header.codec != 2) {
         set_error("unknown codec");
         return false;

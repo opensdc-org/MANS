@@ -8,3 +8,4 @@ __pycache__
 slurms/runs*
 datasets
 dataset_copies
+.claude

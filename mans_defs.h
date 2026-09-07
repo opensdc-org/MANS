@@ -53,5 +53,9 @@ struct MansHeader {
 };
 
 constexpr std::size_t kMansHeaderBytes = sizeof(MansHeader);
+static_assert(offsetof(MansHeader, nx) == 16, "MansHeader geometry layout changed");
+static_assert(offsetof(MansHeader, ny) == 24, "MansHeader geometry layout changed");
+static_assert(offsetof(MansHeader, nz) == 32, "MansHeader geometry layout changed");
+static_assert(kMansHeaderBytes == 40, "MansHeader wire size changed");
 
 } // namespace mans

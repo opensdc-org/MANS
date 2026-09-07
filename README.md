@@ -103,35 +103,92 @@ git clone https://github.com/ewTomato/MANS.git
 
 ### **2️⃣ Configure & Build**
 
+Build CPU and NVIDIA support with the cross-backend tests enabled:
+
 ```shell
-cd MANS; mkdir build; cd build;
-cmake -DTARGET_PLATFORM=cpu_nv -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .. && make -j   # cpu + nvidia
+cd MANS
+cmake -S . -B build \
+  -DTARGET_PLATFORM=cpu_nv \
+  -DBUILD_TESTING=ON \
+  -DBUILD_HDF5_PLUGIN=OFF \
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
 ```
 
-<!-- ## Instructions for Use
-### For CPU
-1. compress
+Available `TARGET_PLATFORM` values:
 
-2. decompress -->
+- `cpu` — CPU-only build
+- `nv` — NVIDIA-only build
+- `cpu_nv` — CPU + NVIDIA build
+- `amd` — AMD-only build
+- `cpu_amd` — CPU + AMD build
+- `all` — CPU + NVIDIA + AMD build
 
+The cross-backend test target is built when both `BUILD_TESTING=ON` and CPU/NVIDIA support are enabled.
 
-```
-> Other platform options include:  
-> - `cpu` — CPU-only build   
-> - `nv` — NVIDIA-only build  
-> - `amd` — AMD-only build
-> - `cpu_amd` — CPU + AMD build 
-> - `all` — NVIDIA + AMD + CPU build  
-```
 ---
 
 ## 🚀 Usage
 
-Below is a minimal workflow based on current binaries in this repository.
+MANS exposes complete MANS streams through `cpu_mans_compress`, `cpu_mans_decompress`, `nv_mans_compress`, and `nv_mans_decompress`. A complete stream has the following layout:
+
+```text
+[MansHeader][PANS/ANS payload]
+```
+
+The header records the codec, mode, raw byte count, and effective 1D/2D/3D geometry. ADM uses block-level decisions: each block independently selects ADM or RAW according to `range < 3500`.
+
+### **Complete MANS stream: CPU and NVIDIA**
+
+`-u2` selects unsigned 16-bit input and `-u4` selects unsigned 32-bit input. Use `--dims` to describe the logical shape; the product of the dimensions must equal the number of input elements.
+
+CPU P-mode compression:
+
+```bash
+./build/bin/cpu/cpu_mans_compress \
+  -u2 input.u2 output.mans \
+  --mode p --dims 17 17
+```
+
+CPU decompression:
+
+```bash
+./build/bin/cpu/cpu_mans_decompress \
+  -u2 output.mans restored.u2
+```
+
+NVIDIA compression:
+
+```bash
+./build/bin/nv/nv_mans_compress \
+  -u2 input.u2 output.cuda.mans \
+  --mode p --dims 17 17
+```
+
+NVIDIA decompression:
+
+```bash
+./build/bin/nv/nv_mans_decompress \
+  -u2 output.cuda.mans restored.cuda.u2
+```
+
+The complete streams are interoperable in P mode:
+
+```bash
+# CPU-compressed stream decoded by NVIDIA
+./build/bin/nv/nv_mans_decompress \
+  -u2 output.mans restored-by-cuda.u2
+
+# NVIDIA-compressed stream decoded by CPU
+./build/bin/cpu/cpu_mans_decompress \
+  -u2 output.cuda.mans restored-by-cpu.u2
+```
+
+NVIDIA currently supports P mode only. CPU R mode remains available for CPU-only compression and decompression, but R-mode streams are not accepted by the NVIDIA backend.
 
 ### **CPU: autotune first, then auto-pick threads**
 
-`cpu_mans_autotune` now generates synthetic **u16** datasets internally and sweeps all three mappings (`dims=1/2/3`) in one run.
+`cpu_mans_autotune` generates synthetic **u16** datasets internally and sweeps all three mappings (`dims=1/2/3`) in one run.
 - data-size list is configurable by `--data-size-mb-list`
 - output CSV contains a `dims` column
 
@@ -162,24 +219,42 @@ Debug warning for ADM bypass:
 MANS_WARN_IF_NO_ADM=1 ./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode r --dims 1 134217728
 ```
 
-### **NVIDIA GPU**
+### **Low-level NVIDIA ADM/ANS tools**
 
-```bash
-./build/bin/nv/nv_mapping_uint16 input_file output_file_adm
-./build/bin/nv/cudaans_compress output_file_adm output_file_mans
-./build/bin/nv/cudaans_decompress output_file_mans output_file_adm_restore
-```
+The standalone ADM and ANS targets are useful for component-level benchmarking. They do not replace the complete MANS API flow above and should not be used when testing CPU/NVIDIA stream interoperability.
 
 ### **AMD GPU**
 
+AMD ADM/ANS tools remain separate component-level targets. The complete CPU/NVIDIA P-mode interoperability described above applies to the `cpu_nv` build; AMD support follows its own HIP pipeline.
+
+### **Cross-backend verification**
+
+Run the CPU/NVIDIA P-mode interoperability test after building with `-DBUILD_TESTING=ON`:
+
 ```bash
-./build/bin/amd/amd_mapping_uint16 input_file output_file_adm
-./build/bin/hipans_compress output_file_adm output_file_mans
-./build/bin/hipans_decompress output_file_mans output_file_adm_restore
+ctest --test-dir build --output-on-failure
+```
+
+The test covers:
+
+- CPU compression -> NVIDIA decompression;
+- NVIDIA compression -> CPU decompression;
+- U16 and U32 data;
+- 1D, 2D, and 3D shapes;
+- partial 1D blocks and non-aligned 2D/3D tiles;
+- block-level ADM and RAW decisions;
+- ANS block boundaries and representative constant, narrow-range, wide-range, and random data.
+
+For CUDA memory checking:
+
+```bash
+compute-sanitizer --tool memcheck \
+  build/tests/mans_cross_backend_test
 ```
 
 ### **HDF5 Filter Plugin: H5Z-MANS**
-see [tools/H5Z-MANS/README.md](tools/H5Z-MANS/README.md) for detailed instructions on building and using the HDF5 filter plugin for MANS.
+
+See [tools/H5Z-MANS/README.md](tools/H5Z-MANS/README.md) for detailed instructions on building and using the HDF5 filter plugin for MANS.
 ---
 
 ## 📁 Project Structure

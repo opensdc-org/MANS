@@ -35,8 +35,8 @@ inline constexpr int cmp_block_x = 16;
 inline constexpr int cmp_block_y = 16;
 inline constexpr int cmp_block_z = 16;
 inline constexpr int decmp_chunk = 16;
-inline constexpr int max_bytes_signal_per_ele_16b = 2;
-inline constexpr int max_bytes_signal_per_ele_32b = 3;
+inline constexpr int max_bytes_signal_per_ele_16b = 4;
+inline constexpr int max_bytes_signal_per_ele_32b = 4;
 inline constexpr int warp_size = 32;
 inline constexpr int threshold = 3500;
 

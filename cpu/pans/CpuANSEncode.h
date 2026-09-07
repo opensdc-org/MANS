@@ -908,8 +908,9 @@ void ansEncode(
     uint32_t* compressedWords_host,
     uint32_t* compressedWords_host_prefix,
     uint32_t* compressedWordsPrefix_host) {
-  ANSCoalescedHeader header;
+  ANSCoalescedHeader header{};
   // ANSCoalescedHeader* headerOut = (ANSCoalescedHeader*)out;
+  header.setMagicAndVersion();
   header.setProbBits(precision);
 
   uint32_t maxUncompressedWords = inSize / sizeof(ANSDecodedT);

@@ -23,22 +23,24 @@ void check_cuda(cudaError_t status, const char* what) {
 }
 
 std::uint32_t normalize_mode(std::uint32_t mode) {
-    return (mode == Mode::R) ? Mode::R : Mode::P;
+    if (mode != Mode::P) {
+        throw std::runtime_error("mans::nv: CPU-compatible NVIDIA backend supports only P mode.");
+    }
+    return Mode::P;
 }
 
 void write_header(std::uint8_t* out,
                   std::size_t raw_bytes,
                   const MansParams& params,
                   std::uint32_t mode) {
-    MansHeader header{};
-    header.codec = 1;
-    header.mode = static_cast<std::uint8_t>(mode);
-    header.dims = static_cast<std::uint8_t>(params.dims);
-    mans::write_le64(header.raw_bytes_le, static_cast<std::uint64_t>(raw_bytes));
-    header.nx = static_cast<std::uint64_t>(params.nx);
-    header.ny = static_cast<std::uint64_t>(params.ny);
-    header.nz = static_cast<std::uint64_t>(params.nz);
-    std::memcpy(out, &header, sizeof(header));
+    mans::write_mans_header(out,
+                             raw_bytes,
+                             1,
+                             static_cast<std::uint8_t>(mode),
+                             static_cast<std::uint8_t>(params.dims),
+                             static_cast<std::uint64_t>(params.nx),
+                             static_cast<std::uint64_t>(params.ny),
+                             static_cast<std::uint64_t>(params.nz));
 }
 
 void compress_adm_payload_device(const void* d_input_data,
@@ -147,6 +149,9 @@ void compress_internal_device(const void* d_input_data,
     check_cuda(cudaMalloc(reinterpret_cast<void**>(&d_entropy_payload), max_entropy_bytes), "cudaMalloc d_entropy_payload");
 
     compress_adm_payload_device(d_input_data, length, params, d_adm_payload, adm_size, stream);
+    if (adm_size > max_adm_bytes) {
+        throw std::runtime_error("mans::nv: ADM payload exceeds allocation");
+    }
     mans::nv::ans::compress_stage_device(
         d_adm_payload, adm_size, d_entropy_payload, entropy_size, mode, params, stream);
 
@@ -182,8 +187,8 @@ void decompress_internal_device(const void* d_input_data,
         throw std::runtime_error("mans::nv::decompress_internal_device: input/output buffer is null.");
     }
 
-    if (length <= kMansHeaderBytes) {
-        throw std::runtime_error("mans::nv::decompress_internal_device: missing payload.");
+    if (length < kMansHeaderBytes) {
+        throw std::runtime_error("mans::nv::decompress_internal_device: truncated MANS header.");
     }
 
     MansHeader header{};
@@ -194,6 +199,14 @@ void decompress_internal_device(const void* d_input_data,
     std::string parse_error;
     if (!mans::parse_mans_raw_bytes(&header, sizeof(header), raw_bytes, &parse_error)) {
         throw std::runtime_error("mans::nv::decompress_internal_device: " + parse_error + ".");
+    }
+
+    if (header.codec != 1 || header.mode != Mode::P) {
+        throw std::runtime_error("mans::nv: only ADM P-mode streams are supported.");
+    }
+    std::string geometry_error;
+    if (!mans::validate_mans_geometry(header, params.dtype, raw_bytes, &geometry_error)) {
+        throw std::runtime_error("mans::nv: " + geometry_error + ".");
     }
 
     MansParams effective_params = params;
