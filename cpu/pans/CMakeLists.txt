@@ -8,6 +8,10 @@ add_executable(cpuans_compress
   pans_utils.cpp
 )
 
+target_compile_options(cpuans_compress PRIVATE
+  ${MANS_CPU_ARCH_FLAGS_LIST}
+  $<$<CONFIG:Release>:-O3>
+)
 target_link_libraries(cpuans_compress PRIVATE
   OpenMP::OpenMP_CXX
 )
@@ -20,6 +24,10 @@ add_executable(cpuans_decompress
   pans_utils.cpp
 )
 
+target_compile_options(cpuans_decompress PRIVATE
+  ${MANS_CPU_ARCH_FLAGS_LIST}
+  $<$<CONFIG:Release>:-O3>
+)
 target_link_libraries(cpuans_decompress PRIVATE
   OpenMP::OpenMP_CXX
 )
@@ -32,6 +40,10 @@ add_executable(cpuans_bench_chunked
   pans_utils.cpp
 )
 
+target_compile_options(cpuans_bench_chunked PRIVATE
+  ${MANS_CPU_ARCH_FLAGS_LIST}
+  $<$<CONFIG:Release>:-O3>
+)
 target_link_libraries(cpuans_bench_chunked PRIVATE
   OpenMP::OpenMP_CXX
 )

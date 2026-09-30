@@ -463,6 +463,8 @@ void ansDecode(
   }
 
   CUDA_TEST_ERROR();
+  CUDA_VERIFY(hipStreamSynchronize(stream));
+  CUDA_VERIFY(hipFree(table_dev));
   return;
 }
 

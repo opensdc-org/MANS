@@ -337,7 +337,8 @@ inline bool parse_mans_header(const void* data,
     header.nx = read_le64(bytes + 16);
     header.ny = read_le64(bytes + 24);
     header.nz = read_le64(bytes + 32);
-    if (header.codec != 1 && header.codec != 2) {
+    if (header.codec != Codec::ADM && header.codec != Codec::RAW &&
+        header.codec != Codec::AMD_ANS) {
         set_error("unknown codec");
         return false;
     }

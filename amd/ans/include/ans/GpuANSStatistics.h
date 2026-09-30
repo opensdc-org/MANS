@@ -358,6 +358,11 @@ __device__ void normalizeProbabilitiesFromHistogram(
 
 #pragma unroll
   for (int i = 0; i < kNumSymPerThread; ++i) {
+    if (symPdf[i] == 0) {
+      shift[i] = 0;
+      magic[i] = 0;
+      continue;
+    }
     shift[i] = 32 - __clz(symPdf[i] - 1);
     //__clz指令用于计算一个数值的二进制表示中从最高位开始的连续零的数量。
     //这个指令对于各种算法优化非常有用，

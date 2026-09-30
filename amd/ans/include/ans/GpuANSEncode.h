@@ -348,6 +348,7 @@ void ansEncode(
 
   uint32_t* compressedWordsPrefix_dev;
   CUDA_VERIFY(hipMalloc(&compressedWordsPrefix_dev, sizeof(uint32_t) * maxNumCompressedBlocks));
+  uint8_t* tempPrefixSum_dev = nullptr;
 
   if (maxNumCompressedBlocks > 0) {
     constexpr int kThreads = 256;//一个block256线程，4个warp
@@ -389,7 +390,6 @@ void ansEncode(
     auto sizeRequired =
         getBatchExclusivePrefixSumTempSize(
           maxNumCompressedBlocks);
-    uint8_t* tempPrefixSum_dev = nullptr;
     CUDA_VERIFY(hipMalloc(&tempPrefixSum_dev, sizeof(uint8_t) * sizeRequired));
     batchExclusivePrefixSum<uint32_t, Align<ANSEncodedT, kBlockAlignment>>(
         compressedWords_dev,
@@ -426,6 +426,13 @@ void ansEncode(
   }
 
   CUDA_TEST_ERROR();
+  CUDA_VERIFY(hipStreamSynchronize(stream));
+  CUDA_VERIFY(hipFree(table_dev));
+  CUDA_VERIFY(hipFree(tempHistogram_dev));
+  CUDA_VERIFY(hipFree(compressedBlocks_dev));
+  CUDA_VERIFY(hipFree(compressedWords_dev));
+  CUDA_VERIFY(hipFree(compressedWordsPrefix_dev));
+  CUDA_VERIFY(hipFree(tempPrefixSum_dev));
   return;
 }
 

@@ -30,6 +30,15 @@ static_assert(sizeof(MansParams) % 4 == 0, "MansParams size must be multiple of 
 namespace Backend {
     constexpr uint32_t CPU = 0;
     constexpr uint32_t NVIDIA = 1;
+    constexpr uint32_t AMD = 2;
+    constexpr uint32_t DCU = 3;
+}
+
+namespace Codec {
+    constexpr std::uint8_t ADM = 1;
+    constexpr std::uint8_t RAW = 2;
+    // AMD uses a distinct profile because its HIP ANS stream is wave64/8192-byte based.
+    constexpr std::uint8_t AMD_ANS = 3;
 }
 
 namespace DataType {
@@ -43,7 +52,7 @@ namespace Mode {
 }
 
 struct MansHeader {
-    std::uint8_t codec;            // 1 = ADM payload, 2 = RAW payload
+    std::uint8_t codec;            // 1 = ADM, 2 = RAW, 3 = AMD ANS profile
     std::uint8_t mode;             // 0 = p-mode, 1 = r-mode
     std::uint8_t dims;             // 1/2/3, effective dims used for this chunk
     std::uint8_t raw_bytes_le[8];  // little-endian raw byte length

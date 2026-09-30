@@ -15,7 +15,7 @@ set_target_properties(adm_compress PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CPU_ADM_BINARY_DIR}
 )
 target_compile_options(adm_compress PRIVATE
-  -mavx512f -march=native
+  ${MANS_CPU_ARCH_FLAGS_LIST}
   $<$<CONFIG:Release>:-O3>
 )
 target_link_libraries(adm_compress PRIVATE OpenMP::OpenMP_CXX)
@@ -29,7 +29,7 @@ set_target_properties(adm_decompress PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CPU_ADM_BINARY_DIR}
 )
 target_compile_options(adm_decompress PRIVATE
-  -mavx512f -march=native
+  ${MANS_CPU_ARCH_FLAGS_LIST}
   $<$<CONFIG:Release>:-O3>
 )
 target_link_libraries(adm_decompress PRIVATE OpenMP::OpenMP_CXX)

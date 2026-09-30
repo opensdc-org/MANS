@@ -79,12 +79,12 @@ __device__ __forceinline__ uint64_t getLaneMaskLt() {
 
 __device__ __forceinline__ uint64_t getLaneMaskLe() {
   int laneId = getLaneId();
-  return (1ULL << (laneId + 1)) - 1;
+  return laneId == 63 ? ~uint64_t(0) : ((uint64_t(1) << (laneId + 1)) - 1);
 }
 
 __device__ __forceinline__ uint64_t getLaneMaskGt() {
   int laneId = getLaneId();
-  return (~((1ULL << (laneId + 1)) - 1)) & 0xFFFFFFFFFFFFFFFF;
+  return laneId == 63 ? 0 : ~((uint64_t(1) << (laneId + 1)) - 1);
 }
 
 // __device__ __forceinline__ uint64_t getLaneMaskGe() {
@@ -122,12 +122,8 @@ __device__ __forceinline__ uint64_t getLaneMaskGt() {
 // }
 
 __device__ __forceinline__ uint64_t getLaneMaskGe() {
-  uint64_t mask;
-  int laneId;
-  laneId = threadIdx.x % kWarpSize;
-  mask = (1ULL << laneId) - 1;
-  mask = ~mask;
-  return mask;
+  const int laneId = threadIdx.x % kWarpSize;
+  return ~((uint64_t(1) << laneId) - 1);
 }
 
 template <typename T>

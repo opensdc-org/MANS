@@ -179,6 +179,10 @@ void do_decompress_t(
         std::cerr << "[Error] payload is empty.\n";
         return;
     }
+    if (header.codec == mans::Codec::AMD_ANS) {
+        std::cerr << "[Error] AMD ANS streams require the AMD backend.\n";
+        return;
+    }
     std::string geometry_error;
     if (!mans::validate_mans_geometry(header, params.dtype, raw_bytes, &geometry_error)) {
         std::cerr << "[Error] " << geometry_error << ".\n";

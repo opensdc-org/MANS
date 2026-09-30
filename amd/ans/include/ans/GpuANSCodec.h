@@ -9,6 +9,7 @@
 #include <assert.h>
 #include "utils/DeviceUtils.h"
 #include "utils/StaticUtils.h"
+#include <cstdint>
 
 namespace pans_hip{
 
@@ -242,12 +243,14 @@ inline uint32_t getMaxBlockSizeCoalesced(uint32_t uncompressedBlockBytes) {//计
 uint32_t getMaxCompressedSize(uint32_t uncompressedBytes) {
   uint32_t blocks = divUp(uncompressedBytes, kDefaultBlockSize);
 
-  size_t rawSize = ANSCoalescedHeader::getCompressedOverhead(kDefaultBlockSize);
+  size_t rawSize = ANSCoalescedHeader::getCompressedOverhead(blocks);
   rawSize += (size_t)getMaxBlockSizeCoalesced(kDefaultBlockSize) * blocks;
 
   rawSize = roundUp(rawSize, sizeof(uint4));
-
-  return rawSize;
+  if (rawSize > UINT32_MAX) {
+    return 0;
+  }
+  return static_cast<uint32_t>(rawSize);
 }
 
 struct BatchWriter {
