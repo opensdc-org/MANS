@@ -20,8 +20,12 @@
 #include "nv/mans_nv.h"
 #endif
 
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
+#ifdef MANS_ENABLE_AMD
 #include "amd/mans_amd.h"
+#endif
+
+#ifdef MANS_ENABLE_DCU
+#include "dcu/mans_dcu.h"
 #endif
 
 namespace {
@@ -237,20 +241,21 @@ void compress_device(const void* input_data,
                      const MansParams& params,
                      uint8_t* out,
                      size_t& out_size) {
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            mans::amd::compress_internal_device(input_data, length, params, out, out_size);
-            return;
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        mans::amd::compress_internal_device(input_data, length, params, out, out_size);
+        return;
+#else
+        throw std::runtime_error("MANS::compress_device: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            mans::amd::compress_internal_device(input_data, length, params, out, out_size);
-            return;
-        }
+        mans::dcu::compress_internal_device(input_data, length, params, out, out_size);
+        return;
+#else
+        throw std::runtime_error("MANS::compress_device: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::compress_device: requested HIP backend was NOT compiled.");
     }
     if (params.backend != Backend::NVIDIA) {
         throw std::runtime_error("MANS::compress_device: unsupported backend.");
@@ -268,20 +273,21 @@ void decompress_device(const void* input_data,
                        const MansParams& params,
                        uint8_t* out,
                        size_t& out_size) {
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            mans::amd::decompress_internal_device(input_data, length, params, out, out_size);
-            return;
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        mans::amd::decompress_internal_device(input_data, length, params, out, out_size);
+        return;
+#else
+        throw std::runtime_error("MANS::decompress_device: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            mans::amd::decompress_internal_device(input_data, length, params, out, out_size);
-            return;
-        }
+        mans::dcu::decompress_internal_device(input_data, length, params, out, out_size);
+        return;
+#else
+        throw std::runtime_error("MANS::decompress_device: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::decompress_device: requested HIP backend was NOT compiled.");
     }
     if (params.backend != Backend::NVIDIA) {
         throw std::runtime_error("MANS::decompress_device: unsupported backend.");
@@ -317,20 +323,21 @@ void compress(const void* input_data,
 #endif
     }
 
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            mans::amd::compress_internal(input_data, length, params, out, out_size, false, "");
-            return;
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        mans::amd::compress_internal(input_data, length, params, out, out_size, false, "");
+        return;
+#else
+        throw std::runtime_error("MANS::compress: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            mans::amd::compress_internal(input_data, length, params, out, out_size, false, "");
-            return;
-        }
+        mans::dcu::compress_internal(input_data, length, params, out, out_size, false, "");
+        return;
+#else
+        throw std::runtime_error("MANS::compress: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::compress: requested HIP backend was NOT compiled.");
     }
 
     throw std::runtime_error("MANS::compress: Unknown backend type.");
@@ -359,20 +366,21 @@ void decompress(const void* input_data,
 #endif
     }
 
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            mans::amd::decompress_internal(input_data, length, params, out, out_size, false, "");
-            return;
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        mans::amd::decompress_internal(input_data, length, params, out, out_size, false, "");
+        return;
+#else
+        throw std::runtime_error("MANS::decompress: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            mans::amd::decompress_internal(input_data, length, params, out, out_size, false, "");
-            return;
-        }
+        mans::dcu::decompress_internal(input_data, length, params, out, out_size, false, "");
+        return;
+#else
+        throw std::runtime_error("MANS::decompress: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::decompress: requested HIP backend was NOT compiled.");
     }
 
     throw std::runtime_error("MANS::decompress: Unknown backend type.");
@@ -395,18 +403,19 @@ std::size_t get_mans_max_compress_bytes(std::size_t num_elements, const MansPara
 #endif
     }
 
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            return mans::amd::get_max_compress_bytes(num_elements, params);
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        return mans::amd::get_max_compress_bytes(num_elements, params);
+#else
+        throw std::runtime_error("MANS::get_mans_max_compress_bytes: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            return mans::amd::get_max_compress_bytes(num_elements, params);
-        }
+        return mans::dcu::get_max_compress_bytes(num_elements, params);
+#else
+        throw std::runtime_error("MANS::get_mans_max_compress_bytes: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::get_mans_max_compress_bytes: requested HIP backend was NOT compiled.");
     }
 
     throw std::runtime_error("MANS::get_mans_max_compress_bytes: Unknown backend type.");
@@ -431,18 +440,19 @@ std::size_t get_mans_exact_decompress_bytes(const void* compressed_data,
 #endif
     }
 
-    if (params.backend == Backend::AMD || params.backend == Backend::DCU) {
-#if defined(MANS_ENABLE_AMD) || defined(MANS_ENABLE_DCU)
-        if (params.backend == Backend::AMD) {
-            return mans::amd::get_exact_decompress_bytes(compressed_data, compressed_len, params);
-        }
+    if (params.backend == Backend::AMD) {
+#ifdef MANS_ENABLE_AMD
+        return mans::amd::get_exact_decompress_bytes(compressed_data, compressed_len, params);
+#else
+        throw std::runtime_error("MANS::get_mans_exact_decompress_bytes: AMD backend was NOT compiled.");
 #endif
+    }
+    if (params.backend == Backend::DCU) {
 #ifdef MANS_ENABLE_DCU
-        if (params.backend == Backend::DCU) {
-            return mans::amd::get_exact_decompress_bytes(compressed_data, compressed_len, params);
-        }
+        return mans::dcu::get_exact_decompress_bytes(compressed_data, compressed_len, params);
+#else
+        throw std::runtime_error("MANS::get_mans_exact_decompress_bytes: DCU backend was NOT compiled.");
 #endif
-        throw std::runtime_error("MANS::get_mans_exact_decompress_bytes: requested HIP backend was NOT compiled.");
     }
 
     throw std::runtime_error("MANS::get_mans_exact_decompress_bytes: Unknown backend type.");

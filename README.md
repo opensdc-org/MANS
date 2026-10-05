@@ -122,9 +122,46 @@ Available `TARGET_PLATFORM` values:
 - `cpu_nv` — CPU + NVIDIA build
 - `amd` — AMD-only build
 - `cpu_amd` — CPU + AMD build
+- `cpu_dcu` — CPU + DCU build with CPU/DCU interoperability tests
+- `dcu` — standalone DCU build (HIP ADM and codec=1 P-mode ANS; no CPU/OpenMP dependency)
 - `all` — CPU + NVIDIA + AMD build
 
-The cross-backend test target is built when both `BUILD_TESTING=ON` and CPU/NVIDIA support are enabled.
+The NVIDIA cross-backend test target is built when both `BUILD_TESTING=ON` and CPU/NVIDIA support are enabled.
+
+### **DCU (DTK/HIP) build**
+
+DCU builds use the DTK HIP compiler (`hipcc` or its `dcc` driver). The standalone `TARGET_PLATFORM=dcu` build contains HIP ADM and the CPU-compatible codec=1 P-mode ANS implementation and does not require the CPU backend, CPU PANS, or OpenMP. Use `TARGET_PLATFORM=cpu_dcu` when building the CPU/DCU interoperability test suite. Set the architecture supported by your DCU. `DCU_HIPCUB_INCLUDE_DIR` is optional and is only needed when hipCUB headers are not found by the compiler by default. `DCU_HIP_FLAGS` can pass additional DTK compiler flags.
+
+```shell
+cmake -S . -B build \
+  -DTARGET_PLATFORM=dcu \
+  -DDCU_HIP_COMPILER=/path/to/DTK/bin/hipcc \
+  -DDCU_HIP_ARCH=gfx936 \
+  -DBUILD_TESTING=ON \
+  -DBUILD_HDF5_PLUGIN=OFF \
+  -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+ctest --test-dir build --output-on-failure
+```
+
+<!-- cmake -S . -B build \
+  -DTARGET_PLATFORM=cpu_dcu \
+  -DDCU_HIP_COMPILER=/opt/dtk-26.04/hip/bin/hipcc \
+  -DDCU_HIP_ARCH=gfx936 \
+  "-DDCU_HIP_FLAGS=-isystem /usr/include/c++/11 -isystem /usr/include/x86_64-linux-gnu/c++/11 -isystem /usr/include/c++/11/backward -L/usr/lib/gcc/x86_64-linux-gnu/11" \
+  -DBUILD_TESTING=ON \
+  -DBUILD_HDF5_PLUGIN=OFF \
+  -DCMAKE_BUILD_TYPE=Release -->
+
+If the DTK installation does not expose hipCUB headers automatically, add `-DDCU_HIPCUB_INCLUDE_DIR=/path/to/hipcub/include` to the configure command. Some DTK installations also need the host GCC C++ standard-library include paths passed via `DCU_HIP_FLAGS`; if configuration fails with `fatal error: 'cmath' file not found`, add the paths for the GCC version installed on your system. For example, on a system using GCC 11:
+
+```shell
+  -DDCU_HIP_FLAGS="-isystem /usr/include/c++/11 -isystem /usr/include/x86_64-linux-gnu/c++/11 -isystem /usr/include/c++/11/backward -L/usr/lib/gcc/x86_64-linux-gnu/11"
+```
+
+Adjust those paths to match the host compiler and include this option in the initial `cmake` configure command. The DCU command-line programs are written under `build/bin/dcu` as `build/bin/dcu/dcu_mans_compress` and `build/bin/dcu/dcu_mans_decompress`, alongside the CPU executables under `build/bin/cpu`; DCU test executables remain under `build/tests`.
+
+With `TARGET_PLATFORM=cpu_dcu` and `BUILD_TESTING=ON`, the DCU suite includes the CPU/DCU P-mode cross-backend test, which checks CPU-compress/DCU-decompress and DCU-compress/CPU-decompress paths. Standalone `TARGET_PLATFORM=dcu` builds the DCU executables without that CPU-dependent test.
 
 ---
 
