@@ -8,6 +8,7 @@
 #include <iostream>
 #include <hip/hip_runtime.h>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 // #include "DeviceUtils0.h"
@@ -16,13 +17,14 @@
 #include <unordered_map>
 
 /// Wrapper to test return status of CUDA functions
-#define CUDA_VERIFY(X)                                         \
-  do {                                                         \
-    auto err__ = (X);                                          \
-    if (err__ != hipSuccess) {\
-    std::cout << "CUDA error " << pans_hip::errorToName(err__) << " "\
-              << pans_hip::errorToString(err__) << std::endl;\
-    }\
+#define CUDA_VERIFY(X)                                                   \
+  do {                                                                   \
+    auto err__ = (X);                                                    \
+    if (err__ != hipSuccess) {                                          \
+      throw std::runtime_error(                                          \
+          std::string(#X) + ": " + pans_hip::errorToName(err__) + " " + \
+          pans_hip::errorToString(err__));                               \
+    }                                                                    \
   } while (0)
 
 /// Wrapper to synchronously probe for CUDA errors
@@ -317,7 +319,7 @@ int getDeviceForAddress(const void* p) {
   }
 
   // memoryType is deprecated for CUDA 10.0+
-#if CUDA_VERSION < 10000
+#if defined(CUDA_VERSION) && CUDA_VERSION < 10000
   if (att.memoryType == hipMemoryTypeHost) {
     return -1;
   } else {
