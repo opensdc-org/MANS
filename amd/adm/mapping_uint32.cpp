@@ -122,6 +122,75 @@ __global__ void decompress(uint32_t* decmp_data, uint32_t* centers, uint8_t* cod
     }  
 }
 
+__global__ void decode_signals_uint32(
+    const int* output_lengths,
+    const uint8_t* concatenated_signals,
+    uint8_t* signals,
+    int data_size,
+    int last_length,
+    int gsize)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int dst_start_idx = idx * decmp_chunk;
+    if (dst_start_idx >= data_size) return;
+
+    const int lane = idx & 0x1f;
+    int warp = idx >> 5;
+    const int end = (output_lengths[gsize - 1] + last_length) * cmp_tblock_size;
+    warp = lane < 16 ? warp * 2 : warp * 2 + 1;
+    const int length = warp == gsize - 1
+        ? last_length
+        : output_lengths[warp + 1] - output_lengths[warp];
+    int src_start_idx = output_lengths[warp] * cmp_tblock_size;
+    src_start_idx += lane < 16 ? lane * length * 2 : (lane - 16) * length * 2;
+
+    uint8_t local_signal[decmp_chunk] = {0};
+    int signal_idx = -1;
+    for (int offset_byte = 0; offset_byte < length && signal_idx < cmp_chunk; ++offset_byte) {
+        const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte];
+        #pragma unroll
+        for (int bit_idx = 7; bit_idx >= 0 && signal_idx < cmp_chunk; --bit_idx) {
+            if ((bit_buffer >> bit_idx) & 1) ++signal_idx;
+            else ++local_signal[signal_idx];
+        }
+    }
+
+    signal_idx = 15;
+    for (int offset_byte = 0; offset_byte < length && signal_idx < decmp_chunk; ++offset_byte) {
+        if (src_start_idx + offset_byte + length >= end) return;
+        const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte + length];
+        #pragma unroll
+        for (int bit_idx = 7; bit_idx >= 0 && signal_idx < decmp_chunk; --bit_idx) {
+            if ((bit_buffer >> bit_idx) & 1) ++signal_idx;
+            else ++local_signal[signal_idx];
+        }
+    }
+
+    const int valid = min(decmp_chunk, data_size - dst_start_idx);
+    for (int i = 0; i < valid; ++i) signals[dst_start_idx + i] = local_signal[i];
+}
+
+__global__ void restore_values_uint32(
+    uint32_t* output,
+    const uint32_t* centers,
+    const uint8_t* codes,
+    const uint8_t* signals,
+    int data_size)
+{
+    const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int dst_start_idx = idx * decmp_chunk;
+    if (dst_start_idx >= data_size) return;
+
+    const int lane = idx & 0x1f;
+    const int center = centers[blockIdx.x * 2 + (lane < 16 ? 0 : 1)];
+    const int valid = min(decmp_chunk, data_size - dst_start_idx);
+    for (int i = 0; i < valid; ++i) {
+        const uint8_t code = codes[dst_start_idx + i];
+        const int diff = (code & 1 ? (code - 1) / 2 : code / 2)
+                       + signals[dst_start_idx + i] * 126;
+        output[dst_start_idx + i] = code & 1 ? center - diff : center + diff;
+    }
+}
 
 __global__ void map_values_kernel_thrust(const uint32_t* data, uint8_t* code, uint8_t* bit_signal, uint32_t* centers, int* signal_length ,int data_size, int shift) 
 {
@@ -532,6 +601,8 @@ __global__ void map_values_kernel_decoupled(
     __syncthreads();
 
     // Global-level prefix-sum (exclusive).
+    if (warp == 0 && lane == 0) excl_sum = 0;
+    __syncthreads();
     if(warp>0)
     {
         if(!lane)
@@ -653,9 +724,8 @@ int main(int argc, char** argv) {
     // 配置CUDA内核
     int bsize = cmp_tblock_size;
     int gsize = (num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk);
-    if (gsize > 4096) return 0;
 
-    // define 
+    // define
     uint32_t* d_data;
     uint32_t* d_decmpdata;
     void* d_cmpdata;
@@ -695,14 +765,28 @@ int main(int argc, char** argv) {
     //prefix-sum initialize
     thrust::device_ptr<int> dev_output_lengths(d_output_lengths);
     thrust::device_ptr<int> dev_signal_length(d_signal_length);
+    const bool use_decoupled = gsize <= 1024;
 
-    // warmup
-    for(int i = 0; i < 0; i++)
-    { 
-        map_values_kernel_decoupled<<<gsize, bsize>>>(
-            d_data, d_codes, d_bit_signals, d_centers, d_signal_length, d_locOffset, d_output_lengths, d_flag, num_elements, shift);
+    for (int i = 0; i < 5; ++i) {
+        if (use_decoupled) {
             hipMemset(d_flag, 0, (gsize + 1) * sizeof(int));
-        
+            hipMemset(d_locOffset, 0, (gsize + 1) * sizeof(int));
+            hipMemset(d_output_lengths, 0, (gsize + 1) * sizeof(int));
+            map_values_kernel_decoupled<<<gsize, bsize>>>(
+                d_data, d_codes, d_concatenated_signals, d_centers,
+                d_signal_length, d_locOffset, d_output_lengths, d_flag,
+                num_elements, shift);
+        } else {
+            map_values_kernel_thrust<<<gsize, bsize>>>(
+                d_data, d_codes, d_bit_signals, d_centers,
+                d_signal_length, num_elements, shift);
+            thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize,
+                                   dev_output_lengths);
+            concat<<<gsize, bsize>>>(
+                d_bit_signals, d_signal_length, d_output_lengths,
+                d_concatenated_signals, gsize, num_elements);
+        }
+        hipDeviceSynchronize();
     }
 
     // 设置CUDA事件用于测量时间
@@ -713,80 +797,54 @@ int main(int argc, char** argv) {
     hipStream_t stream;
     hipStreamCreate(&stream);
 
-    //CMP
-
-    // if(gsize <= 1024)
-    // {
-    //     printf("\033[0;36m=======>Use Decoupled Prefix-sum<=======\033[1m\n") ;
-    //     hipEventRecord(start);
-    //     map_values_kernel_decoupled<<<gsize, bsize, sizeof(unsigned int)*2, stream>>>(
-    //         d_data, d_codes, d_concatenated_signals, d_centers, d_signal_length, d_locOffset, d_output_lengths, d_flag, num_elements, shift);
-    //     hipDeviceSynchronize();
-
-    //     hipEventRecord(stop);
-    //     hipEventSynchronize(stop);
-    //     float adm_milliseconds = 0;
-    //     hipEventElapsedTime(&adm_milliseconds, start, stop);
-
-    //     printf("\033[0;34m-------Cmp Throughput-------\033[0m\n") ;
-    //     float adm_throughput = (data_size / 1024.0 / 1024 / 1024) / (adm_milliseconds / 1000.0f);  // 单位：字节每秒
-    //     printf("ADM Kernel throughput: %.2f GB/s\n", adm_throughput);
-    
-    //     printf("\033[0;34m-------Cmp Time-------\033[0m\n") ;
-    //     printf("Total Cmp Time: %.2f ms\n",adm_milliseconds);
-    // }
-    // else
-    {
-        printf("\033[0;36m=======>Use Thrust Prefix-sum<=======\033[1m\n") ;
-        //adm
-        hipEventRecord(start);
-        map_values_kernel_thrust<<<gsize, bsize>>>(
-            d_data, d_codes, d_bit_signals, d_centers, d_signal_length, num_elements, shift);
-        hipDeviceSynchronize();
-
-        hipEventRecord(stop);
+    float adm_milliseconds = 0;
+    float prefixsum_milliseconds = 0;
+    float concat_milliseconds = 0;
+    if (use_decoupled) {
+        printf("=======>Use Decoupled Prefix-sum<=======\n");
+        hipMemset(d_flag, 0, (gsize + 1) * sizeof(int));
+        hipMemset(d_locOffset, 0, (gsize + 1) * sizeof(int));
+        hipMemset(d_output_lengths, 0, (gsize + 1) * sizeof(int));
+        hipEventRecord(start, stream);
+        map_values_kernel_decoupled<<<gsize, bsize, 0, stream>>>(
+            d_data, d_codes, d_concatenated_signals, d_centers,
+            d_signal_length, d_locOffset, d_output_lengths, d_flag,
+            num_elements, shift);
+        hipEventRecord(stop, stream);
         hipEventSynchronize(stop);
-        float adm_milliseconds = 0;
+        hipEventElapsedTime(&adm_milliseconds, start, stop);
+    } else {
+        printf("=======>Use Thrust Prefix-sum<=======\n");
+        hipEventRecord(start, stream);
+        map_values_kernel_thrust<<<gsize, bsize, 0, stream>>>(
+            d_data, d_codes, d_bit_signals, d_centers,
+            d_signal_length, num_elements, shift);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
         hipEventElapsedTime(&adm_milliseconds, start, stop);
 
-        // prefix-sum time
-        hipEventRecord(start);
-
-        thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize, dev_output_lengths);  
-        hipDeviceSynchronize();
-
-        hipEventRecord(stop);
+        hipEventRecord(start, stream);
+        thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize,
+                               dev_output_lengths);
+        hipEventRecord(stop, stream);
         hipEventSynchronize(stop);
-        float prefixsum_milliseconds = 0;
         hipEventElapsedTime(&prefixsum_milliseconds, start, stop);
 
-        //concat time
-        hipEventRecord(start);
-        concat<<<gsize, bsize>>>(
-            d_bit_signals, d_signal_length, d_output_lengths, d_concatenated_signals, gsize, num_elements);
-        hipDeviceSynchronize();
-
-        hipEventRecord(stop);
+        hipEventRecord(start, stream);
+        concat<<<gsize, bsize, 0, stream>>>(
+            d_bit_signals, d_signal_length, d_output_lengths,
+            d_concatenated_signals, gsize, num_elements);
+        hipEventRecord(stop, stream);
         hipEventSynchronize(stop);
-        float concat_milliseconds = 0;
         hipEventElapsedTime(&concat_milliseconds, start, stop);
-
-        printf("\033[0;34m-------Cmp Throughput-------\033[0m\n") ;
-        float adm_throughput = (data_size / 1024.0 / 1024 / 1024) / (adm_milliseconds / 1000.0f);  // 单位：字节每秒
-        float prefixsum_throughput = (data_size / 1024.0 / 1024 / 1024) / (prefixsum_milliseconds / 1000.0f); 
-        float concat_throughput = (data_size / 1024.0 / 1024 / 1024) / (concat_milliseconds / 1000.0f); 
-        float total_cmp_throughput = (data_size / 1024.0 / 1024 / 1024) / ((adm_milliseconds + prefixsum_milliseconds + concat_milliseconds) / 1000.0f); 
-        printf("Total Cmp throughput: %.2f GB/s\n", total_cmp_throughput);
-        printf("ADM Kernel throughput: %.2f GB/s\n", adm_throughput);
-        printf("Prefix-sum Kernel throughput: %.2f GB/s\n", prefixsum_throughput);
-        printf("Concat Kernel throughput: %.2f GB/s\n", concat_throughput);
-    
-        printf("\033[0;34m-------Cmp Time-------\033[0m\n") ;
-        printf("Total Cmp Time: %.2f ms\n", (adm_milliseconds + prefixsum_milliseconds + concat_milliseconds));
-        printf("ADM cost %.2f ms\n",adm_milliseconds);
-        printf("Prefix-sum cost %.2f ms\n",prefixsum_milliseconds);
-        printf("Concat cost %.2f ms\n",concat_milliseconds);
     }
+    const float total_cmp_milliseconds =
+        adm_milliseconds + prefixsum_milliseconds + concat_milliseconds;
+    const float total_cmp_throughput =
+        (data_size / 1024.0 / 1024 / 1024) / (total_cmp_milliseconds / 1000.0f);
+    printf("Total Cmp throughput: %.2f GB/s\n", total_cmp_throughput);
+    printf("ADM cost %.2f ms, prefix-sum cost %.2f ms, concat cost %.2f ms\n",
+           adm_milliseconds, prefixsum_milliseconds, concat_milliseconds);
     
 
     // 复制局部长度和sum长度到主机
@@ -835,9 +893,13 @@ int main(int argc, char** argv) {
     // decmp kernel
     int decmp_gsize = (num_elements + bsize * decmp_chunk - 1) / (bsize * decmp_chunk);
     uint8_t* d_signals;
-    hipMalloc(&d_signals, bsize * gsize * cmp_chunk * sizeof(uint8_t));
+    hipMalloc(&d_signals, num_elements * sizeof(uint8_t));
     hipEventRecord(start);
-    decompress<<<decmp_gsize, bsize>>>(d_decmpdata, d_centers, d_codes, d_output_lengths, d_concatenated_signals, d_signals, num_elements, h_signal_length[gsize - 1], gsize, shift);
+    decode_signals_uint32<<<decmp_gsize, bsize>>>(
+        d_output_lengths, d_concatenated_signals, d_signals,
+        num_elements, h_signal_length[gsize - 1], gsize);
+    restore_values_uint32<<<decmp_gsize, bsize>>>(
+        d_decmpdata, d_centers, d_codes, d_signals, num_elements);
     hipDeviceSynchronize();
 
     hipEventRecord(stop);

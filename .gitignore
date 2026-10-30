@@ -3,6 +3,8 @@ figure/
 MANS_figure/
 # *.py
 build/
+build-amd/
+build-amd-633/
 .vscode
 __pycache__
 slurms/runs*

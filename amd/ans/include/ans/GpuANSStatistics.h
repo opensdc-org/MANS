@@ -435,17 +435,17 @@ void ansHistogramBatch(
   {
     constexpr uint32_t kThreads = kNumSymbols;
 
-    // What is the maximum number of blocks to saturate the GPU?
-    int maxBlocks = 0;
-    CUDA_VERIFY(hipOccupancyMaxActiveBlocksPerMultiprocessor(
-        &maxBlocks, histogramBatch<
-        //InProvider, 
-        kThreads>, kThreads, 0));
-    maxBlocks *= getCurrentDeviceProperties().multiProcessorCount;
-
-    // The y block dimension will be for each batch element
-    uint32_t xBlocks = maxBlocks;
+    // Use one block per multiprocessor. The kernel processes the remaining
+    // input with a grid-stride loop, so occupancy is not required to size the
+    // launch grid.
+    uint32_t xBlocks = getCurrentDeviceProperties().multiProcessorCount;
     auto grid = dim3(xBlocks, 1);
+    auto preLaunchError = hipGetLastError();
+    if (preLaunchError != hipSuccess) {
+      throw std::runtime_error(
+          std::string("before histogramBatch launch: ") +
+          errorToName(preLaunchError) + " " + errorToString(preLaunchError));
+    }
 
     histogramBatch<
     //InProvider, 
@@ -453,8 +453,14 @@ void ansHistogramBatch(
         <<<grid, kThreads, 0, stream>>>(
           //inProvider,
           in_dev,
-          inSize_dev, 
+          inSize_dev,
           histogram_dev);
+    auto launchError = hipGetLastError();
+    if (launchError != hipSuccess) {
+      throw std::runtime_error(
+          std::string("histogramBatch launch: ") + errorToName(launchError) +
+          " " + errorToString(launchError));
+    }
   }
   return;
 }
