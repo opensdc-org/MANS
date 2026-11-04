@@ -11,6 +11,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "utils/AnsConfig.h"
+
 // #include "DeviceUtils0.h"
 #include <hip/hip_runtime_api.h>
 #include <mutex>
@@ -43,8 +45,6 @@
 #endif
 
 namespace pans_hip{
-  
-constexpr int kWarpSize = 64;
 
 /// std::string wrapper around hipGetErrorString
 std::string errorToString(hipError_t err);

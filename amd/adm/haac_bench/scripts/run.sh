@@ -26,45 +26,61 @@ fi
 
 mkdir -p "$result_dir/logs" "$result_dir/compressed"
 summary="$result_dir/summary.csv"
-printf 'input,variant,input_bytes,compression_gbps,decompression_gbps,lossless_pass,log\n' > "$summary"
+printf 'input,stage,input_bytes,throughput_gbps,lossless_pass,log\n' > "$summary"
 
 export CUDA_VISIBLE_DEVICES="$gpu"
 export HIP_VISIBLE_DEVICES="$gpu"
 export ROCR_VISIBLE_DEVICES="$gpu"
 
-variants=(
-    u16_fused_compress_fused_decompress
-    u16_fused_compress_unfused_decompress
-    u16_unfused_compress_fused_decompress
-    u16_unfused_compress_unfused_decompress
-)
-
 for input in "${inputs[@]}"; do
     input_name=$(basename "$input")
     input_bytes=$(stat -c '%s' "$input")
-    for variant in "${variants[@]}"; do
-        binary="$build_dir/$variant"
+
+    # Compression stages: input.u2 -> compressed.adm
+    for comp in fused unfused; do
+        binary="$build_dir/compress_$comp"
         if [[ ! -x "$binary" ]]; then
             echo "Missing executable: $binary" >&2
             exit 2
         fi
-        stem="${input_name%.u2}_$variant"
-        output="$result_dir/compressed/$stem.adm"
-        log="$result_dir/logs/$stem.log"
-        echo "[$variant] $input_name"
-        if ! "$binary" "$input" "$output" 2>&1 | tee "$log"; then
-            echo "Benchmark failed; see $log" >&2
+        adm="$result_dir/compressed/${input_name%.u2}_$comp.adm"
+        log="$result_dir/logs/${input_name%.u2}_compress_$comp.log"
+        echo "[compress_$comp] $input_name"
+        if ! "$binary" "$input" "$adm" 2>&1 | tee "$log"; then
+            echo "Compression failed; see $log" >&2
             exit 1
         fi
-        cmp_gbps=$(awk '/Total Cmp throughput:/ { value=$4 } END { if (value != "") print value }' "$log")
-        decmp_gbps=$(awk '/Decmp throughput:/ { value=$3 } END { if (value != "") print value }' "$log")
-        if ! grep -q 'Pass error check!' "$log"; then
+        gbps=$(awk '/Total Cmp throughput:/ { print $4 }' "$log")
+        printf '"%s",compress_%s,%s,%s,n/a,"%s"\n' \
+            "$input_name" "$comp" "$input_bytes" "${gbps:-NA}" "$log" >> "$summary"
+    done
+
+    # Decompression stages: compressed.adm + original.u2 -> lossless check
+    for decmp in fused unfused; do
+        binary="$build_dir/decompress_$decmp"
+        if [[ ! -x "$binary" ]]; then
+            echo "Missing executable: $binary" >&2
+            exit 2
+        fi
+        adm="$result_dir/compressed/${input_name%.u2}_$decmp.adm"
+        log="$result_dir/logs/${input_name%.u2}_decompress_$decmp.log"
+        echo "[decompress_$decmp] $input_name"
+        if ! "$binary" "$adm" "$input" 2>&1 | tee "$log"; then
+            echo "Decompression failed; see $log" >&2
+            exit 1
+        fi
+        gbps=$(awk '/Decmp throughput:/ { print $3 }' "$log")
+        if grep -q 'Pass error check!' "$log"; then
+            pass=yes
+        else
+            pass=no
+        fi
+        printf '"%s",decompress_%s,%s,%s,%s,"%s"\n' \
+            "$input_name" "$decmp" "$input_bytes" "${gbps:-NA}" "$pass" "$log" >> "$summary"
+        if [[ "$pass" != "yes" ]]; then
             echo "Lossless verification did not pass; see $log" >&2
             exit 1
         fi
-        printf '"%s",%s,%s,%s,%s,yes,"%s"\n' \
-            "$input_name" "$variant" "$input_bytes" "${cmp_gbps:-NA}" \
-            "${decmp_gbps:-NA}" "$log" >> "$summary"
     done
 done
 
