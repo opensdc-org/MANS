@@ -1,4 +1,5 @@
 #include "mans_amd_ans.h"
+#include "utils/AnsConfig.h"
 
 #include <cstring>
 #include <limits>
@@ -40,7 +41,8 @@ struct AmdAnsHeader {
     static std::size_t compressed_overhead_for(std::size_t blocks) {
         const std::size_t aligned_blocks = (blocks + 1) & ~std::size_t(1);
         return sizeof(AmdAnsHeader) + 256 * sizeof(std::uint16_t) +
-               blocks * 64 * sizeof(std::uint32_t) + aligned_blocks * sizeof(std::uint32_t) * 2;
+               blocks * pans_hip::kWarpSize * sizeof(std::uint32_t) +
+               aligned_blocks * sizeof(std::uint32_t) * 2;
     }
 
     std::size_t total_compressed_size() const {

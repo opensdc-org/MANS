@@ -5,6 +5,7 @@ MANS_figure/
 build/
 build-amd/
 build-amd-633/
+build-amd-local/
 .vscode
 __pycache__
 slurms/runs*
