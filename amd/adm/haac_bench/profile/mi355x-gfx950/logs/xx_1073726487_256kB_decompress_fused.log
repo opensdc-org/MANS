@@ -1,0 +1,16 @@
+W1105 06:32:32.727202   18403 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.134945 sec
+W1105 06:32:32.727617   18403 simple_timer.cpp:55] [rocprofv3] '/root/benchmark/MANS/amd/adm/haac_bench/build/decompress_fused ./profile/mi355x-gfx950/compressed/xx_1073726487_256kB_fused.adm /root/benchmark/data/testdata/u2/haac/xx_1073726487_256kB.u2' ::     0.000000 sec
+elements num: 131072
+W1105 06:32:32.736315   18403 tool.cpp:3348] HSA version 1.21.0 initialized (instance=0)
+W1105 06:32:32.763247   18403 queue_controller.cpp:170] [queue-intercept] device-memory ring-buffer requested but profiling requires system-memory InterceptQueue; falling back to system-memory ring for agent 97529236245088 (priority and CU-mask from the descriptor are not preserved)
+W1105 06:32:32.838055   18403 simple_timer.cpp:55] [rocprofv3] '/root/benchmark/MANS/amd/adm/haac_bench/build/decompress_fused ./profile/mi355x-gfx950/compressed/xx_1073726487_256kB_fused.adm /root/benchmark/data/testdata/u2/haac/xx_1073726487_256kB.u2' ::     0.110437 sec
+E1105 06:32:32.842614   18403 output_stream.cpp:110] Opened result file: ./profile/mi355x-gfx950/pmc/xx_1073726487_256kB_decompress_fused/ml-ai-ubuntu-gpu-mi355x1-288gb-spot-mem1/18403_counter_collection.csv
+E1105 06:32:32.845982   18403 output_stream.cpp:110] Opened result file: ./profile/mi355x-gfx950/pmc/xx_1073726487_256kB_decompress_fused/ml-ai-ubuntu-gpu-mi355x1-288gb-spot-mem1/18403_agent_info.csv
+W1105 06:32:32.847002   18403 simple_timer.cpp:55] [rocprofv3] output generation ::     0.008319 sec
+W1105 06:32:32.847032   18403 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.008352 sec
+[0;34m-------Decmp Throughput-------[0m
+Decmp throughput: 2.97 GB/s
+[0;34m-------Decmp Time-------[0m
+Total cost 0.08 ms
+[0;32mPass error check![0m
+Memory has been successfully freed.

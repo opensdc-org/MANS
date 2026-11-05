@@ -1,0 +1,67 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400821300451,2400821302371
+1,1,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",40.000000,2400821300451,2400821302371
+2,2,"Agent 1",2,19177,19177,4096,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",840.000000,2400821593045,2400821595085
+2,2,"Agent 1",2,19177,19177,4096,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",648.000000,2400821593045,2400821595085
+3,3,"Agent 1",2,19177,19177,4096,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",840.000000,2400821647434,2400821649114
+3,3,"Agent 1",2,19177,19177,4096,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",616.000000,2400821647434,2400821649114
+4,4,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400840229285,2400840232485
+4,4,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",41.000000,2400840229285,2400840232485
+5,5,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400840370754,2400840372554
+5,5,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400840370754,2400840372554
+6,6,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400840426513,2400840428233
+6,6,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400840426513,2400840428233
+7,7,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",35376.000000,2400844830435,2400844874803
+7,7,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6488.000000,2400844830435,2400844874803
+8,8,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400844958161,2400844960042
+8,8,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400844958161,2400844960042
+9,9,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845042162,2400845044362
+9,9,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845042162,2400845044362
+10,10,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845099550,2400845101631
+10,10,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845099550,2400845101631
+11,11,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",33590.000000,2400845154792,2400845200120
+11,11,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6411.000000,2400845154792,2400845200120
+12,12,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845267809,2400845269569
+12,12,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845267809,2400845269569
+13,13,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845322218,2400845324178
+13,13,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845322218,2400845324178
+14,14,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845382657,2400845384457
+14,14,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845382657,2400845384457
+15,15,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",34048.000000,2400845439179,2400845484907
+15,15,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6340.000000,2400845439179,2400845484907
+16,16,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845557476,2400845559196
+16,16,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845557476,2400845559196
+17,17,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845613185,2400845615105
+17,17,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845613185,2400845615105
+18,18,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845668024,2400845669744
+18,18,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845668024,2400845669744
+19,19,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",33482.000000,2400845721786,2400845767873
+19,19,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6319.000000,2400845721786,2400845767873
+20,20,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845834512,2400845836232
+20,20,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845834512,2400845836232
+21,21,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845891780,2400845893741
+21,21,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845891780,2400845893741
+22,22,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400845944342,2400845946062
+22,22,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400845944342,2400845946062
+23,23,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",33611.000000,2400845998582,2400846044309
+23,23,"Agent 1",2,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6389.000000,2400845998582,2400846044309
+24,24,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400888966866,2400888969026
+24,24,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",74.000000,2400888966866,2400888969026
+25,25,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400889079146,2400889081066
+25,25,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400889079146,2400889081066
+26,26,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_HIT_sum",16.000000,2400889136884,2400889139285
+26,26,"Agent 1",2,19177,19177,256,13,"__amd_rocclr_fillBufferUnAligned",256,0,0,8,0,64,"TCC_MISS_sum",17.000000,2400889136884,2400889139285
+27,27,"Agent 1",4,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_HIT_sum",35501.000000,2400893159978,2400893204579
+27,27,"Agent 1",4,19177,19177,2048,14,"map_values_kernel_decoupled(unsigned short const*, unsigned char*, unsigned char*, unsigned short*, int*, int volatile*, int volatile*, int volatile*, int, int)",32,512,256,72,0,112,"TCC_MISS_sum",6498.000000,2400893159978,2400893204579
+28,28,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",13.000000,2400893305536,2400893309017
+28,28,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",18.000000,2400893305536,2400893309017
+29,29,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",13.000000,2400893366277,2400893369157
+29,29,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",16.000000,2400893366277,2400893369157
+30,30,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",13.000000,2400893436515,2400893438195
+30,30,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",16.000000,2400893436515,2400893438195
+31,31,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",12.000000,2400893517637,2400893519437
+31,31,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",14.000000,2400893517637,2400893519437
+32,32,"Agent 1",2,19177,19177,2048,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",300.000000,2400893657840,2400893659720
+32,32,"Agent 1",2,19177,19177,2048,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",580.000000,2400893657840,2400893659720
+33,33,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",43.000000,2400893765012,2400893766972
+33,33,"Agent 1",2,19177,19177,512,8,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",89.000000,2400893765012,2400893766972

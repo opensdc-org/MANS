@@ -1,0 +1,19 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",12.000000,2305238310126,2305238314166
+1,1,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",41.000000,2305238310126,2305238314166
+2,2,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",13.000000,2305256933115,2305256937396
+2,2,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",43.000000,2305256933115,2305256937396
+3,3,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",43.000000,2305257089647,2305257093127
+3,3,"Agent 1",2,18022,18022,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",76.000000,2305257089647,2305257093127
+4,4,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257612747,2305257621949
+4,4,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2135.000000,2305257612747,2305257621949
+5,5,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257699377,2305257708019
+5,5,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2112.000000,2305257699377,2305257708019
+6,6,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257770888,2305257779689
+6,6,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2112.000000,2305257770888,2305257779689
+7,7,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257843087,2305257851729
+7,7,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2112.000000,2305257843087,2305257851729
+8,8,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257915468,2305257924230
+8,8,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2112.000000,2305257915468,2305257924230
+9,9,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",12257.000000,2305257994478,2305258003120
+9,9,"Agent 1",2,18022,18022,1024,14,"decompress(unsigned short*, unsigned short*, unsigned char*, int*, unsigned char*, unsigned char*, int, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",2112.000000,2305257994478,2305258003120

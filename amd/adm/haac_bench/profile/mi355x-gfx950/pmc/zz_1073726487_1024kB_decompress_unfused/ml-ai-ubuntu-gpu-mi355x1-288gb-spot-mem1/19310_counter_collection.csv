@@ -1,0 +1,29 @@
+"Correlation_Id","Dispatch_Id","Agent_Id","Queue_Id","Process_Id","Thread_Id","Grid_Size","Kernel_Id","Kernel_Name","Workgroup_Size","LDS_Block_Size","Scratch_Size","VGPR_Count","Accum_VGPR_Count","SGPR_Count","Counter_Name","Counter_Value","Start_Timestamp","End_Timestamp"
+1,1,"Agent 1",2,19310,19310,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",27.000000,2406983362785,2406983366905
+1,1,"Agent 1",2,19310,19310,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",71.000000,2406983362785,2406983366905
+2,2,"Agent 1",2,19310,19310,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_HIT_sum",43.000000,2407001533095,2407001537415
+2,2,"Agent 1",2,19310,19310,512,10,"__amd_rocclr_copyBuffer",512,0,0,16,0,32,"TCC_MISS_sum",102.000000,2407001533095,2407001537415
+3,3,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002213947,2407002230388
+3,3,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6143.000000,2407002213947,2407002230388
+4,4,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407002303835,2407002312315
+4,4,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407002303835,2407002312315
+5,5,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002390945,2407002406225
+5,5,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6112.000000,2407002390945,2407002406225
+6,6,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407002458673,2407002466834
+6,6,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407002458673,2407002466834
+7,7,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002533002,2407002548243
+7,7,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6112.000000,2407002533002,2407002548243
+8,8,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407002601402,2407002609562
+8,8,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407002601402,2407002609562
+9,9,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002677200,2407002692641
+9,9,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6112.000000,2407002677200,2407002692641
+10,10,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407002745430,2407002753710
+10,10,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407002745430,2407002753710
+11,11,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002821300,2407002836460
+11,11,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6112.000000,2407002821300,2407002836460
+12,12,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407002890827,2407002898948
+12,12,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407002890827,2407002898948
+13,13,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_HIT_sum",299999.000000,2407002970257,2407002985538
+13,13,"Agent 1",2,19310,19310,16384,15,"decode_signals_uint16(int const*, unsigned char const*, unsigned char*, int, int, int)",32,0,0,48,0,112,"TCC_MISS_sum",6112.000000,2407002970257,2407002985538
+14,14,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_HIT_sum",519552.000000,2407003039687,2407003047887
+14,14,"Agent 1",2,19310,19310,16384,14,"restore_values_uint16(unsigned short*, unsigned short const*, unsigned char const*, unsigned char const*, int)",32,0,0,12,4,32,"TCC_MISS_sum",16608.000000,2407003039687,2407003047887

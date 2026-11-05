@@ -1,0 +1,24 @@
+W1105 06:29:36.960825   16306 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.134904 sec
+W1105 06:29:36.961222   16306 simple_timer.cpp:55] [rocprofv3] '/root/benchmark/MANS/amd/adm/haac_bench/build/compress_fused /root/benchmark/data/testdata/u2/haac/vx_1073726487_1024kB.u2 ./profile/mi355x-gfx950/compressed/vx_1073726487_1024kB_fused.adm' ::     0.000000 sec
+Input file: /root/benchmark/data/testdata/u2/haac/vx_1073726487_1024kB.u2
+elements num: 524288
+W1105 06:29:36.969815   16306 tool.cpp:3348] HSA version 1.21.0 initialized (instance=0)
+W1105 06:29:36.986570   16306 queue_controller.cpp:170] [queue-intercept] device-memory ring-buffer requested but profiling requires system-memory InterceptQueue; falling back to system-memory ring for agent 98424213318208 (priority and CU-mask from the descriptor are not preserved)
+W1105 06:29:37.050306   16306 queue_controller.cpp:170] [queue-intercept] device-memory ring-buffer requested but profiling requires system-memory InterceptQueue; falling back to system-memory ring for agent 98424213318208 (priority and CU-mask from the descriptor are not preserved)
+W1105 06:29:37.089074   16306 simple_timer.cpp:55] [rocprofv3] '/root/benchmark/MANS/amd/adm/haac_bench/build/compress_fused /root/benchmark/data/testdata/u2/haac/vx_1073726487_1024kB.u2 ./profile/mi355x-gfx950/compressed/vx_1073726487_1024kB_fused.adm' ::     0.127851 sec
+E1105 06:29:37.093714   16306 output_stream.cpp:110] Opened result file: ./profile/mi355x-gfx950/pmc/vx_1073726487_1024kB_compress_fused/ml-ai-ubuntu-gpu-mi355x1-288gb-spot-mem1/16306_counter_collection.csv
+E1105 06:29:37.097386   16306 output_stream.cpp:110] Opened result file: ./profile/mi355x-gfx950/pmc/vx_1073726487_1024kB_compress_fused/ml-ai-ubuntu-gpu-mi355x1-288gb-spot-mem1/16306_agent_info.csv
+W1105 06:29:37.098364   16306 simple_timer.cpp:55] [rocprofv3] output generation ::     0.008648 sec
+W1105 06:29:37.098394   16306 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.008682 sec
+=======>Use Decoupled Prefix-sum<=======
+Total Cmp throughput: 0.57 GB/s
+ADM cost 1.71 ms, prefix-sum cost 0.00 ms, concat cost 0.00 ms
+[0;34m-------Data Size-------[0m
+Original size: 1048576 Bytes
+Output size: 595968 Bytes
+CR : 1.76 x
+Output Length size: 4096 Bytes
+Centers size: 2048 Bytes
+Codes size: 524288 Bytes
+Bit-signal size: 65536 Bytes
+Memory has been successfully freed.

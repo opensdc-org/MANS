@@ -1,0 +1,14 @@
+Input file: /root/benchmark/data/testdata/u2/haac/xx_1073726487_1048576kB.u2
+elements num: 536870912
+=======>Use Decoupled Prefix-sum<=======
+Total Cmp throughput: 0.28 GB/s
+ADM cost 3573.98 ms, prefix-sum cost 0.00 ms, concat cost 0.00 ms
+[0;34m-------Data Size-------[0m
+Original size: 1073741824 Bytes
+Output size: 610271232 Bytes
+CR : 1.76 x
+Output Length size: 4194304 Bytes
+Centers size: 2097152 Bytes
+Codes size: 536870912 Bytes
+Bit-signal size: 67108864 Bytes
+Memory has been successfully freed.

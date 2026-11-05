@@ -40,7 +40,7 @@ for name in "${targets[@]}"; do
         exit 2
     fi
     echo "Building $name with $hipcc ${GPU_ARCH:+(arch $GPU_ARCH)}"
-    "$hipcc" -O3 -std=c++14 "${arch_flag[@]}" "${devlib_flag[@]}" \
+    "$hipcc" -O3 -std=c++17 "${arch_flag[@]}" "${devlib_flag[@]}" \
         -DHIP_ENABLE_WARP_SYNC_BUILTINS \
         -I"$repo_root/amd/adm" \
         "$source" -o "$build_dir/$name"
