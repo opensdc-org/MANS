@@ -1,0 +1,5 @@
+elements num: 131072
+\033[0;34m-------Decmp Throughput-------\033[0m\nDecmp throughput: 4.91 GB/s\n\033[0;34m-------Decmp Time-------\033[0m\nDecode signals cost 0.03 ms, restore values cost 0.02 ms\nTotal cost 0.05 ms\n[0;32mPass error check![0m
+File read cost 0.323 ms (original 0.214 ms, ADM 0.109 ms), H2D cost 298.402 ms, D2H cost 3.315 ms, CPU verify cost 0.061 ms
+Total wall cost 382.893 ms
+Memory has been successfully freed.

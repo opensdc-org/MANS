@@ -1,0 +1,9 @@
+elements num: 524288
+[0;31mE20261105 08:35:44.524145 140224701405248 output_file.cpp:102] Opened result file: ./profile/mi210/pmc/vy_1073726487_1024kB_decompress_fused/7de35ec85f6b/351150_agent_info.csv
+[m[0;31mE20261105 08:35:44.658281 140224701405248 output_file.cpp:102] Opened result file: ./profile/mi210/pmc/vy_1073726487_1024kB_decompress_fused/7de35ec85f6b/351150_counter_collection.csv
+[m[0;34m-------Decmp Throughput-------[0m
+Decmp throughput: 8.87 GB/s
+[0;34m-------Decmp Time-------[0m
+Total cost 0.11 ms
+[0;32mPass error check![0m
+Memory has been successfully freed.

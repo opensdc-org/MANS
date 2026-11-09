@@ -10,15 +10,60 @@
 // is recovered as:
 //   last_length = bit_signals_size / cmp_tblock_size - output_lengths[gsize-1]
 
+#ifdef MANS_BENCH_CUDA
+#include <cuda_runtime.h>
+using hipError_t = cudaError_t;
+using hipEvent_t = cudaEvent_t;
+using hipStream_t = cudaStream_t;
+using hipMemcpyKind = cudaMemcpyKind;
+static const hipError_t hipSuccess = cudaSuccess;
+static const hipMemcpyKind hipMemcpyHostToDevice = cudaMemcpyHostToDevice;
+static const hipMemcpyKind hipMemcpyDeviceToHost = cudaMemcpyDeviceToHost;
+static const hipMemcpyKind hipMemcpyDeviceToDevice = cudaMemcpyDeviceToDevice;
+inline const char* hipGetErrorString(hipError_t status) { return cudaGetErrorString(status); }
+inline hipError_t hipGetLastError() { return cudaGetLastError(); }
+inline hipError_t hipDeviceSynchronize() { return cudaDeviceSynchronize(); }
+inline hipError_t hipMemcpy(void* dst, const void* src, size_t size, hipMemcpyKind kind) {
+    return cudaMemcpy(dst, src, size, kind);
+}
+inline hipError_t hipMemset(void* dst, int value, size_t size) {
+    return cudaMemset(dst, value, size);
+}
+inline hipError_t hipFree(void* ptr) { return cudaFree(ptr); }
+inline hipError_t hipEventCreate(hipEvent_t* event) { return cudaEventCreate(event); }
+inline hipError_t hipEventDestroy(hipEvent_t event) { return cudaEventDestroy(event); }
+inline hipError_t hipEventRecord(hipEvent_t event, hipStream_t stream = nullptr) {
+    return cudaEventRecord(event, stream);
+}
+inline hipError_t hipEventSynchronize(hipEvent_t event) { return cudaEventSynchronize(event); }
+inline hipError_t hipEventElapsedTime(float* ms, hipEvent_t start, hipEvent_t stop) {
+    return cudaEventElapsedTime(ms, start, stop);
+}
+inline hipError_t hipStreamCreate(hipStream_t* stream) { return cudaStreamCreate(stream); }
+inline hipError_t hipStreamSynchronize(hipStream_t stream) { return cudaStreamSynchronize(stream); }
+inline hipError_t hipStreamDestroy(hipStream_t stream) { return cudaStreamDestroy(stream); }
+template <typename T>
+inline hipError_t hipMalloc(T** ptr, size_t size) {
+    return cudaMalloc(reinterpret_cast<void**>(ptr), size);
+}
+#else
 #include <hip/hip_runtime.h>
+#endif
 #include <iostream>
 #include <fstream>
 #include <stdint.h>
+#include <chrono>
 #include <thrust/scan.h>
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
+
+using steady_clock = std::chrono::steady_clock;
+inline double elapsed_ms(const steady_clock::time_point& start,
+                         const steady_clock::time_point& stop) {
+    return std::chrono::duration<double, std::milli>(stop - start).count();
+}
 
 static const int cmp_tblock_size = 32; // 32 threads
 static const int cmp_chunk = 16;

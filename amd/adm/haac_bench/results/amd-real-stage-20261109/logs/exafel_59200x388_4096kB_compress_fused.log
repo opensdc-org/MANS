@@ -1,0 +1,16 @@
+Input file: /workspace/MANS/testdata/u2/exafel/exafel_59200x388_4096kB.u2
+elements num: 2097152
+=======>Use Decoupled Prefix-sum<=======
+Total Cmp throughput: 5.87 GB/s
+ADM cost 0.67 ms, prefix-sum cost 0.00 ms, concat cost 0.00 ms
+[0;34m-------Data Size-------[0m
+Original size: 4194304 Bytes
+Output size: 2551840 Bytes
+CR : 1.64 x
+Output Length size: 16384 Bytes
+Centers size: 8192 Bytes
+Codes size: 2097152 Bytes
+Bit-signal size: 430112 Bytes
+File read cost 2.867 ms, H2D cost 6.529 ms, D2H cost 0.791 ms, file write cost 1.426 ms
+Total wall cost 416.891 ms
+Memory has been successfully freed.

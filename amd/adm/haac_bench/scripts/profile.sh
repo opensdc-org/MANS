@@ -5,10 +5,11 @@ script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 bench_dir=$(cd -- "$script_dir/.." && pwd)
 build_dir=${BUILD_DIR:-"$bench_dir/build"}
 profiler=${ROCPROFV3:-rocprofv3}
-# L2 counters for gfx1100 (Radeon RX 7900 XTX); summed across GL2C instances.
-counters=${COUNTERS:-"GL2C_HIT_sum GL2C_MISS_sum"}
-hit_counter=${HIT_COUNTER:-GL2C_HIT_sum}
-miss_counter=${MISS_COUNTER:-GL2C_MISS_sum}
+# L2 counters for gfx90a (AMD Instinct MI210); summed across TCC instances.
+# For gfx1100 (RX 7900 XTX) use GL2C_HIT_sum / GL2C_MISS_sum instead.
+counters=${COUNTERS:-"TCC_HIT_sum TCC_MISS_sum"}
+hit_counter=${HIT_COUNTER:-TCC_HIT_sum}
+miss_counter=${MISS_COUNTER:-TCC_MISS_sum}
 data_dir=${1:-${DATA_DIR:-}}
 result_dir=${2:-${RESULT_DIR:-"$bench_dir/profile/$(date +%Y%m%d_%H%M%S)"}}
 gpu=${GPU_ID:-0}
@@ -29,7 +30,13 @@ if ((${#inputs[@]} == 0)); then
     exit 2
 fi
 
-mkdir -p "$result_dir/logs" "$result_dir/pmc" "$result_dir/compressed"
+if [[ -e "$result_dir" ]]; then
+    echo "Profile output directory already exists; choose a new directory: $result_dir" >&2
+    exit 2
+fi
+mkdir -p "$result_dir/logs" "$result_dir/pmc"
+temp_adm_dir=$(mktemp -d "${TMPDIR:-/tmp}/haac-adm.XXXXXX")
+trap 'rm -rf -- "$temp_adm_dir"' EXIT
 summary="$result_dir/summary.csv"
 printf 'input,stage,l2_hit_rate_pct,%s,%s,log\n' "$hit_counter" "$miss_counter" > "$summary"
 
@@ -85,7 +92,7 @@ for input in "${inputs[@]}"; do
             echo "Missing executable: $build_dir/$stage" >&2
             exit 2
         fi
-        adm="$result_dir/compressed/${input_name%.u2}_$comp.adm"
+        adm="$temp_adm_dir/${input_name%.u2}_$comp.adm"
         profile_one "$stage" "$input" "$adm"
     done
 
@@ -96,7 +103,7 @@ for input in "${inputs[@]}"; do
             echo "Missing executable: $build_dir/$stage" >&2
             exit 2
         fi
-        adm="$result_dir/compressed/${input_name%.u2}_$decmp.adm"
+        adm="$temp_adm_dir/${input_name%.u2}_$decmp.adm"
         profile_one "$stage" "$adm" "$input"
     done
 done

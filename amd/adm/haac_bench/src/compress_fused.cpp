@@ -343,11 +343,14 @@ int main(int argc, char** argv) {
     const char* input_file = argv[1];
     const char* output_file = argv[2];
     int shift = 1;
+    const steady_clock::time_point total_start = steady_clock::now();
 
     std::cout << "Input file: " << input_file << std::endl;
 
     size_t data_size = 0;
+    const steady_clock::time_point file_read_start = steady_clock::now();
     uint16_t* h_data = load_file_u16(input_file, data_size);
+    const double file_read_ms = elapsed_ms(file_read_start, steady_clock::now());
     int num_elements = data_size / sizeof(uint16_t);
     if (!h_data) {
         std::cerr << "Error: Failed to load data from file: " << input_file << std::endl;
@@ -382,7 +385,9 @@ int main(int argc, char** argv) {
     hipMalloc(&d_concatenated_signals, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_16b * sizeof(uint8_t));
     hipMemset(d_concatenated_signals, 255, bsize * gsize * cmp_chunk * max_bytes_signal_per_ele_16b * sizeof(uint8_t));
 
+    const steady_clock::time_point h2d_start = steady_clock::now();
     hipMemcpy(d_data, h_data, data_size, hipMemcpyHostToDevice);
+    const double h2d_ms = elapsed_ms(h2d_start, steady_clock::now());
 
     // Warm up the same path that will be timed.
     for (int i = 0; i < 5; ++i) {
@@ -450,9 +455,13 @@ int main(int argc, char** argv) {
     hipMemcpy(d_bit_signals_ptr, d_concatenated_signals, bit_signals_size, hipMemcpyDeviceToDevice);
 
     uint8_t* h_cmpdata = new uint8_t[total_size];
+    const steady_clock::time_point d2h_start = steady_clock::now();
     hipMemcpy(static_cast<uint8_t*>(h_cmpdata), d_cmpdata, total_size * sizeof(uint8_t), hipMemcpyDeviceToHost);
+    const double d2h_ms = elapsed_ms(d2h_start, steady_clock::now());
 
+    const steady_clock::time_point file_write_start = steady_clock::now();
     save_file(output_file, h_cmpdata, total_size);
+    const double file_write_ms = elapsed_ms(file_write_start, steady_clock::now());
 
     printf("\033[0;34m-------Data Size-------\033[0m\n");
     printf("Original size: %zu Bytes\n", data_size);
@@ -462,6 +471,10 @@ int main(int argc, char** argv) {
     printf("Centers size: %zu Bytes\n", centers_size);
     printf("Codes size: %zu Bytes\n", codes_size);
     printf("Bit-signal size: %zu Bytes\n", bit_signals_size);
+    printf("File read cost %.3f ms, H2D cost %.3f ms, D2H cost %.3f ms, file write cost %.3f ms\n",
+           file_read_ms, h2d_ms, d2h_ms, file_write_ms);
+    printf("Total wall cost %.3f ms\n",
+           elapsed_ms(total_start, steady_clock::now()));
 
     hipFree(d_data);
     hipFree(d_cmpdata);
