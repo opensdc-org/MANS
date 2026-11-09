@@ -183,15 +183,20 @@ int main(int argc, char** argv) {
     hipEventCreate(&start);
     hipEventCreate(&stop);
 
-    hipEventRecord(start, stream);
-    decompress<<<decmp_gsize, bsize, 0, stream>>>(d_decmpdata, d_centers, d_codes,
-        d_output_lengths, d_concatenated_signals, d_signals,
-        num_elements, last_length, gsize, shift);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-
     float decmp_milliseconds = 0;
-    hipEventElapsedTime(&decmp_milliseconds, start, stop);
+    for (int i = 0; i < timing_iters; ++i) {
+        hipEventRecord(start, stream);
+        decompress<<<decmp_gsize, bsize, 0, stream>>>(d_decmpdata, d_centers, d_codes,
+            d_output_lengths, d_concatenated_signals, d_signals,
+            num_elements, last_length, gsize, shift);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+
+        float ms = 0;
+        hipEventElapsedTime(&ms, start, stop);
+        decmp_milliseconds += ms;
+    }
+    decmp_milliseconds /= timing_iters;
 
     printf("\033[0;34m-------Decmp Throughput-------\033[0m\n");
     float decmp_throughput = (data_size / 1024.0 / 1024 / 1024) / (decmp_milliseconds / 1000.0f);

@@ -225,29 +225,36 @@ int main(int argc, char** argv) {
 
     float decode_milliseconds = 0;
     float restore_milliseconds = 0;
-    hipEventRecord(start, stream);
-    decode_signals_uint16<<<decmp_gsize, decmp_block_size, 0, stream>>>(
-        d_output_lengths, d_concatenated_signals, d_signals,
-        num_elements, last_length, gsize);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&decode_milliseconds, start, stop);
+    for (int i = 0; i < timing_iters; ++i) {
+        hipEventRecord(start, stream);
+        decode_signals_uint16<<<decmp_gsize, decmp_block_size, 0, stream>>>(
+            d_output_lengths, d_concatenated_signals, d_signals,
+            num_elements, last_length, gsize);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        float ms = 0;
+        hipEventElapsedTime(&ms, start, stop);
+        decode_milliseconds += ms;
 
-    hipEventRecord(start, stream);
-    restore_values_uint16<<<decmp_gsize, decmp_block_size, 0, stream>>>(
-        d_decmpdata, d_centers, d_codes, d_signals, num_elements);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&restore_milliseconds, start, stop);
+        hipEventRecord(start, stream);
+        restore_values_uint16<<<decmp_gsize, decmp_block_size, 0, stream>>>(
+            d_decmpdata, d_centers, d_codes, d_signals, num_elements);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        hipEventElapsedTime(&ms, start, stop);
+        restore_milliseconds += ms;
+    }
+    decode_milliseconds /= timing_iters;
+    restore_milliseconds /= timing_iters;
 
     const float decmp_milliseconds = decode_milliseconds + restore_milliseconds;
-    printf("\\033[0;34m-------Decmp Throughput-------\\033[0m\\n");
+    printf("\033[0;34m-------Decmp Throughput-------\033[0m\n");
     float decmp_throughput = (data_size / 1024.0 / 1024 / 1024) / (decmp_milliseconds / 1000.0f);
-    printf("Decmp throughput: %.2f GB/s\\n", decmp_throughput);
-    printf("\\033[0;34m-------Decmp Time-------\\033[0m\\n");
-    printf("Decode signals cost %.2f ms, restore values cost %.2f ms\\n",
+    printf("Decmp throughput: %.2f GB/s\n", decmp_throughput);
+    printf("\033[0;34m-------Decmp Time-------\033[0m\n");
+    printf("Decode signals cost %.2f ms, restore values cost %.2f ms\n",
            decode_milliseconds, restore_milliseconds);
-    printf("Total cost %.2f ms\\n", decmp_milliseconds);
+    printf("Total cost %.2f ms\n", decmp_milliseconds);
 
     uint16_t* h_decmpdata = new uint16_t[num_elements];
     const steady_clock::time_point d2h_start = steady_clock::now();

@@ -72,6 +72,7 @@ static const int decmp_chunk = 32;  // one decomp thread processes decmp_chunk c
 static const int warp_size = 32;
 static const int k = 4;
 static const int kn = 16;
+static const int timing_iters = 10;  // timed kernel launches to average over
 
 // Load a .u2 input file (uint16 elements) into host memory.
 inline uint16_t* load_file_u16(const char* filename, size_t& size) {

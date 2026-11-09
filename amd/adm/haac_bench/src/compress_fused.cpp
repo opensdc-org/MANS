@@ -411,17 +411,22 @@ int main(int argc, char** argv) {
     float prefixsum_milliseconds = 0;
     float concat_milliseconds = 0;
     printf("=======>Use Decoupled Prefix-sum<=======\n");
-    hipMemset(d_flag, 0, (gsize + 1) * sizeof(int));
-    hipMemset(d_locOffset, 0, (gsize + 1) * sizeof(int));
-    hipMemset(d_output_lengths, 0, (gsize + 1) * sizeof(int));
-    hipEventRecord(start, stream);
-    map_values_kernel_decoupled<<<gsize, bsize, 0, stream>>>(
-        (uint16_t*)d_data, d_codes, d_concatenated_signals,
-        (uint16_t*)d_centers, d_signal_length, d_locOffset,
-        d_output_lengths, d_flag, num_elements, shift);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&adm_milliseconds, start, stop);
+    for (int i = 0; i < timing_iters; ++i) {
+        hipMemset(d_flag, 0, (gsize + 1) * sizeof(int));
+        hipMemset(d_locOffset, 0, (gsize + 1) * sizeof(int));
+        hipMemset(d_output_lengths, 0, (gsize + 1) * sizeof(int));
+        hipEventRecord(start, stream);
+        map_values_kernel_decoupled<<<gsize, bsize, 0, stream>>>(
+            (uint16_t*)d_data, d_codes, d_concatenated_signals,
+            (uint16_t*)d_centers, d_signal_length, d_locOffset,
+            d_output_lengths, d_flag, num_elements, shift);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        float ms = 0;
+        hipEventElapsedTime(&ms, start, stop);
+        adm_milliseconds += ms;
+    }
+    adm_milliseconds /= timing_iters;
 
     const float total_cmp_milliseconds =
         adm_milliseconds + prefixsum_milliseconds + concat_milliseconds;

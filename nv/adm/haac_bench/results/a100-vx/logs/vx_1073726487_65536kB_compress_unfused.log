@@ -1,0 +1,16 @@
+Input file: /home/bingxing2/home/scx6546/hwj/testdata/u2/haac_vx/vx_1073726487_65536kB.u2
+elements num: 33554432
+=======>Use Thrust Prefix-sum<=======
+Total Cmp throughput: 165.06 GB/s
+ADM cost 0.28 ms, prefix-sum cost 0.02 ms, concat cost 0.08 ms
+[0;34m-------Data Size-------[0m
+Original size: 67108864 Bytes
+Output size: 38141952 Bytes
+CR : 1.76 x
+Output Length size: 262144 Bytes
+Centers size: 131072 Bytes
+Codes size: 33554432 Bytes
+Bit-signal size: 4194304 Bytes
+File read cost 19.342 ms, H2D cost 7.643 ms, D2H cost 5.884 ms, file write cost 7.644 ms
+Total wall cost 295.225 ms
+Memory has been successfully freed.

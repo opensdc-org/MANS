@@ -357,28 +357,37 @@ int main(int argc, char** argv) {
     float prefixsum_milliseconds = 0;
     float concat_milliseconds = 0;
     printf("=======>Use Thrust Prefix-sum<=======\n");
-    hipEventRecord(start, stream);
-    map_values_kernel_thrust<<<gsize, bsize, 0, stream>>>(
-        (uint16_t*)d_data, d_codes, d_bit_signals,
-        (uint16_t*)d_centers, d_signal_length, num_elements, shift);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&adm_milliseconds, start, stop);
+    for (int i = 0; i < timing_iters; ++i) {
+        hipEventRecord(start, stream);
+        map_values_kernel_thrust<<<gsize, bsize, 0, stream>>>(
+            (uint16_t*)d_data, d_codes, d_bit_signals,
+            (uint16_t*)d_centers, d_signal_length, num_elements, shift);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        float ms = 0;
+        hipEventElapsedTime(&ms, start, stop);
+        adm_milliseconds += ms;
 
-    hipEventRecord(start, stream);
-    thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize,
-                           dev_output_lengths);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&prefixsum_milliseconds, start, stop);
+        hipEventRecord(start, stream);
+        thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize,
+                               dev_output_lengths);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        hipEventElapsedTime(&ms, start, stop);
+        prefixsum_milliseconds += ms;
 
-    hipEventRecord(start, stream);
-    concat<<<gsize, bsize, 0, stream>>>(
-        d_bit_signals, d_signal_length, d_output_lengths,
-        d_concatenated_signals, gsize, num_elements);
-    hipEventRecord(stop, stream);
-    hipEventSynchronize(stop);
-    hipEventElapsedTime(&concat_milliseconds, start, stop);
+        hipEventRecord(start, stream);
+        concat<<<gsize, bsize, 0, stream>>>(
+            d_bit_signals, d_signal_length, d_output_lengths,
+            d_concatenated_signals, gsize, num_elements);
+        hipEventRecord(stop, stream);
+        hipEventSynchronize(stop);
+        hipEventElapsedTime(&ms, start, stop);
+        concat_milliseconds += ms;
+    }
+    adm_milliseconds /= timing_iters;
+    prefixsum_milliseconds /= timing_iters;
+    concat_milliseconds /= timing_iters;
 
     const float total_cmp_milliseconds =
         adm_milliseconds + prefixsum_milliseconds + concat_milliseconds;
