@@ -83,15 +83,22 @@ HIP_VISIBLE_DEVICES=0 ROCR_VISIBLE_DEVICES=0 CUDA_VISIBLE_DEVICES=0 \
 GPU_ID=0 ./scripts/analyze_real.py /path/to/testdata/u2/haac ./results/mi210-real-run-1
 ```
 
-A verified MI210 run on the 7 ExaFEL input sizes used GPU 2 and produced `results/amd-real-stage-20261109-rerun1/stage_timings.csv` (28 stage rows; all 14 decompression checks passed). To repeat that dataset run with the same device selection, use:
+The AMD and NVIDIA benches are run on the **same input set — the HAAC `vx`
+series** (10 sizes, 4 kB to 1 GB) — so results are directly comparable. Point the
+script at a directory containing only the `vx_*.u2` files (the repo ships a
+symlinked `haac_vx` directory):
 
 ```bash
-GPU_ID=2 ./scripts/analyze_real.py /workspace/MANS/testdata/u2/exafel ./results/amd-real-stage-<unique-run-name>
+GPU_ID=0 ./scripts/analyze_real.py /workspace/MANS/testdata/u2/haac_vx ./results/mi210-vx-real-stage-<unique-run-name>
 ```
+
+A verified MI210 run on the `vx` series used GPU 0 and produced `results/mi210-vx-real-stage/stage_timings.csv` (40 stage rows; all 20 decompression checks passed). The raw `vx_*.u2` files live under `/workspace/scae-data/testdata/u2/haac/`.
 
 Choose a fresh result path for every run. The result directory must not exist. Existing data is never reused or overwritten. The CSV separates kernel-only HIP-event time (`total_gpu_ms` and its applicable sub-stages) from host-observed I/O/copy timings and `total_wall_ms`; fields that do not apply or are not separately measured are `NA`. Compression output size and decompression input ADM size are recorded for each row. Temporary `.adm` files are deleted when the run exits and are not kept in the result directory. Decompression rows include the CPU lossless check result, and the run stops on a failed stage or check while retaining completed logs and rows.
 
-For the 16 MiB ExaFEL input in the verified run, the single-run HIP-event totals were 1.57 ms (fused compression), 0.88 ms (unfused compression), 0.34 ms (fused decompression), and 0.17 ms (unfused decompression). Treat these as an example from one run, not stable performance claims; repeat runs before drawing conclusions.
+Each stage warms up the timed path first (5 untimed launches), then measures `timing_iters = 10` timed launches and reports the arithmetic mean per kernel, so the reported `*_ms` / throughput numbers are averaged HIP-event kernel times, not single-shot measurements. This matches the NVIDIA `a100-vx-real-stage` methodology.
+
+For the 1 MiB `vx` input in the verified run, the averaged HIP-event totals were 0.14 ms (fused compression), 0.15 ms (unfused compression), 0.03 ms (fused decompression), and 0.04 ms (unfused decompression); the 1 GB input measured 76.88 ms (fused compression) and 13.12 ms (fused decompression).
 
 For fused stages, `fused_kernel_ms` is a single fused-kernel measurement: it cannot be split into mapping, scan, concat, decode, or restore costs. Unfused compression reports mapping, prefix-sum, and concat HIP-event timings; unfused decompression reports signal decode and value restore HIP-event timings. `total_gpu_ms` is the sum of those applicable event measurements. It is not an end-to-end time.
 

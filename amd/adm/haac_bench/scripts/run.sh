@@ -36,7 +36,7 @@ export ROCR_VISIBLE_DEVICES="$gpu"
 
 for input in "${inputs[@]}"; do
     input_name=$(basename "$input")
-    input_bytes=$(stat -c '%s' "$input")
+    input_bytes=$(stat -Lc '%s' "$input")
 
     # Compression stages: input.u2 -> compressed.adm
     for comp in fused unfused; do
