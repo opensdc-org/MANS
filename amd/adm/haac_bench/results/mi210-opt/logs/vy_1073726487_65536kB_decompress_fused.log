@@ -1,0 +1,9 @@
+elements num: 33554432
+[0;34m-------Decmp Throughput-------[0m
+Decmp throughput: 271.30 GB/s
+[0;34m-------Decmp Time-------[0m
+Total cost 0.23 ms
+[0;32mPass error check![0m
+File read cost 56.146 ms (original 36.974 ms, ADM 19.172 ms), H2D cost 305.046 ms, D2H cost 21.859 ms, CPU verify cost 14.690 ms
+Total wall cost 470.773 ms
+Memory has been successfully freed.

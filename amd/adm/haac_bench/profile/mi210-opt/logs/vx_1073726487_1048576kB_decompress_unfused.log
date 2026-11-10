@@ -1,0 +1,12 @@
+elements num: 536870912
+[0;31mE20261110 08:52:47.925207 139683424925760 output_file.cpp:102] Opened result file: ./profile/mi210-opt/pmc/vx_1073726487_1048576kB_decompress_unfused/7de35ec85f6b/1645985_agent_info.csv
+[m[0;31mE20261110 08:52:48.054913 139683424925760 output_file.cpp:102] Opened result file: ./profile/mi210-opt/pmc/vx_1073726487_1048576kB_decompress_unfused/7de35ec85f6b/1645985_counter_collection.csv
+[m[0;34m-------Decmp Throughput-------[0m
+Decmp throughput: 234.25 GB/s
+[0;34m-------Decmp Time-------[0m
+Decode signals cost 1.22 ms, restore values cost 3.04 ms
+Total cost 4.27 ms
+[0;32mPass error check![0m
+File read cost 925.277 ms (original 592.685 ms, ADM 332.592 ms), H2D cost 354.636 ms, D2H cost 352.903 ms, CPU verify cost 408.784 ms
+Total wall cost 2191.260 ms
+Memory has been successfully freed.

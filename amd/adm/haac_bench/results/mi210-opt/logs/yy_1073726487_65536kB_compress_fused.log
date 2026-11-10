@@ -1,0 +1,16 @@
+Input file: /workspace/scae-data/testdata/u2/haac/yy_1073726487_65536kB.u2
+elements num: 33554432
+=======>Use Decoupled Prefix-sum<=======
+Total Cmp throughput: 41.35 GB/s
+ADM cost 1.51 ms, prefix-sum cost 0.00 ms, concat cost 0.00 ms
+[0;34m-------Data Size-------[0m
+Original size: 67108864 Bytes
+Output size: 38141952 Bytes
+CR : 1.76 x
+Output Length size: 262144 Bytes
+Centers size: 131072 Bytes
+Codes size: 33554432 Bytes
+Bit-signal size: 4194304 Bytes
+File read cost 36.582 ms, H2D cost 9.927 ms, D2H cost 12.724 ms, file write cost 25.484 ms
+Total wall cost 477.918 ms
+Memory has been successfully freed.

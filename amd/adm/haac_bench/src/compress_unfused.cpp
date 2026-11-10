@@ -331,6 +331,8 @@ int main(int argc, char** argv) {
 
     int bsize = cmp_tblock_size;
     int gsize = (num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk);
+    const int concat_block_size = 256;
+    int concat_gsize = (num_elements + concat_block_size * cmp_chunk - 1) / (concat_block_size * cmp_chunk);
 
     uint16_t* d_data;
     void* d_cmpdata;
@@ -370,7 +372,7 @@ int main(int argc, char** argv) {
             (uint16_t*)d_centers, d_signal_length, num_elements, shift);
         thrust::exclusive_scan(dev_signal_length, dev_signal_length + gsize,
                                dev_output_lengths);
-        concat<<<gsize, bsize>>>(
+        concat<<<concat_gsize, concat_block_size>>>(
             d_bit_signals, d_signal_length, d_output_lengths,
             d_concatenated_signals, gsize, num_elements);
         hipDeviceSynchronize();
@@ -406,7 +408,7 @@ int main(int argc, char** argv) {
         prefixsum_milliseconds += ms;
 
         hipEventRecord(start, stream);
-        concat<<<gsize, bsize, 0, stream>>>(
+        concat<<<concat_gsize, concat_block_size, 0, stream>>>(
             d_bit_signals, d_signal_length, d_output_lengths,
             d_concatenated_signals, gsize, num_elements);
         hipEventRecord(stop, stream);

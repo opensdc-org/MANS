@@ -1,0 +1,18 @@
+Input file: /workspace/scae-data/testdata/u2/haac/zz_1073726487_262144kB.u2
+elements num: 134217728
+[0;31mE20261110 08:57:20.445431 139720871356480 output_file.cpp:102] Opened result file: ./profile/mi210-opt/pmc/zz_1073726487_262144kB_compress_unfused/7de35ec85f6b/1652158_agent_info.csv
+[m[0;31mE20261110 08:57:20.571569 139720871356480 output_file.cpp:102] Opened result file: ./profile/mi210-opt/pmc/zz_1073726487_262144kB_compress_unfused/7de35ec85f6b/1652158_counter_collection.csv
+[m=======>Use Thrust Prefix-sum<=======
+Total Cmp throughput: 125.85 GB/s
+ADM cost 1.41 ms, prefix-sum cost 0.27 ms, concat cost 0.31 ms
+[0;34m-------Data Size-------[0m
+Original size: 268435456 Bytes
+Output size: 152567808 Bytes
+CR : 1.76 x
+Output Length size: 1048576 Bytes
+Centers size: 524288 Bytes
+Codes size: 134217728 Bytes
+Bit-signal size: 16777216 Bytes
+File read cost 144.873 ms, H2D cost 29.526 ms, D2H cost 48.492 ms, file write cost 100.847 ms
+Total wall cost 726.926 ms
+Memory has been successfully freed.
