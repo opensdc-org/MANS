@@ -26,8 +26,7 @@ __global__ void map_values_kernel_decoupled(
     uint4 tmp_buffer;
     
     uint8_t local_code[cmp_chunk] = {0};
-    // uint8_t local_signal[cmp_chunk] = {0};
-    uint8_t local_bit_signal[cmp_chunk * max_bytes_signal_per_ele_16b] = {0};
+    uint8_t local_output_idx[cmp_chunk] = {0};
 
     int diff = 0;
     int output_idx = 0;
@@ -42,12 +41,29 @@ __global__ void map_values_kernel_decoupled(
      // 每线程的局部和与计数
     uint32_t local_sum = 0;
     uint32_t local_count = 0;
- 
-     // 每个线程遍历部分数据，计算局部和与计数
-     int end = min(base_thread_end_idx, data_size);
-     for (int i = base_thread_start_idx; i < end; i++) {
-        local_sum += __ldg(&data[i]);  // 使用 __ldg() 让全局内存加载更高效
-        local_count++;
+    int end = min(base_thread_end_idx, data_size);
+
+    // Load this thread's 16 elements as two vectorized uint4 once and reuse them
+    // for both the center average and the per-element encoding, instead of 16
+    // scalar __ldg loads (a large latency source at low occupancy).
+    uint4 buf[2];
+    if (base_thread_start_idx < end) {
+        buf[0] = reinterpret_cast<const uint4*>(data)[base_thread_start_idx / 8];
+        buf[1] = (base_thread_start_idx + 8 < end)
+            ? reinterpret_cast<const uint4*>(data)[base_thread_start_idx / 8 + 1]
+            : make_uint4(0, 0, 0, 0);
+        local_count = end - base_thread_start_idx;
+        #pragma unroll
+        for (int b = 0; b < 2; ++b) {
+            uint32_t t;
+            t = buf[b].x; local_sum += (t & 0xFFFF) + (t >> 16);
+            t = buf[b].y; local_sum += (t & 0xFFFF) + (t >> 16);
+            t = buf[b].z; local_sum += (t & 0xFFFF) + (t >> 16);
+            t = buf[b].w; local_sum += (t & 0xFFFF) + (t >> 16);
+        }
+    } else {
+        buf[0] = make_uint4(0, 0, 0, 0);
+        buf[1] = make_uint4(0, 0, 0, 0);
     }
  
      // 利用 Warp Shuffle 汇总所有线程的和与计数
@@ -79,9 +95,9 @@ __global__ void map_values_kernel_decoupled(
         if(base_thread_start_idx > data_size) break;
 
         #pragma unroll
-        for(int i = base_thread_start_idx; i < end; i+=8)
+        for(int b = 0; b < 2; b++)
         {
-            tmp_buffer = reinterpret_cast<const uint4*>(data)[i / 8];
+            tmp_buffer = buf[b];
 
             currValue = static_cast<uint16_t>(tmp_buffer.x & 0xFFFF);
             is_center = (currValue == center);
@@ -96,7 +112,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -113,7 +129,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -130,7 +146,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -147,7 +163,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -164,7 +180,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -181,7 +197,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -198,7 +214,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -215,7 +231,7 @@ __global__ void map_values_kernel_decoupled(
             // code
             local_code[local_idx] = is_center ? shift : res;
             // signal 
-            local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)));
+            local_output_idx[local_idx] = output_idx;
             // next
             local_idx++;
             bit_offset += output_idx;
@@ -238,13 +254,6 @@ __global__ void map_values_kernel_decoupled(
     //     centers[bid] = center; 
     // }
 
-
-    int total_bits = max_bitstream_length * 8;
-    int current_byte = bit_offset / 8;
-    uint8_t mask = (0xFF >> (bit_offset % 8));
-    (bit_offset < total_bits) ? 
-        local_bit_signal[current_byte] = (bit_offset % 8 == 0) ? 0xFF : (local_bit_signal[current_byte] | mask) 
-        : 0;
 
     // Write warp(i.e. thread-block)-level prefix-sum to global-memory.
     if(lane==31) 
@@ -318,10 +327,37 @@ __global__ void map_values_kernel_decoupled(
     // __syncthreads();
 
     int write_pos = excl_sum * cmp_tblock_size + lane * max_bitstream_length;
+    uint8_t* bit_out = bit_signal + write_pos;
 
+    // Pack the variable-length unary signal bits back into bytes using a register
+    // accumulator and write straight to global memory. The original code indexed a
+    // dynamically-addressed local array (`local_bit_signal[bit_offset / 8]`), which
+    // forces a spill to global-backed local/scratch memory plus one serial
+    // read-modify-write per element.
+    uint32_t acc = 0;
+    int acc_bits = 0;
+    int out_byte = 0;
     #pragma unroll
-    for (int i = 0; i < max_bitstream_length; i++) {
-        bit_signal[write_pos + i] = local_bit_signal[i];
+    for (int i = 0; i < cmp_chunk; ++i) {
+        const int oi = local_output_idx[i];
+        if (oi > 0) {
+            acc = (acc << oi) | (1u << (oi - 1));
+            acc_bits += oi;
+            while (acc_bits >= 8) {
+                bit_out[out_byte++] = (uint8_t)((acc >> (acc_bits - 8)) & 0xFF);
+                acc_bits -= 8;
+                acc &= (1u << acc_bits) - 1;
+            }
+        }
+    }
+    // Final partial byte: pad trailing bits with 1s (matching the original layout),
+    // then zero-fill any remaining bytes up to the block's max length.
+    if (acc_bits > 0) {
+        bit_out[out_byte] = (uint8_t)(((acc << (8 - acc_bits)) & 0xFF) | (0xFF >> acc_bits));
+        for (int i = out_byte + 1; i < max_bitstream_length; ++i) bit_out[i] = 0;
+    } else if (out_byte < max_bitstream_length) {
+        bit_out[out_byte] = 0xFF;
+        for (int i = out_byte + 1; i < max_bitstream_length; ++i) bit_out[i] = 0;
     }
 
     // d_code

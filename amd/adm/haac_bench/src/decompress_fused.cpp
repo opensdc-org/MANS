@@ -9,7 +9,7 @@ __global__ void decompress(uint16_t* decmp_data, uint16_t* centers, uint8_t* cod
     int lane = idx & 0x1f;
     int warp = idx >> 5;
 
-    if (idx * decmp_chunk > data_size) return;
+    if (idx * decmp_chunk >= data_size) return;
     int end = (d_output_lengths[gsize - 1] + last_length) * cmp_tblock_size;
 
     warp = lane < 16 ? warp * 2 : warp * 2 + 1;
@@ -20,47 +20,61 @@ __global__ void decompress(uint16_t* decmp_data, uint16_t* centers, uint8_t* cod
     src_start_idx = lane < 16 ? src_start_idx + lane * length * 2 : src_start_idx + (lane - 16) * length * 2;
     int dst_start_idx = idx * decmp_chunk;
 
-    uint8_t bit_buffer = 0;
-    int signal_idx = -1;
-    int offset_byte = 0;
-    bool bit = 0;
-
     uint8_t local_signal[decmp_chunk] = {0};
 
-    #pragma unroll
-    for (; offset_byte < length && signal_idx < cmp_chunk; offset_byte++)
+    // Decode the first 16 elements (indices 0..15) from the first `length` bytes.
+    // Each unary code is a leading 1 followed by `signal` zeros; zero runs are
+    // counted in a register and finalized with a compile-time index so
+    // local_signal stays register-resident (no local-memory spill).
     {
-        bit_buffer = d_concatenated_signals[src_start_idx + offset_byte];
-        #pragma unroll
-        for (int i = 7; i >= 0 && signal_idx < cmp_chunk; i--)
-        {
-            bit = (bit_buffer >> i) & 1;
-            if (bit) {
-                signal_idx++;
-            } else {
-                local_signal[signal_idx]++;
+        int signal_idx = -1;
+        int run = 0;
+        for (int offset_byte = 0; offset_byte < length && signal_idx < cmp_chunk; ++offset_byte) {
+            const uint8_t bit_buffer = d_concatenated_signals[src_start_idx + offset_byte];
+            #pragma unroll
+            for (int i = 7; i >= 0 && signal_idx < cmp_chunk; --i) {
+                if ((bit_buffer >> i) & 1) {
+                    if (signal_idx >= 0 && run != 0) {
+                        #pragma unroll
+                        for (int j = 0; j < cmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
+                    }
+                    ++signal_idx;
+                    run = 0;
+                } else {
+                    ++run;
+                }
             }
+        }
+        if (signal_idx >= 0 && run != 0) {
+            #pragma unroll
+            for (int j = 0; j < cmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
         }
     }
 
-    offset_byte = 0;
-    signal_idx = 15;
-    bit_buffer = 0;
-    bit = 0;
-    #pragma unroll
-    for (; offset_byte < length && signal_idx < decmp_chunk; offset_byte++)
+    // Decode the next 16 elements (indices 16..31) from the second `length` bytes.
     {
-        if(src_start_idx + offset_byte + length > end) return;
-        bit_buffer = d_concatenated_signals[src_start_idx + offset_byte + length];
-        #pragma unroll
-        for (int i = 7; i >= 0 && signal_idx < decmp_chunk; i--)
-        {
-            bit = (bit_buffer >> i) & 1;
-            if (bit) {
-                signal_idx++;
-            } else {
-                local_signal[signal_idx]++;
+        int signal_idx = cmp_chunk - 1;
+        int run = 0;
+        for (int offset_byte = 0; offset_byte < length && signal_idx < decmp_chunk; ++offset_byte) {
+            if (src_start_idx + offset_byte + length > end) return;
+            const uint8_t bit_buffer = d_concatenated_signals[src_start_idx + offset_byte + length];
+            #pragma unroll
+            for (int i = 7; i >= 0 && signal_idx < decmp_chunk; --i) {
+                if ((bit_buffer >> i) & 1) {
+                    if (signal_idx >= cmp_chunk && run != 0) {
+                        #pragma unroll
+                        for (int j = cmp_chunk; j < decmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
+                    }
+                    ++signal_idx;
+                    run = 0;
+                } else {
+                    ++run;
+                }
             }
+        }
+        if (signal_idx >= cmp_chunk && run != 0) {
+            #pragma unroll
+            for (int j = cmp_chunk; j < decmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
         }
     }
 
@@ -75,15 +89,14 @@ __global__ void decompress(uint16_t* decmp_data, uint16_t* centers, uint8_t* cod
 
     uint16_t local_result[decmp_chunk];
 
-    int  center = lane < 16 ? centers[bid * 2] : centers[bid * 2 + 1];
+    int center = centers[warp];
 
-    uint8_t code = 0;
-    uint8_t signal = 0;
     //restore data
+    #pragma unroll
     for(int i = 0; i < decmp_chunk; i++)
     {
-        code = local_codes[i];
-        signal = local_signal[i];
+        uint8_t code = local_codes[i];
+        uint8_t signal = local_signal[i];
 
         int diff = (code % 2 == 1) ? ((code - 1) / 2) : ((code) / 2);
         diff += signal * 126;
@@ -132,7 +145,8 @@ int main(int argc, char** argv) {
 
     int bsize = cmp_tblock_size;
     int gsize = (num_elements + bsize * cmp_chunk - 1) / (bsize * cmp_chunk);
-    int decmp_gsize = (num_elements + bsize * decmp_chunk - 1) / (bsize * decmp_chunk);
+    const int decmp_block_size = 256;
+    int decmp_gsize = (num_elements + decmp_block_size * decmp_chunk - 1) / (decmp_block_size * decmp_chunk);
 
     size_t output_lengths_size = gsize * sizeof(int);
     size_t centers_size = gsize * sizeof(uint16_t);
@@ -172,7 +186,7 @@ int main(int argc, char** argv) {
 
     // Warm up the same path that will be timed.
     for (int i = 0; i < 5; ++i) {
-        decompress<<<decmp_gsize, bsize, 0, stream>>>(d_decmpdata, d_centers, d_codes,
+        decompress<<<decmp_gsize, decmp_block_size, 0, stream>>>(d_decmpdata, d_centers, d_codes,
             d_output_lengths, d_concatenated_signals, d_signals,
             num_elements, last_length, gsize, shift);
 
@@ -186,7 +200,7 @@ int main(int argc, char** argv) {
     float decmp_milliseconds = 0;
     for (int i = 0; i < timing_iters; ++i) {
         hipEventRecord(start, stream);
-        decompress<<<decmp_gsize, bsize, 0, stream>>>(d_decmpdata, d_centers, d_codes,
+        decompress<<<decmp_gsize, decmp_block_size, 0, stream>>>(d_decmpdata, d_centers, d_codes,
             d_output_lengths, d_concatenated_signals, d_signals,
             num_elements, last_length, gsize, shift);
         hipEventRecord(stop, stream);

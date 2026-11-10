@@ -106,6 +106,54 @@ For fused stages, `fused_kernel_ms` is a single fused-kernel measurement: it can
 
 The existing `run.sh` remains a simpler throughput/lossless summary workflow; use `analyze_real.py` for phase-level comparisons. AMD HIP-event kernel throughput must not be directly compared as the same metric to NVIDIA CLI wall-clock throughput. NVIDIA-side scripts and measurements remain independent; record their timing scope separately, especially if decompression uses a CPU reference decoder.
 
+## Kernel optimizations
+
+The four ADM kernels below were profiled on MI210 (gfx90a) and optimized to
+remove local-memory spills and latency-bound scalar loads. All changes keep the
+output bit-exact (verified lossless on every input). The measured `total_gpu_ms`
+is the sum of the applicable HIP-event kernel times.
+
+### Compression mapping (`compress_fused` `map_values_kernel_decoupled`, `compress_unfused` `map_values_kernel_thrust`)
+
+1. **Bit-packing spill elimination.** The original wrote each unary signal bit
+   into `local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)))` — a
+   dynamically-indexed local array. This forced the array into scratch/local
+   memory and did one serial read-modify-write per element. It is replaced by a
+   fixed-index `local_output_idx[cmp_chunk]` plus a register accumulator that
+   re-packs the unary codes and streams out bytes directly. This mainly helps
+   small inputs.
+
+2. **Center-sum / load merge.** The block-center average was originally computed
+   with 16 scalar `__ldg` loads, separately from the per-element `uint4` loads.
+   At low occupancy these scalar loads were the latency bottleneck (profiled
+   `OccupancyPercent` ~12%, `MemUnitStalled` ~2%, i.e. latency-bound, not
+   bandwidth-bound). The center sum is now folded into a single `uint4 buf[2]`
+   load that is reused for both the average and the per-element encoding. This
+   is the dominant large-size win (3–4× on ≥16 MB).
+
+### Decompression (`decompress_fused` `decompress`, `decompress_unfused` `decode_signals_uint16`)
+
+3. **Register-resident signal decode (LDS elimination).** The signal decoder
+   wrote `local_signal[signal_idx]++` with a data-dependent index, so the
+   compiler placed the 32-entry array in LDS (`lds = 32768`) and occupancy
+   dropped to ~6%. The decode now keeps a zero-run count in a register and
+   finalizes each element's signal with a compile-time index (a fully-unrolled
+   predicated write), guarded by `run != 0` so the common zero case costs
+   nothing. Together with `#pragma unroll` on the code-load/restore loops, every
+   local array is statically indexed and stays in registers (`lds = 0`).
+
+4. **Block size 32 → 256 (fused only).** A 32-thread block occupies a 64-lane
+   wavefront with half the lanes idle. Because the kernel addresses everything by
+   global thread index, enlarging to 256 threads only required fixing the center
+   lookup from `centers[bid * 2]` to `centers[warp]`. Occupancy went 6% → 91%.
+
+5. **Boundary fix (fused).** The tail-guard was changed from `>` to `>=` so the
+   padded threads of the last block exit cleanly at any block size.
+
+6. **Static vectorized signal write-out (unfused decode).** The decoded signals
+   are packed into `uint4` words using compile-time indices instead of a
+   runtime-indexed loop.
+
 ## Synthetic GPU microbenchmark
 
 `microbench` runs synthetic integer, bitwise, and device-memory-copy kernels. Its optional arguments are the element count, trial count, and inner iteration count:

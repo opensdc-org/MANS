@@ -1,0 +1,16 @@
+Input file: /workspace/scae-data/testdata/u2/haac/xx_1073726487_4kB.u2
+elements num: 2048
+=======>Use Thrust Prefix-sum<=======
+Total Cmp throughput: 0.04 GB/s
+ADM cost 0.04 ms, prefix-sum cost 0.06 ms, concat cost 0.01 ms
+[0;34m-------Data Size-------[0m
+Original size: 4096 Bytes
+Output size: 2328 Bytes
+CR : 1.76 x
+Output Length size: 16 Bytes
+Centers size: 8 Bytes
+Codes size: 2048 Bytes
+Bit-signal size: 256 Bytes
+File read cost 0.043 ms, H2D cost 2.924 ms, D2H cost 0.033 ms, file write cost 0.090 ms
+Total wall cost 382.028 ms
+Memory has been successfully freed.

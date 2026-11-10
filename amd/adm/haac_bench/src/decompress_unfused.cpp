@@ -23,52 +23,89 @@ __global__ void decode_signals_uint16(
     src_start_idx += lane < 16 ? lane * length * 2 : (lane - 16) * length * 2;
 
     uint8_t local_signal[decmp_chunk] = {0};
-    int signal_idx = -1;
-    for (int offset_byte = 0; offset_byte < length && signal_idx < cmp_chunk; ++offset_byte) {
-        const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte];
-        #pragma unroll
-        for (int bit_idx = 7; bit_idx >= 0 && signal_idx < cmp_chunk; --bit_idx) {
-            if ((bit_buffer >> bit_idx) & 1) ++signal_idx;
-            else ++local_signal[signal_idx];
+
+    // Decode the first 16 elements (indices 0..15) from the first `length` bytes.
+    // Zero runs are counted in a register and finalized with a compile-time index
+    // so local_signal stays register-resident (no local-memory spill).
+    {
+        int signal_idx = -1;
+        int run = 0;
+        for (int offset_byte = 0; offset_byte < length && signal_idx < cmp_chunk; ++offset_byte) {
+            const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte];
+            #pragma unroll
+            for (int bit_idx = 7; bit_idx >= 0 && signal_idx < cmp_chunk; --bit_idx) {
+                if ((bit_buffer >> bit_idx) & 1) {
+                    if (signal_idx >= 0 && run != 0) {
+                        #pragma unroll
+                        for (int j = 0; j < cmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
+                    }
+                    ++signal_idx;
+                    run = 0;
+                } else {
+                    ++run;
+                }
+            }
+        }
+        if (signal_idx >= 0 && run != 0) {
+            #pragma unroll
+            for (int j = 0; j < cmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
         }
     }
 
-    signal_idx = 15;
-    for (int offset_byte = 0; offset_byte < length && signal_idx < decmp_chunk; ++offset_byte) {
-        if (src_start_idx + offset_byte + length >= end) return;
-        const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte + length];
-        #pragma unroll
-        for (int bit_idx = 7; bit_idx >= 0 && signal_idx < decmp_chunk; --bit_idx) {
-            if ((bit_buffer >> bit_idx) & 1) ++signal_idx;
-            else ++local_signal[signal_idx];
+    // Decode the next 16 elements (indices 16..31) from the second `length` bytes.
+    {
+        int signal_idx = cmp_chunk - 1;
+        int run = 0;
+        for (int offset_byte = 0; offset_byte < length && signal_idx < decmp_chunk; ++offset_byte) {
+            if (src_start_idx + offset_byte + length >= end) return;
+            const uint8_t bit_buffer = concatenated_signals[src_start_idx + offset_byte + length];
+            #pragma unroll
+            for (int bit_idx = 7; bit_idx >= 0 && signal_idx < decmp_chunk; --bit_idx) {
+                if ((bit_buffer >> bit_idx) & 1) {
+                    if (signal_idx >= cmp_chunk && run != 0) {
+                        #pragma unroll
+                        for (int j = cmp_chunk; j < decmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
+                    }
+                    ++signal_idx;
+                    run = 0;
+                } else {
+                    ++run;
+                }
+            }
+        }
+        if (signal_idx >= cmp_chunk && run != 0) {
+            #pragma unroll
+            for (int j = cmp_chunk; j < decmp_chunk; ++j) if (j == signal_idx) local_signal[j] = (uint8_t)run;
         }
     }
 
     const int valid = min(decmp_chunk, data_size - dst_start_idx);
-    const int vector_end = valid & ~15;
-    uint4* signal_vectors = reinterpret_cast<uint4*>(signals + dst_start_idx);
-    for (int base = 0; base < vector_end; base += 16) {
-        uint4 packed;
-        packed.x = static_cast<uint32_t>(local_signal[base])
-                 | (static_cast<uint32_t>(local_signal[base + 1]) << 8)
-                 | (static_cast<uint32_t>(local_signal[base + 2]) << 16)
-                 | (static_cast<uint32_t>(local_signal[base + 3]) << 24);
-        packed.y = static_cast<uint32_t>(local_signal[base + 4])
-                 | (static_cast<uint32_t>(local_signal[base + 5]) << 8)
-                 | (static_cast<uint32_t>(local_signal[base + 6]) << 16)
-                 | (static_cast<uint32_t>(local_signal[base + 7]) << 24);
-        packed.z = static_cast<uint32_t>(local_signal[base + 8])
-                 | (static_cast<uint32_t>(local_signal[base + 9]) << 8)
-                 | (static_cast<uint32_t>(local_signal[base + 10]) << 16)
-                 | (static_cast<uint32_t>(local_signal[base + 11]) << 24);
-        packed.w = static_cast<uint32_t>(local_signal[base + 12])
-                 | (static_cast<uint32_t>(local_signal[base + 13]) << 8)
-                 | (static_cast<uint32_t>(local_signal[base + 14]) << 16)
-                 | (static_cast<uint32_t>(local_signal[base + 15]) << 24);
-        signal_vectors[base / 16] = packed;
-    }
-    for (int i = vector_end; i < valid; ++i) {
-        signals[dst_start_idx + i] = local_signal[i];
+    uint8_t* out = signals + dst_start_idx;
+    if (valid == decmp_chunk) {
+        uint4 v0, v1;
+        v0.x = static_cast<uint32_t>(local_signal[0])  | (static_cast<uint32_t>(local_signal[1]) << 8)
+             | (static_cast<uint32_t>(local_signal[2]) << 16)  | (static_cast<uint32_t>(local_signal[3]) << 24);
+        v0.y = static_cast<uint32_t>(local_signal[4])  | (static_cast<uint32_t>(local_signal[5]) << 8)
+             | (static_cast<uint32_t>(local_signal[6]) << 16)  | (static_cast<uint32_t>(local_signal[7]) << 24);
+        v0.z = static_cast<uint32_t>(local_signal[8])  | (static_cast<uint32_t>(local_signal[9]) << 8)
+             | (static_cast<uint32_t>(local_signal[10]) << 16) | (static_cast<uint32_t>(local_signal[11]) << 24);
+        v0.w = static_cast<uint32_t>(local_signal[12]) | (static_cast<uint32_t>(local_signal[13]) << 8)
+             | (static_cast<uint32_t>(local_signal[14]) << 16) | (static_cast<uint32_t>(local_signal[15]) << 24);
+        v1.x = static_cast<uint32_t>(local_signal[16]) | (static_cast<uint32_t>(local_signal[17]) << 8)
+             | (static_cast<uint32_t>(local_signal[18]) << 16) | (static_cast<uint32_t>(local_signal[19]) << 24);
+        v1.y = static_cast<uint32_t>(local_signal[20]) | (static_cast<uint32_t>(local_signal[21]) << 8)
+             | (static_cast<uint32_t>(local_signal[22]) << 16) | (static_cast<uint32_t>(local_signal[23]) << 24);
+        v1.z = static_cast<uint32_t>(local_signal[24]) | (static_cast<uint32_t>(local_signal[25]) << 8)
+             | (static_cast<uint32_t>(local_signal[26]) << 16) | (static_cast<uint32_t>(local_signal[27]) << 24);
+        v1.w = static_cast<uint32_t>(local_signal[28]) | (static_cast<uint32_t>(local_signal[29]) << 8)
+             | (static_cast<uint32_t>(local_signal[30]) << 16) | (static_cast<uint32_t>(local_signal[31]) << 24);
+        reinterpret_cast<uint4*>(out)[0] = v0;
+        reinterpret_cast<uint4*>(out)[1] = v1;
+    } else {
+        #pragma unroll
+        for (int i = 0; i < decmp_chunk; ++i) {
+            if (i < valid) out[i] = local_signal[i];
+        }
     }
 }
 
