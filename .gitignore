@@ -3,6 +3,7 @@ figure/
 MANS_figure/
 # *.py
 build/
+build_preopt/
 build-amd/
 build-amd-633/
 build-amd-local/

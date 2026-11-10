@@ -1,0 +1,118 @@
+# NV A100 cuobjdump --dump-resource-usage (PRE-OPTIMIZATION build, e073eda, sm_80)
+# generated 2026-11-10T09:24:04Z on paraai-n32-h-01-ccs-master-2
+# built from git commit e073eda via worktree /tmp/mans-preopt-e073eda
+
+======== compress_fused ========
+
+Fatbin elf code:
+================
+arch = sm_80
+code version = [1,7]
+host = linux
+compile_size = 64bit
+
+Resource usage:
+ Common:
+  GLOBAL:15
+ Function _ZN3cub11EmptyKernelIvEEvv:
+  REG:4 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:352 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z27map_values_kernel_decoupledPKtPhS1_PtPiPViS5_S5_ii:
+  REG:32 STACK:48 SHARED:4 LOCAL:0 CONSTANT[0]:424 CONSTANT[2]:16 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin ptx code:
+================
+arch = sm_80
+code version = [7,7]
+host = linux
+compile_size = 64bit
+compressed
+
+======== compress_unfused ========
+
+Fatbin elf code:
+================
+arch = sm_80
+code version = [1,7]
+host = linux
+compile_size = 64bit
+
+Resource usage:
+ Common:
+  GLOBAL:15
+ Function _ZN3cub16DeviceScanKernelINS_16DeviceScanPolicyIiE9Policy600EN6thrust10device_ptrIiEES6_NS_13ScanTileStateIiLb1EEENS4_4plusIvEENS_6detail10InputValueIiPiEElEEvT0_T1_T2_iT3_T4_T5_:
+  REG:48 STACK:0 SHARED:7696 LOCAL:0 CONSTANT[0]:408 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN3cub16DeviceScanKernelINS_16DeviceScanPolicyIiE9Policy600EN6thrust10device_ptrIiEES6_NS_13ScanTileStateIiLb1EEENS4_4plusIvEENS_6detail10InputValueIiPiEEiEEvT0_T1_T2_iT3_T4_T5_:
+  REG:48 STACK:0 SHARED:7696 LOCAL:0 CONSTANT[0]:404 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN3cub20DeviceScanInitKernelINS_13ScanTileStateIiLb1EEEEEvT_i:
+  REG:10 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:364 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN3cub11EmptyKernelIvEEvv:
+  REG:4 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:352 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN6thrust8cuda_cub4core13_kernel_agentINS0_14__parallel_for16ParallelForAgentINS0_11__transform17unary_transform_fIPKiNS_10device_ptrIiEENS5_14no_stencil_tagENS_8identityIiEENS5_21always_true_predicateEEElEESF_lEEvT0_T1_:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:384 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _ZN6thrust8cuda_cub4core13_kernel_agentINS0_14__parallel_for16ParallelForAgentINS0_11__transform17unary_transform_fINS_10device_ptrIiEEPiNS5_14no_stencil_tagENS_8identityIiEENS5_21always_true_predicateEEElEESE_lEEvT0_T1_:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:384 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z6concatPKhPKiS2_Phii:
+  REG:28 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:392 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z24map_values_kernel_thrustPKtPhS1_PtPiii:
+  REG:32 STACK:48 SHARED:0 LOCAL:0 CONSTANT[0]:400 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin ptx code:
+================
+arch = sm_80
+code version = [7,7]
+host = linux
+compile_size = 64bit
+compressed
+
+======== decompress_fused ========
+
+Fatbin elf code:
+================
+arch = sm_80
+code version = [1,7]
+host = linux
+compile_size = 64bit
+
+Resource usage:
+ Common:
+  GLOBAL:15
+ Function _ZN3cub11EmptyKernelIvEEvv:
+  REG:4 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:352 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z10decompressPtS_PhPiS0_S0_iiii:
+  REG:32 STACK:32 SHARED:0 LOCAL:0 CONSTANT[0]:416 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin ptx code:
+================
+arch = sm_80
+code version = [7,7]
+host = linux
+compile_size = 64bit
+compressed
+
+======== decompress_unfused ========
+
+Fatbin elf code:
+================
+arch = sm_80
+code version = [1,7]
+host = linux
+compile_size = 64bit
+
+Resource usage:
+ Common:
+  GLOBAL:15
+ Function _ZN3cub11EmptyKernelIvEEvv:
+  REG:4 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:352 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21restore_values_uint16PtPKtPKhS3_i:
+  REG:32 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:388 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function _Z21decode_signals_uint16PKiPKhPhiii:
+  REG:32 STACK:32 SHARED:0 LOCAL:0 CONSTANT[0]:388 TEXTURE:0 SURFACE:0 SAMPLER:0
+
+Fatbin ptx code:
+================
+arch = sm_80
+code version = [7,7]
+host = linux
+compile_size = 64bit
+compressed
+

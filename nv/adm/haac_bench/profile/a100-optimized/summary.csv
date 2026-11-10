@@ -1,0 +1,9 @@
+input,stage,kernel,reg_per_thread,stack_bytes,shared_bytes,local_bytes,wgr,log
+vx_1073726487_1048576kB.u2,compress_fused,map_values_kernel_decoupled,40,0,4,0,32,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,compress_unfused,map_values_kernel_thrust,40,0,0,0,32,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,compress_unfused,init_lookback_scan_state_kernel,10,0,0,0,NA,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,compress_unfused,lookback_scan_kernel,48,0,7696,0,NA,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,compress_unfused,concat,28,0,0,0,256,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,decompress_fused,decompress,56,0,0,0,256,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,decompress_unfused,decode_signals_uint16,45,0,0,0,256,./profile/a100-optimized/cuobjdump_resource_usage.txt
+vx_1073726487_1048576kB.u2,decompress_unfused,restore_values_uint16,32,0,0,0,256,./profile/a100-optimized/cuobjdump_resource_usage.txt

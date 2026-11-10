@@ -1,7 +1,0 @@
-elements num: 8388608
-[0;34m-------Decmp Throughput-------[0m
-Decmp throughput: 160.89 GB/s
-[0;34m-------Decmp Time-------[0m
-Total cost 0.10 ms
-[0;32mPass error check![0m
-Memory has been successfully freed.

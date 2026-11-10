@@ -160,6 +160,48 @@ The default metric is `lts__t_sector_hit_rate.pct` (Ampere/sm_80). Override with
 is stored under `pmc/`. `ncu` requires profiling privileges and may be slow;
 treat this as a best-effort, optional measurement.
 
+> ⚠️ **This cluster's A100 nodes cannot run `ncu` as a normal user.** The GPU
+> driver has `RmProfilingAdminOnly=1` set (see `/proc/driver/nvidia/params`), so
+> `ncu` fails with `ERR_NVGPUCTRPERM` ("The user does not have permission to
+> access NVIDIA GPU Performance Counters") and no kernel is profiled. Fixing it
+> requires an admin to set `RmProfilingAdminOnly=0` (or grant `CAP_PERFMON`).
+> Until then the L2 hit-rate / DRAM-traffic / occupancy counters are unavailable
+> on NV — use the offline resource-usage method below instead.
+
+## Offline kernel resource usage (cuobjdump)
+
+`cuobjdump --dump-resource-usage` reads the compiled `.cubin` directly and needs
+**no GPU and no profiling privileges**, so it works on this cluster as-is. It
+reports per-kernel `REG` / `STACK` (register spill) / `SHARED` / `LOCAL` usage —
+the NV analog of the AMD `rocprof` `VGPR_Count` / `Scratch_Size` /
+`LDS_Block_Size` fields.
+
+```bash
+CUOBJ=/home/bingxing2/apps/cuda/11.7.0/bin/cuobjdump
+for b in compress_fused compress_unfused decompress_fused decompress_unfused; do
+    $CUOBJ --dump-resource-usage build/$b
+done
+```
+
+Results are saved in two symmetric trees, one per build version:
+
+- `profile/a100-optimized/` — current (optimized) build, binaries in `build/`.
+- `profile/a100-preopt/` — pre-optimization build (commit `e073eda`), binaries
+  in `build_preopt/`.
+
+Each holds `summary.csv` (one row per kernel, split out per stage like the AMD
+`profile/mi210-resource-usage/summary.csv`) and `cuobjdump_resource_usage.txt`
+(raw dump). The kernels listed are the 5 ADM kernels
+(`map_values_kernel_decoupled`, `map_values_kernel_thrust`, `decompress`,
+`decode_signals_uint16`, `restore_values_uint16`) plus the `compress_unfused`
+helpers `concat`, `lookback_scan_kernel`, `init_lookback_scan_state_kernel`.
+Columns: `reg_per_thread` / `stack_bytes` (spill) / `shared_bytes` (LDS) /
+`local_bytes` map to the AMD `arch_vgpr` / `scr` / `lds` fields; `wgr` is the
+launch block size (the `concat` and `decompress` kernels went 32 → 256 in the
+optimization). Runtime counters (`occupancy_pct`, `valu_util_pct`,
+`mem_stall_pct`, `fetch_size`, `write_size` in the AMD summary) are unavailable
+here because `ncu` is blocked on this cluster — see the note above.
+
 ## Comparison guidance
 
 Because the NVIDIA and AMD benches share the same ADM source, the CUDA-event
