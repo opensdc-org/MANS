@@ -1,9 +1,0 @@
-elements num: 32768
-[0;31mE20261105 08:38:08.760653 140292086720576 output_file.cpp:102] Opened result file: ./profile/mi210/pmc/xx_1073726487_64kB_decompress_fused/7de35ec85f6b/354012_agent_info.csv
-[m[0;31mE20261105 08:38:08.892004 140292086720576 output_file.cpp:102] Opened result file: ./profile/mi210/pmc/xx_1073726487_64kB_decompress_fused/7de35ec85f6b/354012_counter_collection.csv
-[m[0;34m-------Decmp Throughput-------[0m
-Decmp throughput: 0.60 GB/s
-[0;34m-------Decmp Time-------[0m
-Total cost 0.10 ms
-[0;32mPass error check![0m
-Memory has been successfully freed.

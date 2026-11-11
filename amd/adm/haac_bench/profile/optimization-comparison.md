@@ -2,10 +2,10 @@
 
 对比对象：
 
-- **优化前**：`profile/mi210/`（L2 命中率）+ 导出到 `/tmp/haac_pre/` 的旧代码二进制（资源占用、耗时）
-- **优化后**：`profile/mi210-opt/`（L2 命中率）+ `profile/mi210-resource-usage/`（资源占用）+ `results/mi210-final/`（耗时）
+- **优化前**（commit `e073eda`，62242c5 大优化之前）：`profile/mi210-preopt/`（L2 命中率 + 资源占用）+ `results/mi210-preopt/`（耗时）
+- **优化后**（commit `62242c5` + `69f4b38` concat 优化）：`profile/mi210-optimized/`（L2 命中率 + 资源占用）+ `results/mi210-optimized/`（耗时）
 
-输入统一为 `vx_1073726487_1048576kB.u2`（1 GB，536,870,912 个 uint16 元素）。资源占用为 15 次 dispatch 均值。
+输入统一为 `vx_1073726487_1048576kB.u2`（1 GB，536,870,912 个 uint16 元素）。资源占用为 15 次 dispatch 均值。目录命名与 NV 平台对齐（`profile/{arch}-preopt` / `profile/{arch}-optimized`、`results/{arch}-preopt` / `results/{arch}-optimized`）。
 
 ---
 
@@ -52,17 +52,17 @@
 
 | stage | 阶段 | 优化前 (ms) | 优化后 (ms) | 加速 |
 |---|---|---|---|---|
-| compress_fused | fused_kernel | 76.88 | 23.65 | **3.25×** |
-| compress_unfused | mapping | 25.71 | 5.17 | **4.97×** |
+| compress_fused | fused_kernel | 76.86 | 23.65 | **3.25×** |
+| compress_unfused | mapping | 25.67 | 5.18 | **4.96×** |
 | | prefix_sum | 0.08 | 0.08 | 1.00× |
 | | concat | 1.30 | 0.97 | **1.34×** |
-| | **total_gpu** | **27.09** | **6.22** | **4.36×** |
+| | **total_gpu** | **27.05** | **6.23** | **4.34×** |
 | decompress_fused | fused_kernel | 13.12 | 3.32 | **3.95×** |
 | decompress_unfused | decode | 1.63 | 1.11 | 1.47× |
-| | restore | 3.04 | 2.89 | 1.05× |
-| | **total_gpu** | **4.67** | **4.00** | 1.17× |
+| | restore | 3.04 | 3.00 | 1.01× |
+| | **total_gpu** | **4.67** | **4.11** | 1.14× |
 
-> 注：`concat` 优化后的 0.97 ms 是重测值；`results/mi210-final/stage_timings.csv` 中 concat 仍为 1.30 ms（该 CSV 在 concat 优化前生成）。compress_unfused 优化后 total_gpu 由 mapping 5.17 + prefix 0.08 + concat 0.97 得到。
+> 数值取自 `results/mi210-preopt/stage_timings.csv` 与 `results/mi210-optimized/stage_timings.csv`（1 GB 输入的 HIP-event kernel 时间均值）。`concat` 在优化后 CSV 中已正确反映为 0.97 ms。
 
 **要点**
 
@@ -76,16 +76,16 @@
 
 | stage | 优化前 L2 % | 优化后 L2 % | Δ |
 |---|---|---|---|
-| compress_fused | 90.79 | 89.44 | −1.35 |
-| compress_unfused | 80.66 | 69.13 | −11.52 |
-| decompress_fused | 82.66 | 88.97 | **+6.32** |
-| decompress_unfused | 74.95 | 75.17 | +0.22 |
+| compress_fused | 94.64 | 91.76 | −2.88 |
+| compress_unfused | 81.89 | 60.40 | **−21.49** |
+| decompress_fused | 81.97 | 89.84 | **+7.87** |
+| decompress_unfused | 72.54 | 73.06 | +0.52 |
 
 **要点**
 
 - L2 命中率不是吞吐差异的因果证明（见 `README.md`「Optional L2 counter profiling」），只能作为旁证。
-- `compress_unfused` 命中率下降 11.5pt，但吞吐反而提升 4.36×：优化后 mapping 不再反复读中心值到 L2（原来 16 次标量 `__ldg` 触发的缓存行为改变），且访存模式从 scratch/局部内存改为寄存器流式写出。
-- `decompress_fused` 命中率上升 6.3pt，与 lds 消除后访存更规整一致。
+- `compress_unfused` 命中率下降 21.5pt，但吞吐反而提升 4.34×：优化后 mapping 不再反复读中心值到 L2（原来 16 次标量 `__ldg` 触发的缓存行为改变），且访存模式从 scratch/局部内存改为寄存器流式写出。
+- `decompress_fused` 命中率上升 7.9pt，与 lds 消除后访存更规整一致。
 
 ---
 
@@ -93,10 +93,9 @@
 
 | 数据 | 路径 |
 |---|---|
-| 优化前 L2 命中率 | `profile/mi210/summary.csv` |
-| 优化后 L2 命中率 | `profile/mi210-opt/summary.csv` |
-| 优化后资源占用（8 kernel） | `profile/mi210-resource-usage/summary.csv` |
-| 优化前资源占用原始 | `/tmp/pre_cmp_fused.csv`、`/tmp/pre_cmp_unfused.csv`、`/tmp/pre_dec_fused.csv`、`/tmp/pre_dec_unfused.csv` |
-| 优化前耗时 | `/tmp/haac_pre/amd/adm/haac_bench/results/mi210-vx-real-stage/stage_timings.csv` |
-| 优化后耗时 | `results/mi210-final/stage_timings.csv` |
-| 优化前后资源对比 CSV | `/tmp/pre_vs_post_resource.csv` |
+| 优化前 L2 命中率 | `profile/mi210-preopt/summary.csv` |
+| 优化后 L2 命中率 | `profile/mi210-optimized/summary.csv` |
+| 优化前资源占用（8 kernel） | `profile/mi210-preopt/resource/summary.csv` |
+| 优化后资源占用（8 kernel） | `profile/mi210-optimized/resource/summary.csv` |
+| 优化前耗时 | `results/mi210-preopt/stage_timings.csv` |
+| 优化后耗时 | `results/mi210-optimized/stage_timings.csv` |

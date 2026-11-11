@@ -1,0 +1,9 @@
+input,stage,kernel,occupancy_pct,valu_util_pct,mem_stall_pct,wgr,wave_size,lds,scr,arch_vgpr,accum_vgpr,sgpr,fetch_size,write_size,log
+vx_1073726487_1048576kB.u2,compress_fused,map_values_kernel_decoupled,99.58,21.12,2.68,32,64,512,0,56,0,64,1060045,605546,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_compress_fused.log
+vx_1073726487_1048576kB.u2,compress_unfused,map_values_kernel_thrust,99.00,43.21,12.30,32,64,0,0,52,4,64,1048603,1576132,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_compress_unfused.log
+vx_1073726487_1048576kB.u2,compress_unfused,init_lookback_scan_state_kernel,0.10,95.53,0.62,256,64,0,0,8,0,16,1,0,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_compress_unfused.log
+vx_1073726487_1048576kB.u2,compress_unfused,lookback_scan_kernel,23.68,95.83,3.64,256,64,14336,0,48,0,48,4104,553,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_compress_unfused.log
+vx_1073726487_1048576kB.u2,compress_unfused,concat,90.64,100.00,35.78,256,64,0,0,8,0,16,1057031,71676,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_compress_unfused.log
+vx_1073726487_1048576kB.u2,decompress_fused,decompress,87.68,100.00,69.69,256,64,0,0,60,4,48,607736,1046834,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_decompress_fused.log
+vx_1073726487_1048576kB.u2,decompress_unfused,decode_signals_uint16,95.08,100.00,16.85,256,64,0,0,40,0,48,69656,520534,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_decompress_unfused.log
+vx_1073726487_1048576kB.u2,decompress_unfused,restore_values_uint16,82.43,100.00,75.99,256,64,0,0,60,4,48,1594995,1363814,./profile/mi210-optimized/resource/logs/vx_1073726487_1048576kB_decompress_unfused.log

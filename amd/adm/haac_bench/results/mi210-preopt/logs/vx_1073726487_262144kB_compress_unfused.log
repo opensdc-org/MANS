@@ -1,0 +1,16 @@
+Input file: /tmp/haac_vx/vx_1073726487_262144kB.u2
+elements num: 134217728
+=======>Use Thrust Prefix-sum<=======
+Total Cmp throughput: 36.44 GB/s
+ADM cost 6.44 ms, prefix-sum cost 0.09 ms, concat cost 0.34 ms
+[0;34m-------Data Size-------[0m
+Original size: 268435456 Bytes
+Output size: 152567808 Bytes
+CR : 1.76 x
+Output Length size: 1048576 Bytes
+Centers size: 524288 Bytes
+Codes size: 134217728 Bytes
+Bit-signal size: 16777216 Bytes
+File read cost 149.211 ms, H2D cost 20.228 ms, D2H cost 49.663 ms, file write cost 99.652 ms
+Total wall cost 786.995 ms
+Memory has been successfully freed.

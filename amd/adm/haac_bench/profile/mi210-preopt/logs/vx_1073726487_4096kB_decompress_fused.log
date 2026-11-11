@@ -1,0 +1,11 @@
+elements num: 2097152
+[0;31mE20261110 10:37:58.381057 140710736160832 output_file.cpp:102] Opened result file: /workspace/MANS/amd/adm/haac_bench/profile/mi210-preopt/pmc/vx_1073726487_4096kB_decompress_fused/7de35ec85f6b/1711326_agent_info.csv
+[m[0;31mE20261110 10:37:58.513629 140710736160832 output_file.cpp:102] Opened result file: /workspace/MANS/amd/adm/haac_bench/profile/mi210-preopt/pmc/vx_1073726487_4096kB_decompress_fused/7de35ec85f6b/1711326_counter_collection.csv
+[m[0;34m-------Decmp Throughput-------[0m
+Decmp throughput: 25.53 GB/s
+[0;34m-------Decmp Time-------[0m
+Total cost 0.15 ms
+[0;32mPass error check![0m
+File read cost 1.473 ms (original 0.892 ms, ADM 0.581 ms), H2D cost 297.487 ms, D2H cost 1.373 ms, CPU verify cost 0.865 ms
+Total wall cost 370.963 ms
+Memory has been successfully freed.

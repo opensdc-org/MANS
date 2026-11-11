@@ -1,0 +1,18 @@
+Input file: /tmp/haac_vx/vx_1073726487_4096kB.u2
+elements num: 2097152
+[0;31mE20261110 10:37:56.273230 140287388428352 output_file.cpp:102] Opened result file: /workspace/MANS/amd/adm/haac_bench/profile/mi210-preopt/pmc/vx_1073726487_4096kB_compress_fused/7de35ec85f6b/1711306_agent_info.csv
+[m[0;31mE20261110 10:37:56.405193 140287388428352 output_file.cpp:102] Opened result file: /workspace/MANS/amd/adm/haac_bench/profile/mi210-preopt/pmc/vx_1073726487_4096kB_compress_fused/7de35ec85f6b/1711306_counter_collection.csv
+[m=======>Use Decoupled Prefix-sum<=======
+Total Cmp throughput: 8.67 GB/s
+ADM cost 0.45 ms, prefix-sum cost 0.00 ms, concat cost 0.00 ms
+[0;34m-------Data Size-------[0m
+Original size: 4194304 Bytes
+Output size: 2383872 Bytes
+CR : 1.76 x
+Output Length size: 16384 Bytes
+Centers size: 8192 Bytes
+Codes size: 2097152 Bytes
+Bit-signal size: 262144 Bytes
+File read cost 1.095 ms, H2D cost 9.574 ms, D2H cost 0.427 ms, file write cost 1.451 ms
+Total wall cost 395.730 ms
+Memory has been successfully freed.

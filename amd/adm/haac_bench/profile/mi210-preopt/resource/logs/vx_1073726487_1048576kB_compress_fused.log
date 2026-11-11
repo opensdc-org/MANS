@@ -1,0 +1,13 @@
+# ROCm resource-usage profile (rocprof v1)
+input: vx_1073726487_1048576kB.u2 (1 GB)
+stage: compress_fused
+metrics: OccupancyPercent, MemUnitStalled, VALUUtilization, FetchSize, WriteSize
+
+kernel: map_values_kernel_decoupled
+  dispatches profiled: 15
+  occupancy_pct = 8.81
+  valu_util_pct = 32.49
+  mem_stall_pct = 2.15
+  wgr=32 wave_size=64 lds=16896 scr=48
+  arch_vgpr=32 accum_vgpr=0 sgpr=48
+  fetch_size=1059916 write_size=569309
