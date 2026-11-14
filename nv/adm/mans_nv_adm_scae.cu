@@ -1101,16 +1101,17 @@ __global__ void decompress(
     const int use_adm = (flags[warp >> 3] >> (7 - (warp & 7))) & 1;
 
     if (!use_adm) {
-        // Raw block: copy 32 contiguous uint16 (64 bytes) back verbatim. Byte-wise
-        // copy: the assembled payload places the signals section at an arbitrary
-        // byte offset, so a vectorized int4 load here would be misaligned on sm_80.
-        const uint8_t* raw_src = d_concatenated_signals +
-                                 d_output_lengths[warp] * cmp_tblock_size +
-                                 (idx & 15) * decmp_chunk * sizeof(uint16_t);
-        uint8_t* dst = reinterpret_cast<uint8_t*>(decmp_data + idx * decmp_chunk);
+        // Raw block: copy 32 contiguous uint16 (64 bytes) back verbatim via
+        // vectorized int4. The payload 16B-aligns the signals section and the
+        // per-lane raw stride is 64 bytes, so this is sm_80-safe.
+        const uint16_t* raw_src = reinterpret_cast<const uint16_t*>(
+            d_concatenated_signals + d_output_lengths[warp] * cmp_tblock_size)
+            + (idx & 15) * decmp_chunk;
+        const int4* src4 = reinterpret_cast<const int4*>(raw_src);
+        int4* dst4 = reinterpret_cast<int4*>(decmp_data + idx * decmp_chunk);
         #pragma unroll
-        for (int i = 0; i < decmp_chunk * sizeof(uint16_t); ++i) {
-            dst[i] = raw_src[i];
+        for (int i = 0; i < decmp_chunk / 8; ++i) {
+            dst4[i] = src4[i];
         }
         return;
     }
@@ -1177,13 +1178,15 @@ __global__ void decompress(
         }
     }
 
-    uint8_t local_codes[decmp_chunk];
+    __align__(16) uint8_t local_codes[decmp_chunk];
+    int4* local_codes_int4 = reinterpret_cast<int4*>(local_codes);
+    const int4* codes_int4 = reinterpret_cast<const int4*>(codes + dst_start_idx);
     #pragma unroll
-    for (int i = 0; i < decmp_chunk; ++i) {
-        local_codes[i] = codes[dst_start_idx + i];
+    for (int i = 0; i < decmp_chunk / 16; ++i) {
+        local_codes_int4[i] = codes_int4[i];
     }
 
-    uint16_t local_result[decmp_chunk];
+    __align__(16) uint16_t local_result[decmp_chunk];
     int center = centers[warp];
 
     #pragma unroll
@@ -1195,9 +1198,11 @@ __global__ void decompress(
         local_result[i] = (code % 2 == 1) ? center - diff : center + diff;
     }
 
+    int4* local_result_int4 = reinterpret_cast<int4*>(local_result);
+    int4* decmp_int4 = reinterpret_cast<int4*>(decmp_data + dst_start_idx);
     #pragma unroll
-    for (int i = 0; i < decmp_chunk; ++i) {
-        decmp_data[dst_start_idx + i] = local_result[i];
+    for (int i = 0; i < decmp_chunk / 8; ++i) {
+        decmp_int4[i] = local_result_int4[i];
     }
 }
 
@@ -1222,16 +1227,17 @@ __global__ void decompress_u32(
     const int use_adm = (flags[warp >> 3] >> (7 - (warp & 7))) & 1;
 
     if (!use_adm) {
-        // Raw block: copy 32 contiguous uint32 (128 bytes) back verbatim. Byte-wise
-        // copy: the assembled payload places the signals section at an arbitrary
-        // byte offset, so a vectorized int4 load here would be misaligned on sm_80.
-        const uint8_t* raw_src = d_concatenated_signals +
-                                 d_output_lengths[warp] * cmp_tblock_size +
-                                 (idx & 15) * decmp_chunk * sizeof(uint32_t);
-        uint8_t* dst = reinterpret_cast<uint8_t*>(decmp_data + idx * decmp_chunk);
+        // Raw block: copy 32 contiguous uint32 (128 bytes) back verbatim via
+        // vectorized int4. The payload 16B-aligns the signals section and the
+        // per-lane raw stride is 128 bytes, so this is sm_80-safe.
+        const uint32_t* raw_src = reinterpret_cast<const uint32_t*>(
+            d_concatenated_signals + d_output_lengths[warp] * cmp_tblock_size)
+            + (idx & 15) * decmp_chunk;
+        const int4* src4 = reinterpret_cast<const int4*>(raw_src);
+        int4* dst4 = reinterpret_cast<int4*>(decmp_data + idx * decmp_chunk);
         #pragma unroll
-        for (int i = 0; i < decmp_chunk * sizeof(uint32_t); ++i) {
-            dst[i] = raw_src[i];
+        for (int i = 0; i < decmp_chunk / 4; ++i) {
+            dst4[i] = src4[i];
         }
         return;
     }
@@ -1298,13 +1304,15 @@ __global__ void decompress_u32(
         }
     }
 
-    uint8_t local_codes[decmp_chunk];
+    __align__(16) uint8_t local_codes[decmp_chunk];
+    int4* local_codes_int4 = reinterpret_cast<int4*>(local_codes);
+    const int4* codes_int4 = reinterpret_cast<const int4*>(codes + dst_start_idx);
     #pragma unroll
-    for (int i = 0; i < decmp_chunk; ++i) {
-        local_codes[i] = codes[dst_start_idx + i];
+    for (int i = 0; i < decmp_chunk / 16; ++i) {
+        local_codes_int4[i] = codes_int4[i];
     }
 
-    uint32_t local_result[decmp_chunk];
+    __align__(16) uint32_t local_result[decmp_chunk];
     uint32_t center = centers[warp];
 
     #pragma unroll
@@ -1318,9 +1326,11 @@ __global__ void decompress_u32(
             : center + (uint32_t)diff;
     }
 
+    int4* local_result_int4 = reinterpret_cast<int4*>(local_result);
+    int4* decmp_int4 = reinterpret_cast<int4*>(decmp_data + dst_start_idx);
     #pragma unroll
-    for (int i = 0; i < decmp_chunk; ++i) {
-        decmp_data[dst_start_idx + i] = local_result[i];
+    for (int i = 0; i < decmp_chunk / 4; ++i) {
+        decmp_int4[i] = local_result_int4[i];
     }
 }
 
@@ -1776,6 +1786,12 @@ inline int compute_gsize(std::size_t num_elements, const mans::MansParams& param
     return grid_x * grid_y * grid_z;
 }
 
+// Round a byte offset up to the nearest 16 bytes so the int4-vectorized
+// decompress reads (codes / signals) are 16B-aligned on sm_80.
+static inline std::size_t align16(std::size_t x) {
+    return (x + 15) & ~std::size_t(15);
+}
+
 } // namespace
 
 std::size_t get_max_u16_payload_bytes(std::size_t num_elements,
@@ -1798,7 +1814,9 @@ std::size_t get_max_u16_payload_bytes(std::size_t num_elements,
         (max_block_elements + cmp_tblock_size - 1) / cmp_tblock_size;
     const std::size_t len5 = gsize * cmp_tblock_size * max_lane_elements *
                              max_bytes_signal_per_ele_16b;
-    return len1 + len2 + len3 + len4 + len5;
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
+    return signals_off + len5;
 }
 
 void compress_u16_device(const std::uint16_t* d_input, std::size_t length,
@@ -1947,8 +1965,12 @@ void compress_u16_device(const std::uint16_t* d_input, std::size_t length,
     const std::size_t len2 = static_cast<std::size_t>(gsize) * sizeof(std::uint16_t);
     const std::size_t len3 = static_cast<std::size_t>(flags_bytes);
     const std::size_t len4 = static_cast<std::size_t>(num_elements);
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
 
-    // Assemble the contiguous headerless ADM payload into d_out.
+    // Assemble the contiguous headerless ADM payload into d_out. The codes and
+    // signals sections are padded to 16B so the int4-vectorized decompress reads
+    // are sm_80-aligned.
     check_cuda(cudaMemcpyAsync(d_out, d_output_lengths.get(), len1, cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm output_lengths");
     check_cuda(cudaMemcpyAsync(d_out + len1, d_centers.get(), len2, cudaMemcpyDeviceToDevice, stream),
@@ -1960,10 +1982,20 @@ void compress_u16_device(const std::uint16_t* d_input, std::size_t length,
         d_adm_flags.as<std::uint32_t>(), d_out + len1 + len2, flags_words, flags_bytes);
     if (timings) timings->pack_flags_ms = timer.end(stream);
 
-    check_cuda(cudaMemcpyAsync(d_out + len1 + len2 + len3, d_codes.get(), len4,
+    if (codes_off > len1 + len2 + len3) {
+        check_cuda(cudaMemsetAsync(d_out + len1 + len2 + len3, 0,
+                                  codes_off - (len1 + len2 + len3), stream),
+                  "cudaMemsetAsync adm flags padding");
+    }
+    check_cuda(cudaMemcpyAsync(d_out + codes_off, d_codes.get(), len4,
                              cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm codes");
-    check_cuda(cudaMemcpyAsync(d_out + len1 + len2 + len3 + len4, d_concatenated_signals.get(),
+    if (signals_off > codes_off + len4) {
+        check_cuda(cudaMemsetAsync(d_out + codes_off + len4, 0,
+                                  signals_off - (codes_off + len4), stream),
+                  "cudaMemsetAsync adm codes padding");
+    }
+    check_cuda(cudaMemcpyAsync(d_out + signals_off, d_concatenated_signals.get(),
                              signals_used, cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm signals");
 
@@ -1971,7 +2003,7 @@ void compress_u16_device(const std::uint16_t* d_input, std::size_t length,
         timings->total_ms = timings->map_ms + timings->scan_ms + timings->concat_ms +
                             timings->finalize_ms + timings->pack_flags_ms;
     }
-    out_size = len1 + len2 + len3 + len4 + signals_used;
+    out_size = signals_off + signals_used;
 }
 
 void decompress_u16_device(const std::uint8_t* d_input, std::size_t length,
@@ -1993,7 +2025,9 @@ void decompress_u16_device(const std::uint8_t* d_input, std::size_t length,
     const std::size_t len2 = static_cast<std::size_t>(gsize) * sizeof(std::uint16_t);
     const std::size_t len3 = (static_cast<std::size_t>(gsize) + 7) / 8;
     const std::size_t len4 = num_elements;
-    if (length < len1 + len2 + len3 + len4) {
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
+    if (length < signals_off) {
         throw std::runtime_error("mans::nv::adm::decompress_u16_device: payload is truncated.");
     }
 
@@ -2006,19 +2040,19 @@ void decompress_u16_device(const std::uint8_t* d_input, std::size_t length,
         decompress<<<decmp_gsize, decmp_block_size, 0, stream>>>(
             d_out,
             reinterpret_cast<std::uint16_t*>(payload + len1),
-            payload + len1 + len2 + len3,
+            payload + codes_off,
             reinterpret_cast<int*>(payload),
-            payload + len1 + len2 + len3 + len4,
+            payload + signals_off,
             payload + len1 + len2,
             static_cast<int>(num_elements), gsize, kShift);
     } else {
         decompress_general<std::uint16_t><<<gsize, cmp_tblock_size, 0, stream>>>(
             d_out,
             reinterpret_cast<const std::uint16_t*>(payload + len1),
-            payload + len1 + len2 + len3,
+            payload + codes_off,
             reinterpret_cast<const int*>(payload),
             payload + len1 + len2,
-            payload + len1 + len2 + len3 + len4,
+            payload + signals_off,
             dims, static_cast<int>(params.nx), static_cast<int>(params.ny),
             static_cast<int>(params.nz), static_cast<int>(num_elements));
     }
@@ -2047,7 +2081,9 @@ std::size_t get_max_u32_payload_bytes(std::size_t num_elements,
         (max_block_elements + cmp_tblock_size - 1) / cmp_tblock_size;
     const std::size_t len5 = gsize * cmp_tblock_size * max_lane_elements *
                              max_bytes_signal_per_ele_32b;
-    return len1 + len2 + len3 + len4 + len5;
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
+    return signals_off + len5;
 }
 
 void compress_u32_device(const std::uint32_t* d_input, std::size_t length,
@@ -2184,7 +2220,11 @@ void compress_u32_device(const std::uint32_t* d_input, std::size_t length,
     const std::size_t len2 = static_cast<std::size_t>(gsize) * sizeof(std::uint32_t);
     const std::size_t len3 = static_cast<std::size_t>(flags_bytes);
     const std::size_t len4 = static_cast<std::size_t>(num_elements);
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
 
+    // The codes and signals sections are padded to 16B so the int4-vectorized
+    // decompress reads are sm_80-aligned.
     check_cuda(cudaMemcpyAsync(d_out, d_output_lengths.get(), len1, cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm u32 output_lengths");
     check_cuda(cudaMemcpyAsync(d_out + len1, d_centers.get(), len2, cudaMemcpyDeviceToDevice, stream),
@@ -2196,10 +2236,20 @@ void compress_u32_device(const std::uint32_t* d_input, std::size_t length,
         d_adm_flags.as<std::uint32_t>(), d_out + len1 + len2, flags_words, flags_bytes);
     if (timings) timings->pack_flags_ms = timer.end(stream);
 
-    check_cuda(cudaMemcpyAsync(d_out + len1 + len2 + len3, d_codes.get(), len4,
+    if (codes_off > len1 + len2 + len3) {
+        check_cuda(cudaMemsetAsync(d_out + len1 + len2 + len3, 0,
+                                  codes_off - (len1 + len2 + len3), stream),
+                  "cudaMemsetAsync adm u32 flags padding");
+    }
+    check_cuda(cudaMemcpyAsync(d_out + codes_off, d_codes.get(), len4,
                              cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm u32 codes");
-    check_cuda(cudaMemcpyAsync(d_out + len1 + len2 + len3 + len4, d_concatenated_signals.get(),
+    if (signals_off > codes_off + len4) {
+        check_cuda(cudaMemsetAsync(d_out + codes_off + len4, 0,
+                                  signals_off - (codes_off + len4), stream),
+                  "cudaMemsetAsync adm u32 codes padding");
+    }
+    check_cuda(cudaMemcpyAsync(d_out + signals_off, d_concatenated_signals.get(),
                              signals_used, cudaMemcpyDeviceToDevice, stream),
               "cudaMemcpyAsync adm u32 signals");
 
@@ -2207,7 +2257,7 @@ void compress_u32_device(const std::uint32_t* d_input, std::size_t length,
         timings->total_ms = timings->map_ms + timings->scan_ms + timings->concat_ms +
                             timings->finalize_ms + timings->pack_flags_ms;
     }
-    out_size = len1 + len2 + len3 + len4 + signals_used;
+    out_size = signals_off + signals_used;
 }
 
 void decompress_u32_device(const std::uint8_t* d_input, std::size_t length,
@@ -2229,7 +2279,9 @@ void decompress_u32_device(const std::uint8_t* d_input, std::size_t length,
     const std::size_t len2 = static_cast<std::size_t>(gsize) * sizeof(std::uint32_t);
     const std::size_t len3 = (static_cast<std::size_t>(gsize) + 7) / 8;
     const std::size_t len4 = num_elements;
-    if (length < len1 + len2 + len3 + len4) {
+    const std::size_t codes_off = align16(len1 + len2 + len3);
+    const std::size_t signals_off = align16(codes_off + len4);
+    if (length < signals_off) {
         throw std::runtime_error("mans::nv::adm::decompress_u32_device: payload is truncated.");
     }
 
@@ -2242,19 +2294,19 @@ void decompress_u32_device(const std::uint8_t* d_input, std::size_t length,
         decompress_u32<<<decmp_gsize, decmp_block_size, 0, stream>>>(
             d_out,
             reinterpret_cast<std::uint32_t*>(payload + len1),
-            payload + len1 + len2 + len3,
+            payload + codes_off,
             reinterpret_cast<int*>(payload),
-            payload + len1 + len2 + len3 + len4,
+            payload + signals_off,
             payload + len1 + len2,
             static_cast<int>(num_elements), gsize, kShift);
     } else {
         decompress_general<std::uint32_t><<<gsize, cmp_tblock_size, 0, stream>>>(
             d_out,
             reinterpret_cast<const std::uint32_t*>(payload + len1),
-            payload + len1 + len2 + len3,
+            payload + codes_off,
             reinterpret_cast<const int*>(payload),
             payload + len1 + len2,
-            payload + len1 + len2 + len3 + len4,
+            payload + signals_off,
             dims, static_cast<int>(params.nx), static_cast<int>(params.ny),
             static_cast<int>(params.nz), static_cast<int>(num_elements));
     }

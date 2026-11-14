@@ -5,6 +5,7 @@ MANS_figure/
 build/
 build_preopt/
 build-amd/
+build-nv/
 build-amd-633/
 build-amd-local/
 .vscode

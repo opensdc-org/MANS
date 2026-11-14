@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | `scae_orig/mapping_uint16.cu`<br>`scae_orig/mapping_uint32.cu` | 全局（无 namespace） | **原始 sc-ae GPU kernel**（`sc-ae` git tag 原样提取） | 逐位写 `local_bit_signal[bit_offset/8] \|= (1 << (7-bit_offset%8))` | 无；fused 阈值 `gsize<=1024`；decompress 用 int4 拷贝（sm_80 上未对齐会报错） |
 | `mans_nv_adm.cu` | `mans::nv::adm` | **移植版本**（从 AMD HIP `amd/adm/mans_amd_adm.cpp` 机械移植） | 64-bit 寄存器累加器 `acc = (acc<<oi) \| (1<<(oi-1))` | 有；`kThresholdFor<T>()` = 1009/3025；fused 阈值 4096 |
-| `mans_nv_adm_scae.cu` | `mans::nv::adm_scae` | **sc版本**（以 `scae_orig` 原始 kernel 为基础升级） | 逐位写（沿用 sc-ae） | 有；补 raw fallback + 阈值 1009/3025 + decompress 对齐修复 |
+| `mans_nv_adm_scae.cu` | `mans::nv::adm_scae` | **sc版本**（以 `scae_orig` 原始 kernel 为基础升级） | 逐位写（沿用 sc-ae） | 有；补 raw fallback + 阈值 1009/3025 + decompress 恢复 int4 向量化（payload 段 16B 对齐） |
 
 - `scae_orig/`：**原始 sc-ae GPU kernel**，旧算法（纯 center + unary，4 个 kernel：
   `decompress` / `map_values_kernel_thrust` / `concat` / `map_values_kernel_decoupled`），

@@ -18,15 +18,19 @@ namespace adm_scae {
 //                                          byte lengths; [gsize] == total lanes
 //   [centers         gsize * uint16]        block center (0 for raw blocks)
 //   [flags           ceil(gsize/8) bytes]   bit b == 1 iff block b is ADM
+//   [pad -> 16B]                            zero padding so codes is 16B-aligned
 //   [codes           num_elements * uint8]  ADM residual codes (raw: unused)
+//   [pad -> 16B]                            zero padding so signals is 16B-aligned
 //   [signals         output_lengths[gsize] * 32 bytes]
 //                                          ADM bit-signals / raw uint16 LE
+//
+// The codes and signals sections are 16B-aligned (padding zeroed on the host) so
+// the 1D decompress kernel can use int4 vectorized loads/stores on sm_80.
 //
 // Compression picks the fused (decoupled look-back) kernel when
 // gsize <= kFusedGsizeThreshold and the unfused (thrust scan + concat) kernel
 // otherwise, then decides per block whether to ADM-encode or store raw
-// (kThreshold = 3500, mirroring the NV encode kernel). Decompression is always
-// the fused kernel.
+// (kThresholdFor<T>() = 1009/3025). Decompression is always the fused kernel.
 
 // GPU kernel-time breakdown (cudaEvent-based). Pass a non-null pointer to one of
 // the device entry points below to collect per-kernel times; nullptr keeps the
