@@ -38,7 +38,13 @@ inline constexpr int decmp_chunk = 16;
 inline constexpr int max_bytes_signal_per_ele_16b = 4;
 inline constexpr int max_bytes_signal_per_ele_32b = 4;
 inline constexpr int warp_size = 32;
-inline constexpr int threshold = 3500;
+// "Allow tie" ADM-vs-raw threshold, type-dependent (mirrors amd/adm/mans_amd_adm.cpp
+// AdmTraits<T>::kThreshold and nv/adm/adm_kernel.cuh kThreshold<T>()). code is 1 byte/elem,
+// signal is ceil(diff/126) unary bits; code+signal <= raw size needs signal <= 8 bits (u16)
+// / <= 24 bits (u32), i.e. diff <= 1008 / <= 3024. The test uses `range < threshold` (and
+// diff <= range), so the constant is one past: 1009 / 3025.
+inline constexpr int threshold_16b = 1009;
+inline constexpr int threshold_32b = 3025;
 
 // inline void compress_uint16(
 //     const uint16_t* input_data,
@@ -585,7 +591,7 @@ inline void compress_uint16(
             bool use_adm = false;
             if (cnt > 0) {
                 int range = (int)maxv - (int)minv;
-                use_adm = (range < threshold);
+                use_adm = (range < threshold_16b);
             }
             set_flag(b, use_adm);
 
@@ -1882,7 +1888,7 @@ inline void compress_uint32(
             bool use_adm = false;
             if (cnt > 0) {
                 const std::uint64_t range = static_cast<std::uint64_t>(maxv) - static_cast<std::uint64_t>(minv);
-                use_adm = (range < static_cast<std::uint64_t>(threshold));
+                use_adm = (range < static_cast<std::uint64_t>(threshold_32b));
             }
             set_flag(b, use_adm);
             centers[b] = use_adm && (cnt > 0) ? static_cast<std::uint32_t>(sum / cnt) : 0;

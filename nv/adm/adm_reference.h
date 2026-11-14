@@ -20,17 +20,24 @@ constexpr std::size_t kBlock1D = kWarpSize * kChunk1D;
 constexpr std::size_t kTileX = 16;
 constexpr std::size_t kTileY = 16;
 constexpr std::size_t kTileZ = 16;
-constexpr std::uint64_t kAdmThreshold = 3500;
-
+// "Allow tie" ADM-vs-raw threshold, type-dependent (mirrors nv/adm/adm_kernel.cuh
+// kThreshold<T>()). code is 1 byte/element, signal is ceil(diff/126) unary bits;
+// code+signal <= raw size (2 B u16 / 4 B u32) needs signal <= 8 bits (u16) /
+// <= 24 bits (u32), i.e. diff <= 1008 / <= 3024. The check is `range < threshold`
+// (and diff <= range), so the constant is one past: 1009 / 3025.
+template <typename T>
 inline bool should_use_adm(std::uint64_t min_value,
                            std::uint64_t max_value,
                            std::size_t count) {
-    return count != 0 && (max_value - min_value) < kAdmThreshold;
+    constexpr std::uint64_t kThreshold = sizeof(T) == 2 ? 1009ull : 3025ull;
+    return count != 0 && (max_value - min_value) < kThreshold;
 }
 
 inline std::size_t max_adm_signal_bytes_per_element() {
-    // range < 3500 permits at most ceil(3499 / 126) = 28 bits.
-    return (28 + 7) / 8;
+    // Upper bound on the signal/raw slot: raw u32 fallback needs 4 B/element and
+    // the ADM signal is at most 24 bits (u32) / 8 bits (u16) under the allow-tie
+    // threshold, so 4 bytes covers both types.
+    return 4;
 }
 
 struct BlockShape {
@@ -247,7 +254,7 @@ std::vector<std::uint8_t> encode(const T* input,
             sum += static_cast<std::uint64_t>(value);
         }
 
-        const bool use_adm = should_use_adm(static_cast<std::uint64_t>(min_value),
+        const bool use_adm = should_use_adm<T>(static_cast<std::uint64_t>(min_value),
                                              static_cast<std::uint64_t>(max_value),
                                              block_elements);
         if (!use_adm) {
