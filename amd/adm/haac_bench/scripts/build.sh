@@ -24,8 +24,11 @@ else
     command -v "$compiler" >/dev/null || { echo "HIP compiler not found: $compiler" >&2; exit 2; }
 fi
 
-# The four pure-stage executables plus the synthetic hardware microbenchmark.
-targets=(compress_fused compress_unfused decompress_fused decompress_unfused microbench)
+# The four pure-stage executables plus the synthetic hardware microbenchmark,
+# and the matching four U32 (.u4) stage executables.
+targets=(compress_fused compress_unfused decompress_fused decompress_unfused
+         compress_fused_u32 compress_unfused_u32 decompress_fused_u32 decompress_unfused_u32
+         microbench)
 mkdir -p "$build_dir"
 
 if [[ "$backend" == rocm ]]; then

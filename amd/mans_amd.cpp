@@ -5,12 +5,14 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <hip/hip_runtime.h>
 
 #include "../mans_utils.h"
 #include "../cpu/adm/adm_utils.h"
+#include "adm/mans_amd_adm.h"
 #include "ans/mans_amd_ans.h"
 
 namespace mans {
@@ -138,6 +140,50 @@ void compress_device_t(const T* input, std::size_t length, const MansParams& par
                        std::size_t& out_size, hipStream_t stream) {
     const std::size_t raw_bytes = checked_raw_bytes(length, params.dtype);
     validate_compress_geometry(length, params);
+
+    if constexpr (std::is_same_v<T, std::uint16_t> || std::is_same_v<T, std::uint32_t>) {
+        {
+            // GPU ADM path (uint16/uint32): ADM runs entirely on device, then ANS.
+            DeviceBuffer d_adm;
+            const std::size_t adm_capacity = [&]() {
+                if constexpr (std::is_same_v<T, std::uint16_t>) {
+                    return adm::get_max_u16_payload_bytes(length, params);
+                } else {
+                    return adm::get_max_u32_payload_bytes(length, params);
+                }
+            }();
+            d_adm.allocate(adm_capacity, "hipMalloc AMD ADM staging");
+            std::size_t adm_size = 0;
+            if constexpr (std::is_same_v<T, std::uint16_t>) {
+                adm::compress_u16_device(input, length, params, d_adm.get(), adm_size, stream);
+            } else {
+                adm::compress_u32_device(input, length, params, d_adm.get(), adm_size, stream);
+            }
+
+            const std::size_t entropy_capacity = ans::get_max_compress_bytes(adm_size);
+            if (kMansHeaderBytes + entropy_capacity > output_capacity) {
+                throw std::runtime_error("mans::amd: output buffer is too small.");
+            }
+            DeviceBuffer d_entropy;
+            d_entropy.allocate(entropy_capacity, "hipMalloc AMD ANS staging");
+            std::size_t entropy_size = 0;
+            ans::compress_stage_device(d_adm.get(), adm_size, d_entropy.get(),
+                                       entropy_capacity, entropy_size, stream);
+            std::uint8_t header[kMansHeaderBytes] = {};
+            write_header(header, raw_bytes, params);
+            check_hip(hipMemcpyAsync(d_out, header, kMansHeaderBytes,
+                                    hipMemcpyHostToDevice, stream),
+                      "AMD MANS header H2D");
+            check_hip(hipMemcpyAsync(d_out + kMansHeaderBytes, d_entropy.get(), entropy_size,
+                                    hipMemcpyDeviceToDevice, stream),
+                      "AMD ANS payload D2D");
+            check_hip(hipStreamSynchronize(stream), "AMD MANS compression synchronize");
+            out_size = kMansHeaderBytes + entropy_size;
+            return;
+        }
+    }
+
+    // CPU ADM fallback (defensive; uint16/uint32 are handled by the GPU path above).
     std::vector<T> host_input(length);
     check_hip(hipMemcpy(host_input.data(), input, raw_bytes, hipMemcpyDeviceToHost),
               "AMD raw input D2H for CPU ADM");
@@ -204,8 +250,40 @@ void decompress_device_t(const std::uint8_t* d_input, std::size_t length,
     effective.nz = static_cast<std::uint32_t>(header.nz);
     const std::size_t elements = raw_bytes / sizeof(T);
     const std::size_t payload_size = length - kMansHeaderBytes;
-    const std::size_t adm_capacity = max_adm_bytes<T>(elements, effective);
 
+    if constexpr (std::is_same_v<T, std::uint16_t> || std::is_same_v<T, std::uint32_t>) {
+        {
+            // GPU ADM path (uint16/uint32): ANS decode on device, then fused ADM
+            // decode on device. No host round-trip.
+            const std::size_t adm_capacity = [&]() {
+                if constexpr (std::is_same_v<T, std::uint16_t>) {
+                    return adm::get_max_u16_payload_bytes(elements, effective);
+                } else {
+                    return adm::get_max_u32_payload_bytes(elements, effective);
+                }
+            }();
+            DeviceBuffer d_adm;
+            d_adm.allocate(adm_capacity, "hipMalloc AMD ADM decode staging");
+            std::size_t adm_size = 0;
+            ans::decompress_stage_device(d_input + kMansHeaderBytes, payload_size,
+                                         d_adm.get(), adm_capacity, adm_size, stream);
+            std::size_t recovered_bytes = 0;
+            if constexpr (std::is_same_v<T, std::uint16_t>) {
+                adm::decompress_u16_device(d_adm.get(), adm_size, effective,
+                                           reinterpret_cast<std::uint16_t*>(d_output),
+                                           recovered_bytes, stream);
+            } else {
+                adm::decompress_u32_device(d_adm.get(), adm_size, effective,
+                                           reinterpret_cast<std::uint32_t*>(d_output),
+                                           recovered_bytes, stream);
+            }
+            check_hip(hipStreamSynchronize(stream), "AMD MANS decompression synchronize");
+            out_size = recovered_bytes;
+            return;
+        }
+    }
+
+    const std::size_t adm_capacity = max_adm_bytes<T>(elements, effective);
     DeviceBuffer d_adm;
     d_adm.allocate(adm_capacity, "hipMalloc AMD ADM decode staging");
     std::size_t adm_size = 0;

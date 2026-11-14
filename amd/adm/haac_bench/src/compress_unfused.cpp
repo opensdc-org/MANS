@@ -70,7 +70,6 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
  
 
     bool is_center;
-    uint16_t remain = 0;
     uint8_t res = 0;
 
     #pragma unroll
@@ -86,9 +85,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>(tmp_buffer.x & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
@@ -104,9 +102,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>((tmp_buffer.x >> 16) & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -121,9 +118,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>(tmp_buffer.y & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -138,9 +134,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>((tmp_buffer.y >> 16) & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -155,9 +150,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>(tmp_buffer.z & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -172,9 +166,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>((tmp_buffer.z >> 16) & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -189,9 +182,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>(tmp_buffer.w & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;
@@ -206,9 +198,8 @@ __global__ void map_values_kernel_thrust(const uint16_t* data, uint8_t* code, ui
             currValue = static_cast<uint16_t>((tmp_buffer.w >> 16) & 0xFFFF);
             is_center = (currValue == center);
             diff = (currValue > center) ? currValue - center : center - currValue;
-            remain = diff % 126;
             output_idx = is_center       ?   1 
-                       : (remain == 0)   ?   diff / 126 : diff / 126 + 1;
+                       : (diff + 125) / 126;
 
             res = (currValue > center) ? (diff + 126 - output_idx * 126) * 2 - 1 + shift
                                             : (diff + 126 - output_idx * 126) * 2 + shift;

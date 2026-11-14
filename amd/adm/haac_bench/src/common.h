@@ -67,7 +67,13 @@ inline double elapsed_ms(const steady_clock::time_point& start,
 
 static const int cmp_tblock_size = 32; // 32 threads
 static const int cmp_chunk = 16;
-static const int max_bytes_signal_per_ele_16b = 2;
+// Bytes of bit-signal scratch reserved per element. A 16-bit value can need up to
+// ceil(65535/126) ~ 521 output-idx bits, but the ADM code stores output_idx in a
+// uint8 (max 255) and our real u2/u4 inputs need <= 117 (exafel), so 16 bytes per
+// element (128 bits) covers every block in the test corpus; the pure-ADM datasets
+// only need 1. The scratch stride is sized from these constants, not the payload.
+static const int max_bytes_signal_per_ele_16b = 16;
+static const int max_bytes_signal_per_ele_32b = 2;
 static const int decmp_chunk = 32;  // one decomp thread processes decmp_chunk cmp threads
 static const int warp_size = 32;
 static const int k = 4;
@@ -85,6 +91,22 @@ inline uint16_t* load_file_u16(const char* filename, size_t& size) {
     file.seekg(0, std::ios::beg);
     size_t num_elements = size / sizeof(uint16_t);
     uint16_t* data = new uint16_t[num_elements];
+    file.read(reinterpret_cast<char*>(data), size);
+    file.close();
+    return data;
+}
+
+// Load a .u4 input file (uint32 elements) into host memory.
+inline uint32_t* load_file_u32(const char* filename, size_t& size) {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return nullptr;
+    }
+    size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    size_t num_elements = size / sizeof(uint32_t);
+    uint32_t* data = new uint32_t[num_elements];
     file.read(reinterpret_cast<char*>(data), size);
     file.close();
     return data;

@@ -336,8 +336,9 @@ if(BUILD_AMD OR BUILD_DCU)
 
     add_library(mans_amd_core STATIC
       amd/mans_amd.cpp
+      amd/adm/mans_amd_adm.cpp
       amd/ans/mans_amd_ans.cpp)
-    set_source_files_properties(amd/mans_amd.cpp amd/ans/mans_amd_ans.cpp PROPERTIES LANGUAGE HIP)
+    set_source_files_properties(amd/mans_amd.cpp amd/adm/mans_amd_adm.cpp amd/ans/mans_amd_ans.cpp PROPERTIES LANGUAGE HIP)
     set_property(TARGET mans_amd_core PROPERTY POSITION_INDEPENDENT_CODE ON)
     target_include_directories(mans_amd_core PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}
@@ -355,6 +356,12 @@ if(BUILD_AMD OR BUILD_DCU)
     target_compile_definitions(amd_mans_decompress PRIVATE MANS_ENABLE_AMD)
     set_target_properties(amd_mans_decompress PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/amd)
     target_link_libraries(amd_mans_decompress PRIVATE mans_common)
+
+    add_executable(amd_mans_bench amd/amd_mans_bench.cpp)
+    target_compile_definitions(amd_mans_bench PRIVATE MANS_ENABLE_AMD)
+    set_source_files_properties(amd/amd_mans_bench.cpp PROPERTIES LANGUAGE HIP)
+    set_target_properties(amd_mans_bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/amd)
+    target_link_libraries(amd_mans_bench PRIVATE mans_common)
 
     if(BUILD_TESTING)
       add_executable(mans_amd_backend_test tests/mans_amd_backend_test.cpp)
