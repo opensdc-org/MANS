@@ -14,3 +14,4 @@ datasets
 dataset_copies
 .claude
 nv/adm/haac_bench/build
+gpucore.*
