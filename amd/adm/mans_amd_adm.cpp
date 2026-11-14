@@ -15,9 +15,10 @@ namespace {
 // Shared constants (mirror cpu/adm/adm.h and amd/adm/haac_bench/src/common.h).
 constexpr int cmp_tblock_size = 32; // mapping threads per block (one warp)
 constexpr int cmp_chunk = 16;       // elements per mapping thread
-// CPU ADM reserves 4 signal bytes per element per lane so a block whose range
-// is just below the 3500 threshold (output_idx up to ~28 bits) cannot overflow
-// the unfused per-thread scratch slot.
+// Signal slot reserve (bytes/element). ADM stores ceil(diff/126) unary bits per
+// element, capped by the allow-tie threshold (AdmTraits below) at 8 bits (u16)
+// / 24 bits (u32); the raw fallback stores cmp_chunk*sizeof(T) per lane (2 B/
+// elem u16, 4 B/elem u32). 4 is a safe upper bound for both paths.
 constexpr int max_bytes_signal_per_ele_16b = 4;
 constexpr int max_bytes_signal_per_ele_32b = 4;
 constexpr int decmp_chunk = 32;     // one decomp thread handles 32 elements
@@ -27,8 +28,6 @@ constexpr int kn = 16;
 constexpr int decmp_block_size = 256;
 constexpr int concat_block_size = 256;
 
-// ADM vs raw fallback threshold (matches nv/adm/adm_kernel.cuh kThreshold).
-constexpr unsigned long long kThreshold = 3500;
 // Raw blocks occupy cmp_chunk * sizeof(uint16_t) = 32 bytes per lane.
 constexpr int raw_per_lane_bytes = cmp_chunk * sizeof(uint16_t);
 // Fused vs unfused crossover in gsize units (gsize = num_elements / 512).
@@ -189,17 +188,25 @@ __device__ __forceinline__ size_t adm_elem_flat(int k, const AdmBlockGeom& g, in
 }
 
 // Per-value-type traits for the generalized (dims 1/2/3) ADM kernels. The ADM
-// math is identical for uint16/uint32; only the sum accumulator width differs:
-// a full block of uint32 sums beyond uint32 (CPU adm.h uses uint64_t sum too).
+// math is identical for uint16/uint32; only the sum accumulator width and the
+// ADM-vs-raw threshold differ (a full block of uint32 sums beyond uint32, so the
+// CPU adm.h uses a uint64_t sum too).
 template <typename T>
 struct AdmTraits;
 template <>
 struct AdmTraits<std::uint16_t> {
     using Sum = std::uint32_t;
+    // "Allow tie" bound: code (1 B) + ceil(diff/126) unary bits <= 16 bits, so
+    // signal <= 8 bits => diff <= 8*126 = 1008. The kernel tests range < kThreshold
+    // (and diff <= range), hence the constant is one past that: 1009.
+    static constexpr unsigned long long kThreshold = 1009;
 };
 template <>
 struct AdmTraits<std::uint32_t> {
     using Sum = std::uint64_t;
+    // "Allow tie" bound: code (1 B) + signal <= 32 bits => signal <= 24 bits =>
+    // diff <= 24*126 = 3024, hence 3025.
+    static constexpr unsigned long long kThreshold = 3025;
 };
 
 // ---------------------------------------------------------------------------
@@ -284,7 +291,7 @@ __global__ void map_values_kernel_decoupled(
     center = local_count > 0 ? local_sum / local_count : 0;
     center = __shfl(center, 0);
 
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<std::uint16_t>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 
@@ -579,7 +586,7 @@ __global__ void map_values_kernel_thrust(
     center = local_count > 0 ? local_sum / local_count : 0;
     center = __shfl(center, 0);
 
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<std::uint16_t>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 
@@ -822,7 +829,7 @@ __global__ void map_values_kernel_decoupled_u32(
 
     uint32_t center = local_count > 0 ? (uint32_t)(local_sum / local_count) : 0u;
     center = __shfl(center, 0);
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<std::uint32_t>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 
@@ -1008,7 +1015,7 @@ __global__ void map_values_kernel_thrust_u32(
 
     uint32_t center = local_count > 0 ? (uint32_t)(local_sum / local_count) : 0u;
     center = __shfl(center, 0);
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<std::uint32_t>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 
@@ -1441,7 +1448,7 @@ __global__ void map_values_kernel_general_decoupled(
     }
     uint32_t center = local_count > 0 ? (uint32_t)(local_sum / local_count) : 0u;
     center = __shfl(center, 0);
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<T>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 
@@ -1635,7 +1642,7 @@ __global__ void map_values_kernel_general_thrust(
     }
     uint32_t center = local_count > 0 ? (uint32_t)(local_sum / local_count) : 0u;
     center = __shfl(center, 0);
-    int use_adm_v = (local_count > 0 && (local_max - local_min) < kThreshold) ? 1 : 0;
+    int use_adm_v = (local_count > 0 && (local_max - local_min) < AdmTraits<T>::kThreshold) ? 1 : 0;
     use_adm_v = __shfl(use_adm_v, 0);
     const bool use_adm = use_adm_v != 0;
 

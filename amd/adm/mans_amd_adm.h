@@ -25,8 +25,8 @@ namespace adm {
 // Compression picks the fused (decoupled look-back) kernel when
 // gsize <= kFusedGsizeThreshold and the unfused (thrust scan + concat) kernel
 // otherwise, then decides per block whether to ADM-encode or store raw
-// (kThreshold = 3500, mirroring the NV encode kernel). Decompression is always
-// the fused kernel.
+// (kThreshold is type-dependent "allow tie": 1009 for u16, 3025 for u32).
+// Decompression is always the fused kernel.
 
 // GPU kernel-time breakdown (hipEvent-based). Pass a non-null pointer to one of
 // the device entry points below to collect per-kernel times; nullptr keeps the
