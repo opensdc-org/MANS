@@ -318,11 +318,24 @@ void ansEncode(
   uint32_t maxNumCompressedBlocks =
       (maxUncompressedWords + kDefaultBlockSize - 1) / kDefaultBlockSize;//一个batch的数据以kDefaultBlockSize作为基准划分数据，形成多个数据块
 
-  uint4* table_dev;
-  CUDA_VERIFY(hipMalloc(&table_dev, sizeof(uint4) * kNumSymbols));
+  // Persistent scratch buffers (grow-on-demand) avoid per-call hipMalloc/
+  // hipFree, whose latency dominates small inputs.
+  static uint4* table_dev = nullptr;
+  static uint32_t* tempHistogram_dev = nullptr;
+  static uint8_t* compressedBlocks_dev = nullptr;
+  static uint32_t* compressedWords_dev = nullptr;
+  static uint32_t* compressedWordsPrefix_dev = nullptr;
+  static uint8_t* tempPrefixSum_dev = nullptr;
+  static size_t compressedBlocksCap = 0;
+  static size_t wordsCap = 0;
+  static size_t tempPrefixCap = 0;
 
-  uint32_t* tempHistogram_dev;
-  CUDA_VERIFY(hipMalloc(&tempHistogram_dev, sizeof(uint32_t) * kNumSymbols));
+  if (!table_dev) {
+    CUDA_VERIFY(hipMalloc(&table_dev, sizeof(uint4) * kNumSymbols));
+  }
+  if (!tempHistogram_dev) {
+    CUDA_VERIFY(hipMalloc(&tempHistogram_dev, sizeof(uint32_t) * kNumSymbols));
+  }
 
   ansHistogramBatch(
       in,
@@ -340,15 +353,28 @@ void ansEncode(
   uint32_t uncoalescedBlockStride =
       getMaxBlockSizeUnCoalesced(kDefaultBlockSize);
 
-  uint8_t* compressedBlocks_dev;
-  CUDA_VERIFY(hipMalloc(&compressedBlocks_dev, sizeof(uint8_t) * maxNumCompressedBlocks * uncoalescedBlockStride));
+  size_t blocksBytes =
+      sizeof(uint8_t) * maxNumCompressedBlocks * uncoalescedBlockStride;
+  if (blocksBytes > compressedBlocksCap) {
+    if (compressedBlocks_dev) {
+      CUDA_VERIFY(hipFree(compressedBlocks_dev));
+    }
+    CUDA_VERIFY(hipMalloc(&compressedBlocks_dev, blocksBytes));
+    compressedBlocksCap = blocksBytes;
+  }
 
-  uint32_t* compressedWords_dev;
-  CUDA_VERIFY(hipMalloc(&compressedWords_dev, sizeof(uint32_t) * maxNumCompressedBlocks));
-
-  uint32_t* compressedWordsPrefix_dev;
-  CUDA_VERIFY(hipMalloc(&compressedWordsPrefix_dev, sizeof(uint32_t) * maxNumCompressedBlocks));
-  uint8_t* tempPrefixSum_dev = nullptr;
+  size_t wordsBytes = sizeof(uint32_t) * maxNumCompressedBlocks;
+  if (wordsBytes > wordsCap) {
+    if (compressedWords_dev) {
+      CUDA_VERIFY(hipFree(compressedWords_dev));
+    }
+    CUDA_VERIFY(hipMalloc(&compressedWords_dev, wordsBytes));
+    if (compressedWordsPrefix_dev) {
+      CUDA_VERIFY(hipFree(compressedWordsPrefix_dev));
+    }
+    CUDA_VERIFY(hipMalloc(&compressedWordsPrefix_dev, wordsBytes));
+    wordsCap = wordsBytes;
+  }
 
   if (maxNumCompressedBlocks > 0) {
     constexpr int kThreads = 256;//一个block256线程，4个warp
@@ -390,7 +416,13 @@ void ansEncode(
     auto sizeRequired =
         getBatchExclusivePrefixSumTempSize(
           maxNumCompressedBlocks);
-    CUDA_VERIFY(hipMalloc(&tempPrefixSum_dev, sizeof(uint8_t) * sizeRequired));
+    if (static_cast<size_t>(sizeRequired) > tempPrefixCap) {
+      if (tempPrefixSum_dev) {
+        CUDA_VERIFY(hipFree(tempPrefixSum_dev));
+      }
+      CUDA_VERIFY(hipMalloc(&tempPrefixSum_dev, sizeof(uint8_t) * sizeRequired));
+      tempPrefixCap = sizeRequired;
+    }
     batchExclusivePrefixSum<uint32_t, Align<ANSEncodedT, kBlockAlignment>>(
         compressedWords_dev,
         compressedWordsPrefix_dev,
@@ -426,13 +458,7 @@ void ansEncode(
   }
 
   CUDA_TEST_ERROR();
-  CUDA_VERIFY(hipStreamSynchronize(stream));
-  CUDA_VERIFY(hipFree(table_dev));
-  CUDA_VERIFY(hipFree(tempHistogram_dev));
-  CUDA_VERIFY(hipFree(compressedBlocks_dev));
-  CUDA_VERIFY(hipFree(compressedWords_dev));
-  CUDA_VERIFY(hipFree(compressedWordsPrefix_dev));
-  CUDA_VERIFY(hipFree(tempPrefixSum_dev));
+  // Scratch buffers are cached for reuse; the caller synchronizes the stream.
   return;
 }
 

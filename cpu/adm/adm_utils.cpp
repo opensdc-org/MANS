@@ -6,7 +6,13 @@
 #include <chrono>
 #include <type_traits>
 #include <stdexcept>
-#include <cstdio> 
+#include <cstdio>
+
+static AdmBlockStats g_last_block_stats;
+
+const AdmBlockStats& adm_last_block_stats() {
+    return g_last_block_stats;
+}
 
 namespace {
 
@@ -165,6 +171,18 @@ void adm_compress(
     }
 
     output_size = len1 + len2 + len3 + len4 + bit_signals_len;
+
+    // Count ADM vs raw blocks from the flags bitset (MSB-first; raw blocks were
+    // cleared by compress_uint16/32, so a set bit == ADM block).
+    std::size_t adm_blocks = 0;
+    for (std::size_t b = 0; b < gsize; ++b) {
+        const std::size_t byte = b >> 3;
+        const std::size_t bit = b & 7;
+        if (flags_ptr[byte] & (1u << (7 - bit))) {
+            ++adm_blocks;
+        }
+    }
+    g_last_block_stats = AdmBlockStats{ gsize, adm_blocks };
 }
 
 template<typename T>

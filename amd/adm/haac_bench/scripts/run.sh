@@ -24,7 +24,9 @@ if ((${#inputs[@]} == 0)); then
     exit 2
 fi
 
-mkdir -p "$result_dir/logs" "$result_dir/compressed"
+mkdir -p "$result_dir/logs"
+temp_adm_dir=$(mktemp -d "${TMPDIR:-/tmp}/haac-adm.XXXXXX")
+trap 'rm -rf -- "$temp_adm_dir"' EXIT
 summary="$result_dir/summary.csv"
 printf 'input,stage,input_bytes,throughput_gbps,lossless_pass,log\n' > "$summary"
 
@@ -34,7 +36,7 @@ export ROCR_VISIBLE_DEVICES="$gpu"
 
 for input in "${inputs[@]}"; do
     input_name=$(basename "$input")
-    input_bytes=$(stat -c '%s' "$input")
+    input_bytes=$(stat -Lc '%s' "$input")
 
     # Compression stages: input.u2 -> compressed.adm
     for comp in fused unfused; do
@@ -43,7 +45,7 @@ for input in "${inputs[@]}"; do
             echo "Missing executable: $binary" >&2
             exit 2
         fi
-        adm="$result_dir/compressed/${input_name%.u2}_$comp.adm"
+        adm="$temp_adm_dir/${input_name%.u2}_$comp.adm"
         log="$result_dir/logs/${input_name%.u2}_compress_$comp.log"
         echo "[compress_$comp] $input_name"
         if ! "$binary" "$input" "$adm" 2>&1 | tee "$log"; then
@@ -62,7 +64,7 @@ for input in "${inputs[@]}"; do
             echo "Missing executable: $binary" >&2
             exit 2
         fi
-        adm="$result_dir/compressed/${input_name%.u2}_$decmp.adm"
+        adm="$temp_adm_dir/${input_name%.u2}_$decmp.adm"
         log="$result_dir/logs/${input_name%.u2}_decompress_$decmp.log"
         echo "[decompress_$decmp] $input_name"
         if ! "$binary" "$adm" "$input" 2>&1 | tee "$log"; then

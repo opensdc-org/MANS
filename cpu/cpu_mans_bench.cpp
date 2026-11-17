@@ -1,4 +1,5 @@
 #include "mans_cpu.h"
+#include "adm/adm_utils.h"
 #include "../mans_utils.h"
 #include "../mans_api.hpp"
 #include "../mans_defs.h"
@@ -327,13 +328,20 @@ int run_bench_for_type(const std::vector<T>& input,
     // const double ratio = 100.0 * avg_comp_bytes / static_cast<double>(total_bytes);
     const double ratio = static_cast<double>(total_bytes) / avg_comp_bytes;
 
+    const AdmBlockStats bs = adm_last_block_stats();
+    const double adm_ratio =
+        (bs.total_blocks > 0) ? (static_cast<double>(bs.adm_blocks) / static_cast<double>(bs.total_blocks)) : 0.0;
+
     std::cout << std::left << std::setw(8) << "whole"
               << " | " << std::setw(8) << std::fixed << std::setprecision(8)
-              << ratio 
+              << ratio
               << " | " << std::setw(13) << std::fixed << std::setprecision(1)
               << best_comp_mbps
               << " | " << std::setw(13) << std::fixed << std::setprecision(1)
               << best_decomp_mbps
+              << " | " << std::setw(9) << std::fixed << std::setprecision(6)
+              << adm_ratio
+              << " (" << bs.adm_blocks << "/" << bs.total_blocks << ")"
               << "\n";
 
     if (!timing_csv_path.empty()) {
@@ -345,7 +353,10 @@ int run_bench_for_type(const std::vector<T>& input,
                << total_bytes << ","
                << std::fixed << std::setprecision(2) << ratio << ","
                << std::fixed << std::setprecision(1) << best_comp_mbps << ","
-               << std::fixed << std::setprecision(1) << best_decomp_mbps << "\n";
+               << std::fixed << std::setprecision(1) << best_decomp_mbps << ","
+               << bs.adm_blocks << ","
+               << bs.total_blocks << ","
+               << std::fixed << std::setprecision(6) << adm_ratio << "\n";
     }
 
     return 0;
@@ -361,6 +372,7 @@ int main(int argc, char** argv) {
                   << " [--threads 32,16]"
                   << " [--warmup 5] [--runs 10]"
                   << " --dims D d1 [d2] [d3]"
+                  << " [--threshold N]"
                   << " [--csv out.csv]"
                   << "\n";
         return 1;
@@ -375,6 +387,8 @@ int main(int argc, char** argv) {
     std::uint32_t mode = mans::Mode::P;
     std::uint32_t warmup_iters = 5;
     std::uint32_t bench_iters = 10;
+    std::uint64_t threshold_value = 0;
+    bool has_threshold = false;
 
     for (int i = 3; i < argc; ++i) {
         std::string arg = argv[i];
@@ -414,6 +428,19 @@ int main(int argc, char** argv) {
                 std::cerr << error << "\n";
                 return 1;
             }
+        } else if (arg == "--threshold" && i + 1 < argc) {
+            const std::string tstr = argv[++i];
+            std::size_t idx = 0;
+            try {
+                threshold_value = std::stoull(tstr, &idx);
+            } catch (const std::exception&) {
+                idx = 0;
+            }
+            if (idx != tstr.size()) {
+                std::cerr << "Invalid --threshold value: " << tstr << "\n";
+                return 1;
+            }
+            has_threshold = true;
         } else {
             std::cerr << "Unknown argument: " << arg << "\n";
             return 1;
@@ -437,6 +464,9 @@ int main(int argc, char** argv) {
     std::cout << "\n";
     if (has_threads) {
         std::cout << "  Threads: " << threads_arg << "\n";
+    }
+    if (has_threshold) {
+        std::cout << "  ADM threshold override: " << threshold_value << "\n";
     }
     if (!csv_path.empty()) {
         std::cout << "  Timing CSV: " << csv_path << ".timing.csv\n";
@@ -475,7 +505,7 @@ int main(int argc, char** argv) {
             std::cerr << "Failed to open CSV output: " << csv_path << "\n";
             return 1;
         }
-        csv << "input_label,input_bytes,ratio_pct,comp_mbps,decomp_mbps\n";
+        csv << "input_label,input_bytes,ratio_pct,comp_mbps,decomp_mbps,adm_blocks,total_blocks,adm_ratio\n";
         timing_csv_path = csv_path + ".timing.csv";
     }
 
@@ -483,8 +513,9 @@ int main(int argc, char** argv) {
               << " | " << std::setw(9) << "Ratio"
               << " | " << std::setw(13) << "Comp MB/s"
               << " | " << std::setw(13) << "Decomp MB/s"
+              << " | " << std::setw(9) << "ADM ratio"
               << "\n";
-    std::cout << std::string(52, '-') << "\n";
+    std::cout << std::string(74, '-') << "\n";
 
     if (is_u2) {
         std::vector<std::uint16_t> input;
@@ -506,6 +537,9 @@ int main(int argc, char** argv) {
             apply_thread_overrides(params, thread_list);
         }
         apply_dims_override(params, dims_override);
+        if (has_threshold) {
+            adm::threshold_16b = static_cast<int>(threshold_value);
+        }
         const char* csv_env = std::getenv("MANS_THREAD_CSV");
         std::string auto_thread_csv =
             (csv_env && csv_env[0] != '\0') ? csv_env : "best_threads.csv";
@@ -545,6 +579,9 @@ int main(int argc, char** argv) {
             apply_thread_overrides(params, thread_list);
         }
         apply_dims_override(params, dims_override);
+        if (has_threshold) {
+            adm::threshold_32b = threshold_value;
+        }
         const char* csv_env = std::getenv("MANS_THREAD_CSV");
         std::string auto_thread_csv =
             (csv_env && csv_env[0] != '\0') ? csv_env : "best_threads.csv";

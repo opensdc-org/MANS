@@ -3,7 +3,9 @@ figure/
 MANS_figure/
 # *.py
 build/
+build_preopt/
 build-amd/
+build-nv/
 build-amd-633/
 build-amd-local/
 .vscode
@@ -12,3 +14,5 @@ slurms/runs*
 datasets
 dataset_copies
 .claude
+nv/adm/haac_bench/build
+gpucore.*

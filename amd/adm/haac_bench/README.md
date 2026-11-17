@@ -1,40 +1,54 @@
 # AMD HIP HAAC ADM benchmark
 
-This directory contains the four U16 HIP benchmark executables used for the HAAC fused/unfused ADM comparison. It is self-contained apart from ROCm/HIP and the HAAC `.u2` inputs. The sources are preserved from the benchmark runs; each executable performs exactly one stage (fused or unfused compression, or fused or unfused decompression) so each kernel can be timed and profiled in isolation.
+This directory contains four U16 HIP executables for the HAAC fused/unfused ADM comparison, plus a synthetic HIP microbenchmark. The benchmark is self-contained apart from ROCm/HIP and the HAAC `.u2` inputs. Each ADM executable performs one stage (fused or unfused compression or decompression) so its work can be timed and profiled in isolation.
 
 ## Requirements
 
 - Linux with an AMD GPU supported by the installed ROCm release.
 - ROCm HIP compiler (`hipcc`) and `rocprofv3` for optional L2 counter collection.
 - HAAC U2 input files, such as the `.u2` files from the MANS/SC-AE dataset archive.
-- A GPU architecture accepted by the installed compiler (for example, `gfx1100` on the Radeon RX 7900 XTX).
+- A GPU architecture accepted by the installed compiler (for example, `gfx90a` on an Instinct MI210).
 
 No ANS stage is run. These results measure ADM only.
+
+## Input format
+
+The benchmark expects raw, headerless `.u2` files containing little-endian unsigned 16-bit values. The file name is not parsed to determine the element count or geometry; the executables use the file length and the data values directly. An input file must have an even number of bytes.
+
+The benchmark scripts process every `.u2` file directly under the input directory and ignore files in nested directories. Keep separate datasets in separate input directories when comparing runs.
 
 ## Build
 
 From this directory:
 
 ```bash
-HIPCC=/opt/rocm-6.3.3/bin/hipcc GPU_ARCH=gfx1100 ./scripts/build.sh
+HIPCC=/opt/rocm-6.3.3/bin/hipcc GPU_ARCH=gfx90a ./scripts/build.sh
 ```
 
 `GPU_ARCH` is optional when the compiler has a suitable default target. `HIPCC` is required when `hipcc` is not on `PATH`. Set `BUILD_DIR` to change the binary directory:
 
 ```bash
-HIPCC=/opt/rocm-6.3.3/bin/hipcc GPU_ARCH=gfx1100 BUILD_DIR="$PWD/build" ./scripts/build.sh
+HIPCC=/opt/rocm-6.3.3/bin/hipcc GPU_ARCH=gfx90a BUILD_DIR="$PWD/build" ./scripts/build.sh
 ```
 
 If the ROCm device-library bitcode is not found at `<rocm>/lib/amdgcn/bitcode` (some 6.3.3 installs place it at `<rocm>/amdgcn/bitcode`), the script detects the alternate location automatically; it can also be forced with `ROCM_DEVICE_LIB_PATH`.
 
-Four executables are produced under `build/`:
+The default build uses the `rocm` backend. An exploratory CUDA/hipify path is also available with `BACKEND=cuda`, but it is not the supported AMD benchmark path and requires both `nvcc` and `hipify-perl`:
 
-| executable          | stage                | arguments                    |
-|---------------------|----------------------|------------------------------|
-| `compress_fused`    | fused compression    | `<input.u2> <output.adm>`    |
-| `compress_unfused`  | unfused compression  | `<input.u2> <output.adm>`    |
-| `decompress_fused`  | fused decompression  | `<input.adm> <original.u2>`  |
-| `decompress_unfused`| unfused decompression| `<input.adm> <original.u2>`  |
+```bash
+BACKEND=cuda NVCC=/path/to/nvcc HIPIFY_PERL=/path/to/hipify-perl \
+  CUDA_ARCH=sm_80 ./scripts/build.sh
+```
+
+Five executables are produced under `build/`:
+
+| executable           | stage                 | arguments                                      |
+|----------------------|-----------------------|------------------------------------------------|
+| `compress_fused`     | fused compression     | `<input.u2> <output.adm>`                      |
+| `compress_unfused`   | unfused compression   | `<input.u2> <output.adm>`                      |
+| `decompress_fused`   | fused decompression   | `<input.adm> <original.u2>`                    |
+| `decompress_unfused` | unfused decompression | `<input.adm> <original.u2>`                    |
+| `microbench`         | synthetic GPU tests   | `[elements] [trials] [inner_iterations]`       |
 
 ## Run all HAAC input sizes
 
@@ -50,7 +64,7 @@ An optional second argument sets the result directory:
 GPU_ID=0 ./scripts/run.sh /path/to/testdata/u2/haac ./results/mi210-rocm633
 ```
 
-The results directory contains `summary.csv`, `logs/`, and `compressed/`. The summary has one row per input per stage, with `throughput_gbps` for that stage and `lossless_pass` filled for the decompression stages (compression has no lossless check). Each log contains the original detailed benchmark output. The script stops if a run fails or a lossless check does not pass.
+The results directory contains `summary.csv` and `logs/`. Generated `.adm` files are kept in a temporary directory and removed when the script exits. The summary has one row per input per stage, with `throughput_gbps` for that stage and `lossless_pass` filled for the decompression stages (compression has no lossless check). Each log contains the original detailed benchmark output. The script stops if a run fails or a lossless check does not pass. Use a new result directory for each run.
 
 To run a single stage directly:
 
@@ -61,34 +75,148 @@ HIP_VISIBLE_DEVICES=0 ROCR_VISIBLE_DEVICES=0 CUDA_VISIBLE_DEVICES=0 \
   ./build/decompress_fused output.adm input.u2
 ```
 
+## Real-input stage analysis
+
+`analyze_real.py` is the primary AMD-side workflow for comparing stage costs on identical real inputs. It runs fused/unfused compression followed by the corresponding decompression, stores each full log, keeps generated `.adm` files in a temporary directory for the duration of the run, and writes one row per input per stage to `stage_timings.csv`:
+
+```bash
+GPU_ID=0 ./scripts/analyze_real.py /path/to/testdata/u2/haac ./results/mi210-real-run-1
+```
+
+The AMD and NVIDIA benches are run on the **same input set — the HAAC `vx`
+series** (10 sizes, 4 kB to 1 GB) — so results are directly comparable. Point the
+script at a directory containing only the `vx_*.u2` files (the repo ships a
+symlinked `haac_vx` directory):
+
+```bash
+GPU_ID=0 ./scripts/analyze_real.py /workspace/MANS/testdata/u2/haac_vx ./results/mi210-vx-real-stage-<unique-run-name>
+```
+
+A verified MI210 run on the `vx` series used GPU 0 and produced `results/mi210-vx-real-stage/stage_timings.csv` (40 stage rows; all 20 decompression checks passed). The raw `vx_*.u2` files live under `/workspace/scae-data/testdata/u2/haac/`.
+
+Choose a fresh result path for every run. The result directory must not exist. Existing data is never reused or overwritten. The CSV separates kernel-only HIP-event time (`total_gpu_ms` and its applicable sub-stages) from host-observed I/O/copy timings and `total_wall_ms`; fields that do not apply or are not separately measured are `NA`. Compression output size and decompression input ADM size are recorded for each row. Temporary `.adm` files are deleted when the run exits and are not kept in the result directory. Decompression rows include the CPU lossless check result, and the run stops on a failed stage or check while retaining completed logs and rows.
+
+Each stage warms up the timed path first (5 untimed launches), then measures `timing_iters = 10` timed launches and reports the arithmetic mean per kernel, so the reported `*_ms` / throughput numbers are averaged HIP-event kernel times, not single-shot measurements. This matches the NVIDIA `a100-vx-real-stage` methodology.
+
+For the 1 MiB `vx` input in the verified run, the averaged HIP-event totals were 0.14 ms (fused compression), 0.15 ms (unfused compression), 0.03 ms (fused decompression), and 0.04 ms (unfused decompression); the 1 GB input measured 76.88 ms (fused compression) and 13.12 ms (fused decompression).
+
+For fused stages, `fused_kernel_ms` is a single fused-kernel measurement: it cannot be split into mapping, scan, concat, decode, or restore costs. Unfused compression reports mapping, prefix-sum, and concat HIP-event timings; unfused decompression reports signal decode and value restore HIP-event timings. `total_gpu_ms` is the sum of those applicable event measurements. It is not an end-to-end time.
+
+`file_read_ms`, `h2d_ms`, `d2h_ms`, `file_write_ms`, and `cpu_verify_ms` are host `steady_clock` measurements around synchronous calls/work. In particular, the copy fields are host-observed call durations, not isolated device-link bandwidth measurements. `total_wall_ms` starts before input loading and includes allocation, warm-up, measured work, and verification as applicable; it is printed before resource cleanup. Unmeasured host metadata assembly is reported as `NA`, not inferred by subtracting other timings.
+
+The existing `run.sh` remains a simpler throughput/lossless summary workflow; use `analyze_real.py` for phase-level comparisons. AMD HIP-event kernel throughput must not be directly compared as the same metric to NVIDIA CLI wall-clock throughput. NVIDIA-side scripts and measurements remain independent; record their timing scope separately, especially if decompression uses a CPU reference decoder.
+
+## Kernel optimizations
+
+The four ADM kernels below were profiled on MI210 (gfx90a) and optimized to
+remove local-memory spills and latency-bound scalar loads. All changes keep the
+output bit-exact (verified lossless on every input). The measured `total_gpu_ms`
+is the sum of the applicable HIP-event kernel times.
+
+### Compression mapping (`compress_fused` `map_values_kernel_decoupled`, `compress_unfused` `map_values_kernel_thrust`)
+
+1. **Bit-packing spill elimination.** The original wrote each unary signal bit
+   into `local_bit_signal[bit_offset / 8] |= (1 << (7 - (bit_offset % 8)))` — a
+   dynamically-indexed local array. This forced the array into scratch/local
+   memory and did one serial read-modify-write per element. It is replaced by a
+   fixed-index `local_output_idx[cmp_chunk]` plus a register accumulator that
+   re-packs the unary codes and streams out bytes directly. This mainly helps
+   small inputs.
+
+2. **Center-sum / load merge.** The block-center average was originally computed
+   with 16 scalar `__ldg` loads, separately from the per-element `uint4` loads.
+   At low occupancy these scalar loads were the latency bottleneck (profiled
+   `OccupancyPercent` ~12%, `MemUnitStalled` ~2%, i.e. latency-bound, not
+   bandwidth-bound). The center sum is now folded into a single `uint4 buf[2]`
+   load that is reused for both the average and the per-element encoding. This
+   is the dominant large-size win (3–4× on ≥16 MB).
+
+### Decompression (`decompress_fused` `decompress`, `decompress_unfused` `decode_signals_uint16`)
+
+3. **Register-resident signal decode (LDS elimination).** The signal decoder
+   wrote `local_signal[signal_idx]++` with a data-dependent index, so the
+   compiler placed the 32-entry array in LDS (`lds = 32768`) and occupancy
+   dropped to ~6%. The decode now keeps a zero-run count in a register and
+   finalizes each element's signal with a compile-time index (a fully-unrolled
+   predicated write), guarded by `run != 0` so the common zero case costs
+   nothing. Together with `#pragma unroll` on the code-load/restore loops, every
+   local array is statically indexed and stays in registers (`lds = 0`).
+
+4. **Block size 32 → 256 (fused only).** A 32-thread block occupies a 64-lane
+   wavefront with half the lanes idle. Because the kernel addresses everything by
+   global thread index, enlarging to 256 threads only required fixing the center
+   lookup from `centers[bid * 2]` to `centers[warp]`. Occupancy went 6% → 91%.
+
+5. **Boundary fix (fused).** The tail-guard was changed from `>` to `>=` so the
+   padded threads of the last block exit cleanly at any block size.
+
+6. **Static vectorized signal write-out (unfused decode).** The decoded signals
+   are packed into `uint4` words using compile-time indices instead of a
+   runtime-indexed loop.
+
+## Synthetic GPU microbenchmark
+
+`microbench` runs synthetic integer, bitwise, and device-memory-copy kernels. Its optional arguments are the element count, trial count, and inner iteration count:
+
+```bash
+./build/microbench [elements] [trials] [inner_iterations]
+./build/microbench 16777216 5 256 > ./results/microbench.csv
+```
+
+It prints one CSV row per benchmark trial, with elapsed HIP-event time and a nominal operation rate (`Gop/s`) or copy bandwidth (`GB/s`). The copy kernel is repeated for each inner iteration; its reported bandwidth counts one read and one write per element per iteration. These synthetic results are useful for rough hardware comparisons, not as substitutes for timings of the ADM workload.
+
+## Capture system information
+
+Capture compiler, GPU, profiler, operating-system, and relevant environment details alongside benchmark results:
+
+```bash
+./scripts/system_info.sh ./results/system-mi210
+```
+
+The output directory contains `metadata.txt`, command output files, and `relevant_environment.txt`. Choose a new, empty output directory for each snapshot: the script creates the directory if needed and can replace files with matching names.
+
 ## Optional L2 counter profiling
 
-`profile.sh` collects L2 cache counters for every input and every stage in one pass, mirroring `run.sh`. It runs each stage through `rocprofv3` with the `GL2C_HIT_sum` and `GL2C_MISS_sum` counters (the gfx1100 / RDNA3 L2 counters), sums the counter values over the target ADM kernel(s) of each stage, and writes a `summary.csv` with one row per input per stage:
+`profile.sh` collects cache counters for every input and every stage in one pass, mirroring `run.sh`. Its defaults target gfx90a/Instinct MI210 and use the summed TCC counters:
+
+```text
+TCC_HIT_sum and TCC_MISS_sum
+```
+
+These counters are the appropriate defaults for the MI210 profile data in this repository. They are summed over the selected ADM kernel(s) and used to calculate a diagnostic hit rate. They are not, by themselves, proof that cache behavior causes a throughput difference.
 
 ```bash
 GPU_ID=0 ROCPROFV3=/opt/rocm-6.3.3/bin/rocprofv3 \
   ./scripts/profile.sh /path/to/testdata/u2/haac
 ```
 
-An optional second argument sets the result directory:
+An optional second argument sets the result directory. It must not already exist; profiling preserves prior results by refusing to reuse an existing directory:
 
 ```bash
 GPU_ID=0 ROCPROFV3=/opt/rocm-6.3.3/bin/rocprofv3 \
-  ./scripts/profile.sh /path/to/testdata/u2/haac ./profile/gfx1100
+  ./scripts/profile.sh /path/to/testdata/u2/haac ./profile/mi210-run-1
 ```
 
-The results directory contains `summary.csv`, `logs/`, `pmc/` (raw `counter_collection.csv` files), and `compressed/`. The summary columns are `input,stage,l2_hit_rate_pct,GL2C_HIT_sum,GL2C_MISS_sum,log`, where:
+The results directory contains `summary.csv`, `logs/`, and `pmc/` (raw `counter_collection.csv` files). Generated `.adm` files are kept in a temporary directory and removed when the script exits. With the defaults, the summary columns are `input,stage,l2_hit_rate_pct,TCC_HIT_sum,TCC_MISS_sum,log`, where:
 
 ```text
-L2 hit rate (%) = 100 * GL2C_HIT_sum / (GL2C_HIT_sum + GL2C_MISS_sum)
+L2 hit rate (%) = 100 * TCC_HIT_sum / (TCC_HIT_sum + TCC_MISS_sum)
 ```
 
-The target kernel(s) per stage are: fused compression `map_values_kernel_decoupled`; unfused compression `map_values_kernel_thrust`; fused decompression `decompress`; unfused decompression `decode_signals_uint16` and `restore_values_uint16` (both kernels summed, since they together complete the stage). Runtime/setup kernels such as `__amd_rocclr_fillBufferAligned` and the `thrust::exclusive_scan`/`concat` helpers are excluded. Override the counters with `COUNTERS`, `HIT_COUNTER`, and `MISS_COUNTER` if profiling a different architecture.
+The target kernel(s) per stage are: fused compression `map_values_kernel_decoupled`; unfused compression `map_values_kernel_thrust`; fused decompression `decompress`; unfused decompression `decode_signals_uint16` and `restore_values_uint16` (both kernels summed, since they together complete the stage). Runtime/setup kernels such as `__amd_rocclr_fillBufferAligned` and the `thrust::exclusive_scan`/`concat` helpers are excluded. Override the counters with `COUNTERS`, `HIT_COUNTER`, and `MISS_COUNTER` when profiling another architecture. For gfx1100/Radeon RX 7900 XTX, try `COUNTERS='GL2C_HIT_sum GL2C_MISS_sum' HIT_COUNTER=GL2C_HIT_sum MISS_COUNTER=GL2C_MISS_sum`; those GL2C counters may report zero on some RDNA3 driver/firmware combinations, in which case the hit rate is reported as `NA`.
 
-> **Note:** on gfx1100 (Radeon RX 7900 XTX) the `GL2C_HIT`/`GL2C_MISS` counters read zero under both `rocprofv2` and `rocprofv3` (a known RDNA3 hardware/firmware limitation), so the summary will show `NA` for the hit rate on that part even though the profiling pipeline is correct. `SQ_WAVES` and other counters do report normally; only the GL2C counters are flat-zero. Use `run.sh` output, not profiler runs, for throughput comparisons.
+Treat the hit rate as a measurement to compare alongside throughput, raw counters, and other hardware metrics. Keep the raw `pmc/*/counter_collection.csv` files because additional counters may be needed to explain a performance difference.
 
 ## Measurement scope
 
 The HIP event timings reported by these sources cover GPU ADM work, not file I/O, host-device copies, ANS, or the CPU lossless comparison. Fused decompression is timed as one kernel. Split decompression is timed across the signal-decode and value-restore kernels. Fused compression reports its fused mapping kernel; unfused compression reports mapping, prefix-sum, and concatenation separately and reports their sum as compression time. Thus the unfused compression total includes the GPU scan and concat work, not just a single kernel.
 
-The compiler version, ROCm release, GPU model, and architecture can change results. Record them alongside any transferred benchmark results (for example, `hipcc --version`, `rocminfo`, and the GPU model).
+## Reproducibility
+
+The compiler version, ROCm release, GPU model, architecture, selected GPU, and input dataset can change results. Record them alongside any transferred benchmark results. The `system_info.sh` helper captures this information where the corresponding tools are installed:
+
+```bash
+./scripts/system_info.sh ./results/system-mi210-run-1
+```
+
+For comparable measurements, keep the same input files, `GPU_ARCH`, GPU selection, ROCm environment, and result-directory naming convention. Run the benchmark more than once when evaluating small performance differences, and retain both `summary.csv` and the per-run logs.

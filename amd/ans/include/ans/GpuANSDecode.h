@@ -201,6 +201,38 @@ __device__ void ansDecodeWarpBlock(
   return;
 }
 
+// Decode two full blocks in interleaved fashion. Each block is an independent
+// serial rANS chain; issuing both back-to-back lets block B's arithmetic hide
+// block A's shared-memory/global-memory latency (the decode is latency-bound,
+// not throughput-bound).
+template <int ProbBits, int BlockSize>
+__device__ __forceinline__ void decodeTwoFullBlocksInterleaved(
+    int laneId,
+    ANSStateT stateA,
+    uint32_t compressedWordsA,
+    const ANSEncodedT* __restrict__ inA,
+    ANSStateT stateB,
+    uint32_t compressedWordsB,
+    const ANSEncodedT* __restrict__ inB,
+    uint8_t* __restrict__ outA,
+    uint8_t* __restrict__ outB,
+    const uint32_t* __restrict__ lookup) {
+  for (int i = BlockSize - kWarpSize + laneId; i >= 0; i -= kWarpSize) {
+    ANSDecodedT symA;
+    ANSDecodedT symB;
+    uint32_t numReadA;
+    uint32_t numReadB;
+    decodeOneWarp<ProbBits>(
+        stateA, compressedWordsA, inA, lookup, numReadA, symA);
+    decodeOneWarp<ProbBits>(
+        stateB, compressedWordsB, inB, lookup, numReadB, symB);
+    compressedWordsA -= numReadA;
+    compressedWordsB -= numReadB;
+    outA[i] = symA;
+    outB[i] = symB;
+  }
+}
+
 template <
     // typename InProvider,
     // typename OutProvider,
@@ -263,6 +295,34 @@ __global__ __launch_bounds__(128) void ansDecodeKernel(
   int laneId = getLaneId();
 
   for (int block = globalWarpId; block < numBlocks; block += warpsPerGrid) {
+    // Pair two full blocks and interleave their decode to hide the serial rANS
+    // dependency latency. The single partial block (at most one, the last) is
+    // handled by the per-block path below.
+    int blockB = block + warpsPerGrid;
+    if (blockB < numBlocks) {
+      auto wordsA = headerIn->getBlockWords(numBlocks)[block];
+      auto wordsB = headerIn->getBlockWords(numBlocks)[blockB];
+      if (((wordsA.x >> 16) == BlockSize) && ((wordsB.x >> 16) == BlockSize)) {
+        ANSStateT stateA = headerIn->getWarpStates()[block].warpState[laneId];
+        ANSStateT stateB = headerIn->getWarpStates()[blockB].warpState[laneId];
+        uint32_t compressedWordsA = wordsA.x & 0xffff;
+        uint32_t compressedWordsB = wordsB.x & 0xffff;
+        auto inA = headerIn->getBlockDataStart(numBlocks) + wordsA.y;
+        auto inB = headerIn->getBlockDataStart(numBlocks) + wordsB.y;
+        auto outA = (uint8_t*)out + block * BlockSize;
+        auto outB = (uint8_t*)out + blockB * BlockSize;
+
+        decodeTwoFullBlocksInterleaved<ProbBits, BlockSize>(
+            laneId,
+            stateA, compressedWordsA, inA,
+            stateB, compressedWordsB, inB,
+            outA, outB, lookup);
+
+        block = blockB;  // loop increment advances past both blocks
+        continue;
+      }
+    }
+
     // Load state
     ANSStateT state = headerIn->getWarpStates()[block].warpState[laneId];
 
@@ -392,8 +452,17 @@ void ansDecode(
     hipStream_t stream) {
   // auto table_dev =
   //     res.alloc<Uint32_t>(stream, numInBatch * (1 << config.probBits));
-  uint32_t* table_dev;
-  CUDA_VERIFY(hipMalloc(&table_dev, (1 << precision) * sizeof(uint32_t)));
+  // Persistent scratch buffer avoids per-call hipMalloc/hipFree latency.
+  static uint32_t* table_dev = nullptr;
+  static size_t tableCap = 0;
+  size_t tableBytes = (1u << precision) * sizeof(uint32_t);
+  if (tableBytes > tableCap) {
+    if (table_dev) {
+      CUDA_VERIFY(hipFree(table_dev));
+    }
+    CUDA_VERIFY(hipMalloc(&table_dev, tableBytes));
+    tableCap = tableBytes;
+  }
 
   // Build the rANS decoding table from the compression header
   {
@@ -463,8 +532,7 @@ void ansDecode(
   }
 
   CUDA_TEST_ERROR();
-  CUDA_VERIFY(hipStreamSynchronize(stream));
-  CUDA_VERIFY(hipFree(table_dev));
+  // Scratch buffer is cached for reuse; the caller synchronizes the stream.
   return;
 }
 

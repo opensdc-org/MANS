@@ -15,7 +15,15 @@ constexpr int kWarpSize = 32;
 constexpr int kChunk1D = 16;
 constexpr int kBlock1D = kWarpSize * kChunk1D;
 constexpr int kTile = 16;
-constexpr unsigned long long kThreshold = 3500;
+// "Allow tie" ADM-vs-raw threshold, type-dependent (mirrors amd/adm/mans_amd_adm.cpp
+// AdmTraits<T>::kThreshold). code is 1 byte/element, signal is ceil(diff/126) unary
+// bits; code+signal <= raw size (2 B u16 / 4 B u32) needs signal <= 8 bits (u16) /
+// <= 24 bits (u32), i.e. diff <= 1008 / <= 3024. The kernel tests `range < kThreshold`
+// (and diff <= range), so the constant is one past: 1009 / 3025.
+template <typename T>
+constexpr unsigned long long kThreshold() {
+    return sizeof(T) == 2 ? 1009ull : 3025ull;
+}
 
 template <typename T>
 __device__ inline T load_value(const T* input, std::size_t index) {
@@ -133,7 +141,7 @@ __global__ void encode(const T* input,
     }
     __syncthreads();
 
-    const bool use_adm = count != 0 && (max_value - min_value) < kThreshold;
+    const bool use_adm = count != 0 && (max_value - min_value) < kThreshold<T>();
     const T center = use_adm ? static_cast<T>(sum / count) : static_cast<T>(0);
     if (lane == 0) {
         centers[block] = center;

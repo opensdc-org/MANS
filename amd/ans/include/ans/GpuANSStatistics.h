@@ -23,23 +23,25 @@ __device__ void histogramSingle(
     const ANSDecodedT* __restrict__ in,
     uint32_t size,
     uint32_t* __restrict__ out) {
-  constexpr int kWarps = Threads / kWarpSize;
+  constexpr int kLanesPerBucket = 8;
+  constexpr int kBuckets = Threads / kLanesPerBucket;
   static_assert(Threads == kNumSymbols, "");
+  static_assert(kBuckets * kLanesPerBucket == Threads, "");
 
   // +1 in order to force very common symbols that could overlap into different
-  // banks?
-  __shared__ uint32_t buckets[kWarps][kNumSymbols + 1];
+  // banks
+  __shared__ uint32_t buckets[kBuckets][kNumSymbols + 1];
 
-  int warpId = threadIdx.x / kWarpSize;
+  int bucketId = threadIdx.x / kLanesPerBucket;
 
 #pragma unroll
-  for (int i = 0; i < kWarps; ++i) {
+  for (int i = 0; i < kBuckets; ++i) {
     buckets[i][threadIdx.x] = 0;
   }
 
   __syncthreads();
 
-  uint32_t* warpBucket = buckets[warpId];
+  uint32_t* warpBucket = buckets[bucketId];
 
   // If the size of batch is smaller than the increment for alignment, we only
   // handle the batch
@@ -123,7 +125,7 @@ __device__ void histogramSingle(
 
   uint32_t sum = buckets[0][threadIdx.x];
 #pragma unroll
-  for (int j = 1; j < kWarps; ++j) {
+  for (int j = 1; j < kBuckets; ++j) {
     sum += buckets[j][threadIdx.x];
   }
 

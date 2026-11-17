@@ -65,33 +65,6 @@ void check_size(std::size_t size, const char* what) {
     }
 }
 
-class DeviceBuffer {
-public:
-    DeviceBuffer() = default;
-    DeviceBuffer(const DeviceBuffer&) = delete;
-    DeviceBuffer& operator=(const DeviceBuffer&) = delete;
-    ~DeviceBuffer() { reset(); }
-
-    void allocate(std::size_t bytes, const char* what) {
-        reset();
-        if (bytes != 0) {
-            check_hip(hipMalloc(&ptr_, bytes), what);
-        }
-    }
-
-    void reset() {
-        if (ptr_) {
-            (void)hipFree(ptr_);
-            ptr_ = nullptr;
-        }
-    }
-
-    std::uint8_t* get() const { return ptr_; }
-
-private:
-    std::uint8_t* ptr_ = nullptr;
-};
-
 AmdAnsHeader read_header(const std::uint8_t* bytes) {
     AmdAnsHeader header{};
     std::memcpy(&header, bytes, sizeof(header));
@@ -132,27 +105,25 @@ void compress_stage_device(const std::uint8_t* d_input,
         throw std::runtime_error("mans::amd::ans: output buffer is smaller than the ANS bound.");
     }
 
-    DeviceBuffer d_size;
-    d_size.allocate(sizeof(std::uint32_t), "hipMalloc AMD ANS output size");
+    // The encoded size is recovered from the coalesced header already written to
+    // d_output, so we need a single D2H copy (instead of a separate size buffer
+    // plus a header copy), cutting one host round-trip on the small-file path.
     pans_hip::ansEncodeBatch(kPrecision, const_cast<std::uint8_t*>(d_input),
                              static_cast<std::uint32_t>(input_size), d_output,
-                             reinterpret_cast<std::uint32_t*>(d_size.get()), stream);
+                             nullptr, stream);
     check_hip(hipGetLastError(), "AMD ANS encode launch");
     check_hip(hipStreamSynchronize(stream), "AMD ANS encode synchronize");
-
-    std::uint32_t encoded_size = 0;
-    check_hip(hipMemcpy(&encoded_size, d_size.get(), sizeof(encoded_size), hipMemcpyDeviceToHost),
-              "AMD ANS output size copy");
-    output_size = encoded_size;
-    if (output_size > output_capacity || output_size < sizeof(AmdAnsHeader)) {
-        throw std::runtime_error("mans::amd::ans: invalid encoded size.");
-    }
 
     std::uint8_t header_bytes[sizeof(AmdAnsHeader)] = {};
     check_hip(hipMemcpy(header_bytes, d_output, sizeof(header_bytes), hipMemcpyDeviceToHost),
               "AMD ANS header copy");
     const AmdAnsHeader header = read_header(header_bytes);
-    validate_header(header, output_size);
+    const std::size_t encoded_size = header.total_compressed_size();
+    if (encoded_size > output_capacity || encoded_size < sizeof(AmdAnsHeader)) {
+        throw std::runtime_error("mans::amd::ans: invalid encoded size.");
+    }
+    validate_header(header, encoded_size);
+    output_size = encoded_size;
 }
 
 void decompress_stage_device(const std::uint8_t* d_input,

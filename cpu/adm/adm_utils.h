@@ -44,6 +44,16 @@ void adm_decompress_and_benchmark(
     const mans::MansParams& params
 );
 
+// Block-level ADM statistics from the most recent adm_compress call. Used to
+// report the fraction of blocks that actually took the ADM path (vs raw fallback)
+// when sweeping the threshold.
+struct AdmBlockStats {
+    std::size_t total_blocks = 0;
+    std::size_t adm_blocks = 0;
+};
+
+const AdmBlockStats& adm_last_block_stats();
+
 template <typename T>
 std::size_t adm_max_compressed_size(std::size_t num_elements,
                                     const mans::MansParams& params) {
