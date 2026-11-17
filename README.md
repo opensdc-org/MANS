@@ -1,15 +1,23 @@
-# MANS: Efficient and Portable ANS Encoding for Multi-Byte Integer Data on CPUs and GPUs
+# MANS+: Optimizing Both Compression Ratio and Throughput for Multi-Byte Integer Data
 
 [![C++ Version](https://img.shields.io/badge/C++-17%2B-blue.svg)](https://isocpp.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![CUDA](https://img.shields.io/badge/CUDA-12.6-yellow.svg)
 ![ROCm](https://img.shields.io/badge/ROCm-supported-red.svg)
 
-**MANS** is a high-performance compression framework designed to make **Asymmetric Numeral Systems (ANS)** efficient and portable for **multi-byte integer data** across CPUs, NVIDIA GPUs, and AMD GPUs.
+**MANS+** is a high-performance lossless compression framework that makes **Asymmetric Numeral Systems (ANS)** efficient and portable for **multi-byte integer data** across CPUs, NVIDIA GPUs, and AMD GPUs. It is the journal extension of **MANS** (SC '25) and optimizes both compression ratio and throughput.
 
-At the core of MANS is **ADM (Adaptive Data Mapping)** — a lightweight, distribution-aware transformation that maps 16/32-bit integers into a compact 8-bit domain, significantly improving both compression ratio and throughput while maintaining full numerical fidelity. ⚡
+At the core is **ADM (Adaptive Data Mapping)** — a lightweight, distribution-aware transformation that maps 16/32-bit integers into a compact 8-bit domain, improving both compression ratio and throughput while maintaining full numerical fidelity. ⚡
 
-This framework is tailored for high-volume scientific and HPC workloads such as photon science, large-scale simulations, and sensor-array pipelines, where multi-byte integer data is ubiquitous and processed in small slices. 🔬🚀
+Building on MANS, MANS+ introduces five key improvements:
+
+1. **Dimension-driven blocking** — a redesigned data blocking strategy that better exploits data locality.
+2. **Block-aware ADM** — a block-level ADM decision with a type-derived range threshold, improving compression on light-source and outlier-prone data.
+3. **CPU auto-tuning** — an automatic tuning mechanism for the CPU backend.
+4. **Byte-identical AMD optimizations** — register-resident ADM/ANS kernels that raise MI210 occupancy from 6% to 88–100% and close most of the NVIDIA gap.
+5. **HDF5 filter integration** — an HDF5 plugin (H5Z-MANS) evaluated in parallel I/O scenarios.
+
+The framework is tailored for high-volume scientific and HPC workloads such as photon science, large-scale simulations, and sensor-array pipelines, where multi-byte integer data is ubiquitous and processed in small slices. 🔬🚀
 
 (C) 2025 by Institute of Computing Technology, Chinese Academy of Sciences.
 
@@ -22,23 +30,33 @@ This framework is tailored for high-volume scientific and HPC workloads such as 
 ## ✨ Key Features
 
 * **🚀 High-Efficiency Compression**  
-  Achieves up to **1.24×** higher compression ratio than standard ANS and **2.37×** higher than 16-bit Huffman.
+  MANS achieves up to **1.24×** higher compression ratio than standard ANS; **MANS+** further improves the ratio by **1.22×** on average.
+
+* **🧩 Dimension-Driven Blocking**  
+  A redesigned blocking strategy that better exploits data locality across 1D/2D/3D data.
+
+* **🎯 Block-Aware Adaptive Data Mapping (ADM)**  
+  Each block independently selects ADM or RAW using a type-derived range threshold, improving compression on light-source and outlier-prone data.
 
 * **⚡ Cross-Platform High-Performance**  
   Optimized for:
   - NVIDIA GPUs (CUDA)
   - AMD GPUs (HIP/ROCm)
   - Multi-core CPUs with OpenMP + SIMD
+  MANS+ further raises compression/decompression throughput by **1.54×/2.40×** on CPUs and **2.22×/2.15×** on the AMD MI210 GPU.
 
-* **🧩 Adaptive Data Mapping (ADM)**  
-  Converts multi-byte integers into effective 8-bit symbols with **<1% overhead**.
+* **🔧 CPU Auto-Tuning**  
+  `cpu_mans_autotune` automatically sweeps mappings and thread configurations for the CPU backend.
+
+* **🖥️ Byte-Identical AMD Optimizations**  
+  Register-resident ADM/ANS kernels raise MI210 occupancy from 6% to 88–100%, closing most of the NVIDIA gap.
 
 * **🔀 Flexible CPU Modes**  
   - **-p mode**: portable, GPU-consistent ANS implementation  
   - **-r mode**: maximum compression ratio using FSE-ANS
 
-* **📦 Lightweight & Easy Integration**  
-  Minimal dependencies, C++17 compatible, and CMake-based build system.
+* **📦 HDF5 Filter & Lightweight Integration**  
+  An HDF5 filter plugin (H5Z-MANS) achieving **35.14 GB/s** write and **23.75 GB/s** read throughput in parallel I/O with 1920 CPU cores; minimal dependencies, C++17, CMake-based build.
 
 ---
 
@@ -65,7 +83,18 @@ MANS consistently delivers strong compression ratios across real-world scientifi
 
 MANS provides strong, consistent performance across diverse platforms:
 
-![Performance Plot](figure/THR.png)
+<p align="center">
+<table>
+  <tr>
+    <td align="center"><b>CPU compression</b><br/><img src="figure/cpuTHR-CMP.png" width="400"/></td>
+    <td align="center"><b>CPU decompression</b><br/><img src="figure/cpuTHR-DECMP.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>GPU compression</b><br/><img src="figure/gpu_cmp.png" width="400"/></td>
+    <td align="center"><b>GPU decompression</b><br/><img src="figure/gpu_decmp.png" width="400"/></td>
+  </tr>
+</table>
+</p>
 
 ### **Intel(R) Xeon(R) Gold 5220S**
 - **1.92×** faster compression vs. FSE-ANS  
@@ -173,7 +202,7 @@ MANS exposes complete MANS streams through `cpu_mans_compress`, `cpu_mans_decomp
 [MansHeader][PANS/ANS payload]
 ```
 
-The header records the codec, mode, raw byte count, and effective 1D/2D/3D geometry. ADM uses block-level decisions: each block independently selects ADM or RAW according to `range < 3500`.
+The header records the codec, mode, raw byte count, and effective 1D/2D/3D geometry. ADM uses block-level decisions: each block independently selects ADM or RAW. The decision uses a type-derived range threshold rather than a fixed constant — a 1-byte code leaves a signal budget of 8 bits for u16 / 24 bits for u32 (i.e. `diff ≤ 1008` / `≤ 3024`), implemented as `range < 1009` for u16 and `range < 3025` for u32.
 
 ### **Complete MANS stream: CPU and NVIDIA**
 
@@ -318,9 +347,16 @@ Please see the `LICENSE` file for full details.
 
 ## 📚 Citation
 
-If you use **MANS** in your research or software, please cite our work:
+If you use **MANS+** in your research or software, please cite the journal version below (the **MANS** conference version is also listed):
 
 ```
+@article{huang2026mansplus,
+  title={MANS+: Optimizing Both Compression Ratio and Throughput for Multi-Byte Integer Data},
+  author={Huang, Wenjing and Huang, Jingkai and Long, Haoquan and Yang, Jinwu and Yin, Shengquan and Li, Haoxu and Gu, Yida and Liu, Zedong and Jing, Xing and Wei, Zheng and Fu, Shiyuan and Hu, Hao and Liu, Jinyang and Tan, Guangming and Tao, Dingwen},
+  journal={IEEE Transactions on Parallel and Distributed Systems},
+  year={2026}
+}
+
 @inproceedings{huang2025mans,
   title={MANS: Efficient and Portable ANS Encoding for Multi-Byte Integer Data on CPUs and GPUs},
   author={Huang, Wenjing and Yang, Jinwu and Yin, Shengquan and Li, Haoxu and Gu, Yida and Liu, Zedong and Jing, Xing and Wei, Zheng and Fu, Shiyuan and Hu, Hao and others},
