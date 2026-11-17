@@ -105,8 +105,8 @@ MANS provides strong, consistent performance across diverse platforms:
 - Up to **288.45×** faster decompression compared to CPU portable mode  
 
 ### **AMD MI210 GPU**
-- Up to **90.42×** faster compression and **135.86×** faster decompression vs. CPU  
-- 0.52× CUDA compression throughput; 0.47× CUDA decompression throughput
+- **MANS+** substantially closes the NVIDIA gap, improving throughput over MANS-HIP by **1.11–2.22×** for compression (inputs ≥ 4 MB) and **1.20–2.15×** for decompression (inputs ≥ 16 MB).
+- MANS-HIP baseline: up to **90.42×** compression and **135.86×** decompression vs. CPU; **0.52×** / **0.47×** of CUDA compression / decompression throughput.
 
 ---
 
