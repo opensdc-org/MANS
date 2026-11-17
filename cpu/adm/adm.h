@@ -43,8 +43,10 @@ inline constexpr int warp_size = 32;
 // signal is ceil(diff/126) unary bits; code+signal <= raw size needs signal <= 8 bits (u16)
 // / <= 24 bits (u32), i.e. diff <= 1008 / <= 3024. The test uses `range < threshold` (and
 // diff <= range), so the constant is one past: 1009 / 3025.
-inline constexpr int threshold_16b = 1009;
-inline constexpr int threshold_32b = 3025;
+// These are non-constexpr so the benchmark can sweep them at runtime (via --threshold);
+// production code never mutates them and always uses the defaults below.
+inline int threshold_16b = 1009;
+inline std::uint64_t threshold_32b = 3025;
 
 // inline void compress_uint16(
 //     const uint16_t* input_data,
