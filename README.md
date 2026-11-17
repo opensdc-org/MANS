@@ -149,11 +149,26 @@ Available `TARGET_PLATFORM` values:
 - `cpu` — CPU-only build
 - `nv` — NVIDIA-only build
 - `cpu_nv` — CPU + NVIDIA build
-- `amd` — AMD-only build
-- `cpu_amd` — CPU + AMD build
+- `cpu_amd` — CPU + AMD build (the AMD backend requires the CPU backend, so use this instead of `amd`)
 - `cpu_dcu` — CPU + DCU build with CPU/DCU interoperability tests
 - `dcu` — standalone DCU build (HIP ADM and codec=1 P-mode ANS; no CPU/OpenMP dependency)
 - `all` — CPU + NVIDIA + AMD build
+
+Per-backend build commands (executables land under `build-*/bin/{cpu,nv,amd,dcu}`):
+
+```shell
+# CPU only
+cmake -S . -B build-cpu -DTARGET_PLATFORM=cpu -DBUILD_HDF5_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build-cpu -j
+
+# NVIDIA only
+cmake -S . -B build-nv -DTARGET_PLATFORM=nv -DBUILD_HDF5_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build-nv -j
+
+# AMD (HIP/ROCm) — requires the CPU backend
+cmake -S . -B build-amd -DTARGET_PLATFORM=cpu_amd -DBUILD_HDF5_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build-amd -j
+```
 
 The NVIDIA cross-backend test target is built when both `BUILD_TESTING=ON` and CPU/NVIDIA support are enabled.
 
@@ -189,6 +204,11 @@ If the DTK installation does not expose hipCUB headers automatically, add `-DDCU
 ```
 
 Adjust those paths to match the host compiler and include this option in the initial `cmake` configure command. The DCU command-line programs are written under `build/bin/dcu` as `build/bin/dcu/dcu_mans_compress` and `build/bin/dcu/dcu_mans_decompress`, alongside the CPU executables under `build/bin/cpu`; DCU test executables remain under `build/tests`.
+
+```bash
+./build/bin/dcu/dcu_mans_compress -u2 input.u2 output.dcu.mans --mode p --dims 17 17
+./build/bin/dcu/dcu_mans_decompress -u2 output.dcu.mans restored.dcu.u2
+```
 
 With `TARGET_PLATFORM=cpu_dcu` and `BUILD_TESTING=ON`, the DCU suite includes the CPU/DCU P-mode cross-backend test, which checks CPU-compress/DCU-decompress and DCU-compress/CPU-decompress paths. Standalone `TARGET_PLATFORM=dcu` builds the DCU executables without that CPU-dependent test.
 
@@ -291,7 +311,23 @@ The standalone ADM and ANS targets are useful for component-level benchmarking. 
 
 ### **AMD GPU**
 
-AMD ADM/ANS tools remain separate component-level targets. The complete CPU/NVIDIA P-mode interoperability described above applies to the `cpu_nv` build; AMD support follows its own HIP pipeline.
+Build the AMD backend with `-DTARGET_PLATFORM=cpu_amd`; the executables are written under `build-amd/bin/amd`. The AMD backend supports P mode only and follows its own HIP pipeline (it is not cross-interoperable with the CPU/NVIDIA streams above).
+
+```bash
+# compress (P mode)
+./build-amd/bin/amd/amd_mans_compress \
+  -u2 input.u2 output.amd.mans --mode p --dims 17 17
+
+# decompress
+./build-amd/bin/amd/amd_mans_decompress \
+  -u2 output.amd.mans restored.amd.u2
+```
+
+For end-to-end throughput over one or more raw files (1D geometry), use `amd_mans_bench`:
+
+```bash
+./build-amd/bin/amd/amd_mans_bench out.csv input1.u2 input2.u4 --warmup 3 --iters 10
+```
 
 ### **Cross-backend verification**
 
