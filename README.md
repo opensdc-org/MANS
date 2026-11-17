@@ -216,7 +216,7 @@ With `TARGET_PLATFORM=cpu_dcu` and `BUILD_TESTING=ON`, the DCU suite includes th
 
 ## 🚀 Usage
 
-MANS exposes complete MANS streams through `cpu_mans_compress`, `cpu_mans_decompress`, `nv_mans_compress`, and `nv_mans_decompress`. A complete stream has the following layout:
+MANS exposes complete MANS streams through the CPU (`cpu_mans_compress` / `cpu_mans_decompress`), NVIDIA (`nv_mans_compress` / `nv_mans_decompress`), AMD (`amd_mans_compress` / `amd_mans_decompress`), and DCU (`dcu_mans_compress` / `dcu_mans_decompress`) binaries. A complete stream has the following layout:
 
 ```text
 [MansHeader][PANS/ANS payload]
@@ -224,53 +224,55 @@ MANS exposes complete MANS streams through `cpu_mans_compress`, `cpu_mans_decomp
 
 The header records the codec, mode, raw byte count, and effective 1D/2D/3D geometry. ADM uses block-level decisions: each block independently selects ADM or RAW. The decision uses a type-derived range threshold rather than a fixed constant — a 1-byte code leaves a signal budget of 8 bits for u16 / 24 bits for u32 (i.e. `diff ≤ 1008` / `≤ 3024`), implemented as `range < 1009` for u16 and `range < 3025` for u32.
 
-### **Complete MANS stream: CPU and NVIDIA**
+### **Complete MANS stream**
 
-`-u2` selects unsigned 16-bit input and `-u4` selects unsigned 32-bit input. Use `--dims` to describe the logical shape; the product of the dimensions must equal the number of input elements.
+`-u2` selects unsigned 16-bit input and `-u4` selects unsigned 32-bit input. Use `--dims` to describe the logical shape; the product of the dimensions must equal the number of input elements. The paths below assume `-B build`; substitute your build directory if you configured a different one (e.g. `build-amd`).
 
-CPU P-mode compression:
-
-```bash
-./build/bin/cpu/cpu_mans_compress \
-  -u2 input.u2 output.mans \
-  --mode p --dims 17 17
-```
-
-CPU decompression:
+**CPU** (P and R modes):
 
 ```bash
-./build/bin/cpu/cpu_mans_decompress \
-  -u2 output.mans restored.u2
+./build/bin/cpu/cpu_mans_compress -u2 input.u2 output.mans --mode p --dims 17 17
+./build/bin/cpu/cpu_mans_decompress -u2 output.mans restored.u2
 ```
 
-NVIDIA compression:
+**NVIDIA** (P mode):
 
 ```bash
-./build/bin/nv/nv_mans_compress \
-  -u2 input.u2 output.cuda.mans \
-  --mode p --dims 17 17
+./build/bin/nv/nv_mans_compress -u2 input.u2 output.cuda.mans --mode p --dims 17 17
+./build/bin/nv/nv_mans_decompress -u2 output.cuda.mans restored.cuda.u2
 ```
 
-NVIDIA decompression:
+**AMD** (P mode):
 
 ```bash
-./build/bin/nv/nv_mans_decompress \
-  -u2 output.cuda.mans restored.cuda.u2
+./build/bin/amd/amd_mans_compress -u2 input.u2 output.amd.mans --mode p --dims 17 17
+./build/bin/amd/amd_mans_decompress -u2 output.amd.mans restored.amd.u2
 ```
 
-The complete streams are interoperable in P mode:
+**DCU** (P mode):
+
+```bash
+./build/bin/dcu/dcu_mans_compress -u2 input.u2 output.dcu.mans --mode p --dims 17 17
+./build/bin/dcu/dcu_mans_decompress -u2 output.dcu.mans restored.dcu.u2
+```
+
+The CPU and NVIDIA streams are interoperable in P mode (AMD and DCU follow their own HIP pipelines and are not cross-interoperable with CPU/NVIDIA):
 
 ```bash
 # CPU-compressed stream decoded by NVIDIA
-./build/bin/nv/nv_mans_decompress \
-  -u2 output.mans restored-by-cuda.u2
+./build/bin/nv/nv_mans_decompress -u2 output.mans restored-by-cuda.u2
 
 # NVIDIA-compressed stream decoded by CPU
-./build/bin/cpu/cpu_mans_decompress \
-  -u2 output.cuda.mans restored-by-cpu.u2
+./build/bin/cpu/cpu_mans_decompress -u2 output.cuda.mans restored-by-cpu.u2
 ```
 
-NVIDIA currently supports P mode only. CPU R mode remains available for CPU-only compression and decompression, but R-mode streams are not accepted by the NVIDIA backend.
+NVIDIA, AMD, and DCU support P mode only. CPU R mode remains available for CPU-only compression and decompression, but R-mode streams are not accepted by the GPU/DCU backends.
+
+For end-to-end throughput over one or more raw files, use the per-backend benchmark tools (`cpu_mans_bench`, `nv_mans_bench`, `amd_mans_bench`):
+
+```bash
+./build/bin/amd/amd_mans_bench out.csv input1.u2 input2.u4 --warmup 3 --iters 10
+```
 
 ### **CPU: autotune first, then auto-pick threads**
 
@@ -308,26 +310,6 @@ MANS_WARN_IF_NO_ADM=1 ./bin/cpu/cpu_mans_bench -u2 /path/to/input_u16.bin --mode
 ### **Low-level NVIDIA ADM/ANS tools**
 
 The standalone ADM and ANS targets are useful for component-level benchmarking. They do not replace the complete MANS API flow above and should not be used when testing CPU/NVIDIA stream interoperability.
-
-### **AMD GPU**
-
-Build the AMD backend with `-DTARGET_PLATFORM=cpu_amd`; the executables are written under `build-amd/bin/amd`. The AMD backend supports P mode only and follows its own HIP pipeline (it is not cross-interoperable with the CPU/NVIDIA streams above).
-
-```bash
-# compress (P mode)
-./build-amd/bin/amd/amd_mans_compress \
-  -u2 input.u2 output.amd.mans --mode p --dims 17 17
-
-# decompress
-./build-amd/bin/amd/amd_mans_decompress \
-  -u2 output.amd.mans restored.amd.u2
-```
-
-For end-to-end throughput over one or more raw files (1D geometry), use `amd_mans_bench`:
-
-```bash
-./build-amd/bin/amd/amd_mans_bench out.csv input1.u2 input2.u4 --warmup 3 --iters 10
-```
 
 ### **Cross-backend verification**
 
